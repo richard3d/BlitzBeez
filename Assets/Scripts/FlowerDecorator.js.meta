@@ -1,0 +1,8 @@
+fileFormatVersion: 2
+guid: ee483102d0d7190449c25f3c5f3c873f
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - m_ShieldInstance: {fileID: 100000, guid: 983e3db297aadff4b8e2d68bbf77982d, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}

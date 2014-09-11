@@ -1,0 +1,283 @@
+#pragma strict
+
+public class MenuListener implements GUIEventListener
+{
+	public var m_CurrData :String[];
+	public var  m_nView:NetworkView;
+	function OnItemClick(menu:GUIMenu, itemIndex:int ){
+	
+		if(GUIMenu.m_MenuSelStack.Count > 1)
+		{
+			var sel:int = GUIMenu.m_MenuSelStack[GUIMenu.m_MenuSelStack.Count-2].m_SelIndex;
+			;
+			//GUIMenu.m_MenuSelStack.Last().m_Menu[
+			if(m_CurrData != null && m_CurrData.length >= 2)
+			m_nView.RPC("MakePurchase", RPCMode.All, GUIMenu.m_MenuSelStack[GUIMenu.m_MenuSelStack.Count-2].m_Menu.m_MenuItems[sel].m_Text,itemIndex,float.Parse(m_CurrData[1]));
+		}
+		
+	}
+	function OnItemMouseEnter(menu:GUIMenu , itemIndex:int){
+	
+		var delimiters:char = ':'[0];
+		m_CurrData = menu.m_MenuItems[itemIndex].m_Data.Split(delimiters);
+	}
+	function OnItemMouseExit(menu:GUIMenu ,  itemIndex:int){
+	}
+}
+
+public class MenuThumbnail
+{
+	var m_Tex2D:Texture2D;
+	var m_Name:String;
+}
+
+var m_GUISkin : GUISkin = null;
+var m_BGTexture : Texture2D = null;
+var m_bShow : boolean = false;
+private var m_Fade : float = 0;
+
+
+//5811377
+ var m_MainSelIndex : int = 0;
+ var m_SubSelIndex : int = 0;
+ var m_ItemSelIndex : int = -1;
+
+var m_WeaponsMenu : GUIMenu;
+var m_StatsMenu : GUIMenu;
+var m_HiveMenu : GUIMenu;
+var m_MainMenu : GUIMenu;
+
+var m_MenuThumbnails : MenuThumbnail[];
+
+private var m_CurrSelMenu:Array = new Array(); //the main menu or submenu that we have currently selected
+private var m_MenuListener:MenuListener = new MenuListener();
+
+private function FindThumnail(name:String) : Texture2D
+{
+	for (var i = 0; i < m_MenuThumbnails.length;i++)
+	{
+		if(m_MenuThumbnails[i].m_Name.ToLower() == name.ToLower())
+		{
+			return m_MenuThumbnails[i].m_Tex2D;
+		}
+	}
+}
+
+function Start () {
+	
+	//set appropriate styles
+	 m_StatsMenu.m_Position.y = Screen.height*0.33+50;
+	 m_HiveMenu.m_Position.y = Screen.height*0.66+50;
+	 m_WeaponsMenu.m_Style = m_GUISkin.customStyles[0];
+	 m_StatsMenu.m_Style = m_GUISkin.customStyles[0];
+	 m_HiveMenu.m_Style = m_GUISkin.customStyles[0];
+	 
+	 for(var i = 0; i < m_WeaponsMenu.m_MenuItems.length; i++)
+	 {
+		m_WeaponsMenu.m_MenuItems[i].m_SubMenu.m_Style  = m_GUISkin.customStyles[1];
+	 }
+	 for(i = 0; i < m_StatsMenu.m_MenuItems.length; i++)
+	 {
+		m_StatsMenu.m_MenuItems[i].m_SubMenu.m_Style  = m_GUISkin.customStyles[1];
+	 }
+	 for( i = 0; i < m_HiveMenu.m_MenuItems.length; i++)
+	 {
+		m_HiveMenu.m_MenuItems[i].m_SubMenu.m_Style  = m_GUISkin.customStyles[1];
+	 }
+	 
+	 //register event listeners
+	 m_MenuListener.m_nView = networkView;
+	 m_WeaponsMenu.RegisterEventListener(m_MenuListener);
+	 m_StatsMenu.RegisterEventListener(m_MenuListener);
+	 m_HiveMenu.RegisterEventListener(m_MenuListener);
+}
+
+function Update () {
+	
+	 if(!m_bShow)
+		 return;
+	
+	if(Input.GetMouseButtonDown(1))
+	{
+		if(Network.isServer)
+			ExitHive();
+		else
+			networkView.RPC("ExitHive", RPCMode.Server);
+	}
+	
+	//if the user clicks off the menu( there is no valid sel index );
+	if (Input.GetMouseButtonDown(0) && GUIMenu.m_FocusedItem.m_SelIndex == -1)
+	{
+		//hide the menu
+		for(var i = 0 ; i < m_WeaponsMenu.m_MenuItems.Length; i++)
+			m_WeaponsMenu.m_MenuItems[i].m_SubMenu.Show(false);
+		for(i = 0 ; i < m_HiveMenu.m_MenuItems.Length; i++)
+			m_HiveMenu.m_MenuItems[i].m_SubMenu.Show(false);
+		for(i = 0 ; i < m_StatsMenu.m_MenuItems.Length; i++)
+			m_StatsMenu.m_MenuItems[i].m_SubMenu.Show(false);
+	}
+}
+
+
+
+//this is only executed on the server
+@RPC function ExitHive()
+{
+	Debug.Log("wet");
+	networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
+}
+
+@RPC function MakePurchase(attr:String, itemIndex:int, cost:float)
+{
+	Debug.Log("menu "	+attr+ " Sel " +itemIndex);
+	var bee: BeeControllerScript = GetComponent(BeeControllerScript);
+	if(GetComponent(BeeScript).m_Money >= cost)
+	{
+		GetComponent(BeeScript).m_Money -= cost;
+		bee.m_Stats[attr] = itemIndex;
+	}
+}
+
+function Show(bShow : boolean, hiveName : String)
+{
+	m_bShow = bShow;
+	
+	if(m_bShow)
+	{
+		m_MainSelIndex = 0;
+		//m_CurrSelMenu.Push(m_MainMenu);
+		//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
+		renderer.enabled = false;
+		
+	
+		for(var i = 0; i <transform.childCount; i++)
+		{
+			transform.GetChild(i).gameObject.active = false;
+		}
+		
+		GetComponent(SphereCollider).enabled = false;
+		GetComponent(NetworkInputScript).enabled = false;
+		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
+		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+		transform.position = gameObject.Find(hiveName).transform.position;
+	}
+	else
+	{
+		renderer.enabled = true;
+		for(i = 0; i <transform.childCount; i++)
+		{
+			transform.GetChild(i).gameObject.active = true;
+		}
+		m_Fade = 0;
+		Camera.main.orthographicSize = 100;
+		GetComponent(SphereCollider).enabled = true;
+		GetComponent(NetworkInputScript).enabled = true;
+	}
+}
+
+function OnGUI()
+{
+	if(m_bShow)
+	{	
+		var myDisplay : boolean  = false;
+		if(Network.isServer)
+		{
+		
+			if(gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject)
+				myDisplay = true;
+		}
+		else
+		if(Network.isClient)
+		{
+		
+			if(gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
+				myDisplay = true;
+		}
+		
+		if(myDisplay  == true)
+		{
+			//first fade in the background
+			if(m_Fade < 1 && m_bShow)
+			{
+				m_Fade += Time.deltaTime * 2;
+				Camera.main.orthographicSize -= Time.deltaTime * 90;
+			}
+			//GUI.color = Color.black;
+			GUI.color.a = m_Fade;
+			GUI.DrawTexture(Rect(0,0, Screen.width, Screen.height), m_BGTexture);
+			
+			
+			
+			var btnWidth : float = 200;
+			var btnHeight : float = 25;
+			
+			
+			if(m_Fade >= 1)
+			{
+				GUI.color = Color.white;
+				//draw info text
+				if(m_CurrSelMenu.length > 0)
+				{
+					var menu:GUIMenu = m_CurrSelMenu[m_CurrSelMenu.length-1];
+					if(m_MainSelIndex != -1)
+					{
+					//	var desc = menu.m_MenuItems[m_MainSelIndex].m_Description;
+					//	GUI.Label(Rect(Screen.width * 0.05, Screen.height * 0.04, 600, 54), desc, m_InfoStyle);
+					}
+				}
+				
+				var bgHeight = Screen.height*0.33-8;
+				//else				
+				//	GUI.Label(Rect(Screen.width * 0.05, Screen.height * 0.04, 600, 54), "Select a menu option below", m_InfoStyle);
+				//GUI.color.a = 0.5;
+				//draw the menu titles & draw the menu items
+				//yellow base background
+				GUI.color.a = 0.75;
+				GUI.Label(Rect(815, 0, Screen.width-815, Screen.height),"", m_GUISkin.customStyles[2]);
+				GUI.color.a = 1;
+				//white dialog background
+				GUI.Label(Rect(815, 264, Screen.width-815, 32),"", m_GUISkin.customStyles[5]);
+				//white pricing background
+				GUI.Label(Rect(815, 4, Screen.width-815, 256),"", m_GUISkin.customStyles[5]);
+				if(m_MenuListener.m_CurrData != null)
+				{
+					if(m_MenuListener.m_CurrData.length >= 1 )
+					{
+						GUI.Label(Rect(815, 4, Screen.width-815, 256),m_MenuListener.m_CurrData[0], m_GUISkin.label);
+					}
+					if(m_MenuListener.m_CurrData.length >= 2)
+					{
+						GUI.Label(Rect(815, 264, Screen.width-815, 32),"Cost: $"+m_MenuListener.m_CurrData[1], m_GUISkin.label);
+					}
+					if(m_MenuListener.m_CurrData.length == 3)
+					{
+						GUI.Label(Rect(815, 300, Screen.width-815, 128),FindThumnail(m_MenuListener.m_CurrData[2]),m_GUISkin.label);
+					}
+					
+				}
+				
+				//draw the menu titles & draw the menu items
+				GUI.color.a = 0.75;
+				GUI.Label(Rect(0, 0, 800, bgHeight),"", m_GUISkin.customStyles[2]);
+				GUI.color.a = 1;
+				GUI.Label(Rect(0, 50, 800, 30),"", m_GUISkin.customStyles[4]);
+				GUI.Label(Rect(0, 0, 800, 300),"Weapons", m_GUISkin.customStyles[3]);
+				m_WeaponsMenu.DrawMenu();
+				
+				GUI.color.a = 0.75;
+				GUI.Label(Rect(0, Screen.height*0.33+8, 800, bgHeight),"", m_GUISkin.customStyles[2]);
+				GUI.color.a = 1;
+				GUI.Label(Rect(0, Screen.height*0.33+50, 800, 30),"", m_GUISkin.customStyles[4]);
+				GUI.Label(Rect(0, Screen.height*0.33, 800, 300),"Stats", m_GUISkin.customStyles[3]);
+				m_StatsMenu.DrawMenu();	
+				
+				GUI.color.a = 0.75;
+				GUI.Label(Rect(0, Screen.height*0.66+16, 800, bgHeight),"", m_GUISkin.customStyles[2]);
+				GUI.color.a = 1;
+				GUI.Label(Rect(0, Screen.height*0.66+50, 800, 30),"", m_GUISkin.customStyles[4]);
+				GUI.Label(Rect(0, Screen.height*0.66, 800, Screen.height*0.3),"Hive", m_GUISkin.customStyles[3]);
+				m_HiveMenu.DrawMenu();					
+			}
+		}
+	}
+}

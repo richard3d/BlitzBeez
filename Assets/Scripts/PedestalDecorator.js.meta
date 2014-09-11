@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 776a2b985e010fd48bf819a251d5429a
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - LifeTexture: {fileID: 2800000, guid: 01ac300340711084795fb603ec84a70d, type: 1}
+  - BaseTexture: {fileID: 2800000, guid: 0a9ea57906c9aae4f8be27c4fecaebce, type: 1}
+  executionOrder: 0
+  icon: {instanceID: 0}
