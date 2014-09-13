@@ -46,6 +46,11 @@ function Update () {
 		{
 			m_BlinkTimer = 0.1;
 			renderer.enabled = !renderer.enabled;
+			//GetComponentInChildren(Renderer).enabled = !GetComponentInChildren(Renderer).enabled;
+			for(var t :Transform in transform)
+			{
+				t.GetComponent(Projector).enabled = !t.GetComponent(Projector).enabled;
+			}
 		}
 	}
 }

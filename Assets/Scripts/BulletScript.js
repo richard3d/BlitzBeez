@@ -3,9 +3,13 @@
 private static var m_InstanceID : int = 0;
 private var m_Life : float = 2;
 var m_HitEffect : GameObject = null;
+var m_BombExplosion:GameObject = null; 
 var m_HitSoundEffect : AudioClip = null;
+
 var m_MuzzleEffect : GameObject = null;
 var m_PowerShot : boolean = false;
+var m_BulletType : int = -1;
+var m_PowerShotType : int = -1;
 var m_Owner : GameObject = null;
 var m_Tgt : GameObject = null;
 var m_Homing : float = 0;
@@ -56,17 +60,23 @@ function Update () {
 	rigidbody.velocity = Vector3(0,0,0);
 
 	var up : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
-	var gos : GameObject[];
-	// gos = gameObject.FindGameObjectsWithTag("Bears");
-	// for(var go : GameObject in gos)
-	// {
-		// if(go == m_Owner)
-			// continue;
-		// var diff : Vector3 = go.transform.position - transform.position;
-		// var strength : float = Vector3.Dot(diff.normalized, up.m_Vel.normalized);
-		 // if(strength > 0.5)
-			 // up.m_Vel += diff.normalized * Time.deltaTime * 9 * (2500/diff.magnitude);
-	// }
+	//homing round
+	if(m_BulletType == 2)
+	{
+		
+		var gos : GameObject[];
+		gos = gameObject.FindGameObjectsWithTag("Player");
+		for(var go : GameObject in gos)
+		{
+			if(go == m_Owner)
+				continue;
+			var diff : Vector3 = go.transform.position - transform.position;
+			var strength : float = Vector3.Dot(diff.normalized, up.m_Vel.normalized);
+			 if(strength > 0.5)
+				 up.m_Vel += diff.normalized * Time.deltaTime * 9 * (3500/diff.magnitude);
+		}
+	}
+	
 	
 	if(m_PowerShot)
 	{
@@ -93,15 +103,98 @@ function OnCollisionEnter(other : Collision)
 	{
 		
 		Debug.Log(other.gameObject.name);
-		var refVel : Vector3 = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, other.contacts[0].normal);
-		refVel.y = 0;
+		
 		//GetComponent(UpdateScript).m_Vel = refVel;
 		
-		
-		
-		ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
-		ServerRPC.DeleteFromBuffer(gameObject);
-		
+		if(m_PowerShot)
+		{
+			switch (m_PowerShotType)
+			{
+				//default
+				//bulldozer
+				case 0:
+					m_PowerShotType--; 
+					ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+					break;
+				//standard (-1) explosive (1) scatter(2)
+				case 2:
+					var refNorm : Vector3 = other.contacts[0].normal;//transform.position - other.transform.position;
+					refNorm.y = 0;
+					refNorm.Normalize();
+					var refVel : Vector3 = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
+					refVel.y = 0;
+					refVel.Normalize();
+					GetComponent(UpdateScript).m_Vel = refVel;
+					//creates splinter bullet
+					m_PowerShotType = -1; 
+					for(var i = 0 ; i < 5; i++)
+					{
+						var rot :Quaternion = Quaternion.AngleAxis((i) * 15,Vector3.up); 
+						if( i == 0)
+						{
+							rot = Quaternion.identity;
+						}
+						refVel = rot*refNorm;
+						Debug.Log(refVel);
+						var go : GameObject  = Network.Instantiate(m_Owner.GetComponent(BeeControllerScript).m_BulletInstance, transform.position + refVel * 2, Quaternion.LookRotation(refVel, Vector3.up), 0);	
+						m_Owner.networkView.RPC("Shot", RPCMode.All, go.name, go.transform.position+ refVel * 2, refVel * go.GetComponent(UpdateScript).m_MaxSpeed);
+					}
+					
+					ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+					ServerRPC.DeleteFromBuffer(gameObject);
+				break;
+				default: 
+					ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+					ServerRPC.DeleteFromBuffer(gameObject);
+				break;
+			}
+		}
+		else
+		{
+			switch (m_BulletType)
+			{
+				//ricochet type
+				case 0: 
+					refNorm = other.contacts[0].normal;
+					refNorm.y = 0;
+					refNorm.Normalize();
+					refVel = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
+					refVel.y = 0;
+					m_BulletType = -1;
+					refVel.Normalize();
+					GetComponent(UpdateScript).m_Vel = refVel*GetComponent(UpdateScript).m_MaxSpeed;
+					ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+				break;
+				//penetration
+				case 1:
+					if(other.gameObject.GetComponent(PenetrableScript) != null)
+					{
+						var sum = Dice.RollDice(1, 6);
+						if(sum/6.0 > (1-other.gameObject.GetComponent(PenetrableScript).m_PercentChanceOfPenetration))
+						{
+							//m_BulletType = -1;
+							ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+						}
+						else
+						{
+							ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+							ServerRPC.DeleteFromBuffer(gameObject);
+						}
+					}
+					else
+					{
+						ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+						ServerRPC.DeleteFromBuffer(gameObject);
+					}
+				break;
+				default:
+					ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+					ServerRPC.DeleteFromBuffer(gameObject);
+				break;
+			}
+			//ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+			//ServerRPC.DeleteFromBuffer(gameObject);
+		}
 		
 		//if(m_PowerShot)
 		//{
@@ -212,6 +305,20 @@ function OnTriggerEnter(other : Collider)
 	}
 }
 
+@RPC function BulletHit(pos:Vector3)
+{
+	var go : GameObject = gameObject.Instantiate(m_HitEffect);
+	go.transform.position = pos;
+	if(m_PowerShot)
+	{
+		var systems:Component[] = go.GetComponentsInChildren(ParticleSystem);
+		for (var system:ParticleSystem in systems)
+		{
+			system.startSize *= 3;
+		}
+	}
+}
+
 @RPC
 function KillBullet(pos:Vector3)
 {
@@ -224,6 +331,22 @@ function KillBullet(pos:Vector3)
 			{
 				system.startSize *= 3;
 			}
+			switch (m_PowerShotType)
+			{
+				
+				
+				//explosive
+				case 1: 
+					go = gameObject.Instantiate(m_BombExplosion);
+					go.transform.position = transform.position;
+					go.transform.position.y = 0;
+					Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
+				break;
+				//scatter
+				case 2: 
+				break;
+			}
+			
 
 		}
 		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);

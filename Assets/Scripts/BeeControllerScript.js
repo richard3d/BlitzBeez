@@ -56,7 +56,7 @@ var m_ClipSize : int = 30;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip Size":10, "Special Rounds":1, "Powershot":1, "Health":1, "Speed":1, "Stamina":1.5, "Reload Speed":1.5,  "Fire Rate" : 6.5 };
+var m_Stats = {"Loadout":-1, "Clip Size":10, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":1.5, "Reload Speed":1.5,  "Fire Rate" : 6.5 };
 
 
 
@@ -393,6 +393,7 @@ function OnPlayerLookAt(at : Vector3)
 	go.GetComponent(BulletScript).m_Owner = gameObject;
 	Camera.main.GetComponent(CameraScript).Shake(0.25,0.25);
 	go.GetComponent(BulletScript).m_PowerShot = false;
+	go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
 	//make it so we dont collide with our own bullets
 	Physics.IgnoreCollision(go.collider, collider);
 	
@@ -429,6 +430,7 @@ function OnPlayerLookAt(at : Vector3)
 	var go : GameObject = gameObject.Find(bulletName);
 	go.GetComponent(BulletScript).m_Owner = gameObject;
 	go.GetComponent(BulletScript).m_PowerShot = true;
+	go.GetComponent(BulletScript).m_PowerShotType = m_Stats["Powershot"];
 	//make it so we dont collide with our own bullets
 	Physics.IgnoreCollision(go.collider, collider);
 	

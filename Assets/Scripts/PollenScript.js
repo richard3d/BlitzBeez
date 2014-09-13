@@ -48,6 +48,7 @@ function Update () {
 			var effect : GameObject = gameObject.Instantiate(m_PickupEffect);
 	
 			effect.transform.position = m_Owner.transform.position;
+			m_Owner.transform.localScale += Vector3(0.5,0.5,0.5);
 			if((m_Owner.GetComponent(BeeScript).m_PollenCount+1)%3 == 0)
 			{
 				audio.PlayClipAtPoint(m_LevelUpSound, Camera.main.transform.position);

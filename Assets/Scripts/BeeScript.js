@@ -58,7 +58,7 @@ function Start () {
 	m_XPToLevel  = [25,100,300,500,750];
 	m_XPToSwmLevel  = [25,100,300,500,750];
 	m_HoneycombCount = 0;
-	m_Money = 0;
+	m_Money = 9999;
 }
 
 function Update () {
@@ -91,7 +91,7 @@ function DrawGUI()
 	// GUI.DrawTexture(Rect(30,Screen.height -80, 256, 32), LifeBarBGTexture, ScaleMode.ScaleToFit, true);
 	//fXP = m_CurrXP;
 	var health:int =GetComponent(BeeControllerScript).m_Stats["Health"];
-	 for(var i = 0; i < 3+health; i++)
+	 for(var i = 0; i < 3+(health+1); i++)
 	 {
 		 GUI.DrawTexture(Rect(83+i*44, 68, 44, 32), m_LifeTextureContainer, ScaleMode.StretchToFill, true);
 	 }
@@ -312,6 +312,12 @@ function FindRespawnLocation() : Vector3
 	var go : GameObject = gameObject.Instantiate(m_DeathEffect);
 	go.transform.position = transform.position;
 	go.renderer.material.color = renderer.material.color;
+	
+	var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
+	splatter.transform.position = transform.position;
+	splatter.transform.position.y = 0.1;
+	splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
+	splatter.renderer.material.color = renderer.material.color;
 	
 	if(GetComponent(DizzyDecorator) != null)
 		gameObject.Destroy(gameObject.GetComponent(DizzyDecorator));

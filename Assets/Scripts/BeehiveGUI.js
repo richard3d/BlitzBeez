@@ -8,11 +8,15 @@ public class MenuListener implements GUIEventListener
 	
 		if(GUIMenu.m_MenuSelStack.Count > 1)
 		{
-			var sel:int = GUIMenu.m_MenuSelStack[GUIMenu.m_MenuSelStack.Count-2].m_SelIndex;
-			;
+			//get the main category selection (0 index in the stack). This value is the attribute name we pass for MakePurchase
+			var sel:int = GUIMenu.m_MenuSelStack[0].m_SelIndex;
+
+			var subSelIndex : int = 0;
+			if(GUIMenu.m_MenuSelStack.Count > 2)
+				subSelIndex = GUIMenu.m_MenuSelStack[GUIMenu.m_MenuSelStack.Count-2].m_SelIndex;
 			//GUIMenu.m_MenuSelStack.Last().m_Menu[
 			if(m_CurrData != null && m_CurrData.length >= 2)
-			m_nView.RPC("MakePurchase", RPCMode.All, GUIMenu.m_MenuSelStack[GUIMenu.m_MenuSelStack.Count-2].m_Menu.m_MenuItems[sel].m_Text,itemIndex,float.Parse(m_CurrData[1]));
+			m_nView.RPC("MakePurchase", RPCMode.All, GUIMenu.m_MenuSelStack[0].m_Menu.m_MenuItems[sel].m_Text,itemIndex,subSelIndex,float.Parse(m_CurrData[1]));
 		}
 		
 	}
@@ -123,18 +127,19 @@ function Update () {
 //this is only executed on the server
 @RPC function ExitHive()
 {
-	Debug.Log("wet");
 	networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
 }
 
-@RPC function MakePurchase(attr:String, itemIndex:int, cost:float)
+@RPC function MakePurchase(attr:String, itemIndex:int,subSelIndex:int, cost:float)
 {
-	Debug.Log("menu "	+attr+ " Sel " +itemIndex);
+	//if there is a valid sub selection index add 1 to it, to bias it for multiplication with the item index
+	
+	Debug.Log("menu "	+attr+ " Sel " +(itemIndex+subSelIndex*3));
 	var bee: BeeControllerScript = GetComponent(BeeControllerScript);
 	if(GetComponent(BeeScript).m_Money >= cost)
 	{
 		GetComponent(BeeScript).m_Money -= cost;
-		bee.m_Stats[attr] = itemIndex;
+		bee.m_Stats[attr] = (itemIndex+subSelIndex*3);
 	}
 }
 
@@ -247,7 +252,11 @@ function OnGUI()
 					}
 					if(m_MenuListener.m_CurrData.length >= 2)
 					{
-						GUI.Label(Rect(815, 264, Screen.width-815, 32),"Cost: $"+m_MenuListener.m_CurrData[1], m_GUISkin.label);
+						if(GetComponent(BeeControllerScript).m_Stats[m_MenuListener.m_CurrData[0]] != -1)
+						{
+							//GUI.Label(Rect(815, 264, Screen.width-815, 32),"Already Purchased", m_GUISkin.label);
+						}
+						GUI.Label(Rect(815, 264, Screen.width-815, 32),"Money: $"+GetComponent(BeeScript).m_Money+"                  Cost: $"+m_MenuListener.m_CurrData[1], m_GUISkin.label);
 					}
 					if(m_MenuListener.m_CurrData.length == 3)
 					{
