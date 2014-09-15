@@ -64,7 +64,7 @@ function OnDestroy()
 	
 	GetComponent(BeeScript).m_HP = 3;
 	collider.enabled = true;
-	
+	gameObject.transform.localScale = Vector3(2,2,2);
 	//gameObject.animation.Play("SpawnPlayer");
 	GetComponentInChildren(Projector).enabled = true;
 	Destroy(GetComponent(ControlDisablerDecorator));

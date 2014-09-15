@@ -481,6 +481,7 @@ public class GUIMenu  {
 					m_FocusedItem.m_Menu = this;
 					m_FocusedItem.m_SelIndex = itemIndex;
 					//handle internal menu showing of submenus etc.
+					Debug.Log("Enter");
 					OnItemMouseEnter(m_FocusedItem.m_Menu, m_FocusedItem.m_SelIndex);
 					MenuDispatcher.DispatchEvent(GUIEvent.eMouseEnter, m_FocusedItem.m_Menu, m_FocusedItem.m_SelIndex);
 					

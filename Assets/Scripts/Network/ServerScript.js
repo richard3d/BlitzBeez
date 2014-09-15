@@ -479,7 +479,7 @@ function GetGameObject() : GameObject
 	go.name = "Bee" + clientID; 
 	SetClientGameObject(clientID,go.name);
 	ServerRPC.Buffer(m_SyncMsgsView, "SetClientGameObject", RPCMode.Others, clientID, go.name);
-	ServerRPC.Buffer(go.networkView, "AddSwarm", RPCMode.All, "", Vector3(0,0,0), go.GetComponent(BeeControllerScript).m_ClipSize);
+	ServerRPC.Buffer(go.networkView, "AddSwarm", RPCMode.All, "", Vector3(0,0,0), go.GetComponent(BeeControllerScript).m_LoadOut.m_BaseClipSize);
 	ServerRPC.Buffer(go.networkView, "Reload", RPCMode.All);
 	ServerRPC.Buffer(go.networkView, "QuickReload", RPCMode.All);
 }

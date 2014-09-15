@@ -58,7 +58,7 @@ function Start () {
 	m_XPToLevel  = [25,100,300,500,750];
 	m_XPToSwmLevel  = [25,100,300,500,750];
 	m_HoneycombCount = 0;
-	m_Money = 9999;
+	m_Money = 9500;
 }
 
 function Update () {
@@ -174,6 +174,8 @@ function DrawGUI()
 		
 	GUI.Label(Rect(Screen.width - 235, Screen.height - 65, 132,132), (ammo < 10 ? "0" +ammo.ToString() : ammo.ToString()), FontStyle);
 	var reloadSpeed :float = GetComponent(BeeControllerScript).m_Stats["Reload Speed"];
+	var base : float = GetComponent(BeeControllerScript).m_LoadOut.m_BaseReloadSpeed;
+	reloadSpeed = base -  ((reloadSpeed+1.0) /4.0)*base;
 	var ReloadPerc : float = GetComponent(BeeControllerScript).m_ReloadTimer/reloadSpeed;
 	
 	//fast reload bar
@@ -329,6 +331,8 @@ function FindRespawnLocation() : Vector3
 	}
 	
 	Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
+	Debug.Log("huh");
+	
 	gameObject.AddComponent(RespawnDecorator);
 	GetComponent(RespawnDecorator).SetLifetime(3);
 	GetComponent(RespawnDecorator).m_RespawnPos = pos;

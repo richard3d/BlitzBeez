@@ -16,7 +16,7 @@ public class MenuListener implements GUIEventListener
 				subSelIndex = GUIMenu.m_MenuSelStack[GUIMenu.m_MenuSelStack.Count-2].m_SelIndex;
 			//GUIMenu.m_MenuSelStack.Last().m_Menu[
 			if(m_CurrData != null && m_CurrData.length >= 2)
-			m_nView.RPC("MakePurchase", RPCMode.All, GUIMenu.m_MenuSelStack[0].m_Menu.m_MenuItems[sel].m_Text,itemIndex,subSelIndex,float.Parse(m_CurrData[1]));
+				m_nView.RPC("MakePurchase", RPCMode.All, GUIMenu.m_MenuSelStack[0].m_Menu.m_MenuItems[sel].m_Text,itemIndex,subSelIndex,float.Parse(m_CurrData[1]));
 		}
 		
 	}
@@ -140,6 +140,18 @@ function Update () {
 	{
 		GetComponent(BeeScript).m_Money -= cost;
 		bee.m_Stats[attr] = (itemIndex+subSelIndex*3);
+		
+		if(attr == "Loadout")
+		{
+			GetComponent(BeeControllerScript).m_Stats["Fire Rate"] = -1;
+			GetComponent(BeeControllerScript).m_Stats["Clip Size"] = -1;
+			GetComponent(BeeControllerScript).m_Stats["Reload Speed"] = -1;
+		}
+		else if(attr == "Clip Size")
+		{
+			GetComponent(BeeControllerScript).Reload();
+			GetComponent(BeeControllerScript).QuickReload();
+		}
 	}
 }
 
@@ -177,6 +189,17 @@ function Show(bShow : boolean, hiveName : String)
 		Camera.main.orthographicSize = 100;
 		GetComponent(SphereCollider).enabled = true;
 		GetComponent(NetworkInputScript).enabled = true;
+		Debug.Log("Hiding");
+		//hide the menu
+		GUIMenu.m_FocusedItem.m_SelIndex = -1;
+		GUIMenu.m_FocusedItem.m_Menu = null;
+		for(i = 0 ; i < m_WeaponsMenu.m_MenuItems.Length; i++)
+			m_WeaponsMenu.m_MenuItems[i].m_SubMenu.Show(false);
+		for(i = 0 ; i < m_HiveMenu.m_MenuItems.Length; i++)
+			m_HiveMenu.m_MenuItems[i].m_SubMenu.Show(false);
+		for(i = 0 ; i < m_StatsMenu.m_MenuItems.Length; i++)
+			m_StatsMenu.m_MenuItems[i].m_SubMenu.Show(false);
+		
 	}
 }
 
@@ -262,7 +285,15 @@ function OnGUI()
 					{
 						GUI.Label(Rect(815, 300, Screen.width-815, 128),FindThumnail(m_MenuListener.m_CurrData[2]),m_GUISkin.label);
 					}
-					
+				}
+				
+				GUI.Label(Rect(815, 300, Screen.width-815, 304),"", m_GUISkin.customStyles[5]);
+				var count = 0;
+				for(var prop in GetComponent(BeeControllerScript).m_Stats)
+				{
+						var val:int = prop.Value;
+						GUI.Label(Rect(815, 304+32*count, Screen.width-815, 32),prop.Key+": +" +(val+1),m_GUISkin.label);
+						count++;
 				}
 				
 				//draw the menu titles & draw the menu items

@@ -52,11 +52,11 @@ var m_FireTimer : float  = 0;
 var m_ReloadTime : float = 1;
 var m_ReloadTimer : float = 0;
 var m_DashTimer : float = 0;
-var m_ClipSize : int = 30;
+//var m_ClipSize : int = 30;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip Size":10, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":1.5, "Reload Speed":1.5,  "Fire Rate" : 6.5 };
+var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1 };
 
 
 
@@ -91,7 +91,8 @@ function Update()
 		{
 			m_ReloadJam = false;
 			GetComponentInChildren(ParticleRenderer).enabled = true;
-			GetComponentInChildren(BeeParticleScript).SetNumParticles(m_ClipSize);
+			var clip:int = m_Stats["Clip Size"];
+			GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 		}
 	}
 	
@@ -160,7 +161,8 @@ function OnNetworkInput(IN : InputState)
 	//handle dash button
 	if(m_MovementKeyPressed && IN.GetAction(IN.DASH) && !IsDashing && m_DashTimer <= 0)
 	{
-		var dashTime : float = m_Stats["Stamina"];
+		var stam:float = m_Stats["Stamina"];
+		var dashTime : float = 1.0 + (stam+1.0)*0.35;
 		m_DashTimer = 1/dashTime;
 		networkView.RPC("Dash", RPCMode.All);
 	}
@@ -214,10 +216,12 @@ function OnNetworkInput(IN : InputState)
 			{
 				//regular shot
 				
-				if(/*m_FireTimer <= 0 &&*/ m_ReloadTimer <= 0)
+				if(m_FireTimer <= 0 && m_ReloadTimer <= 0)
 				{
+					
 					var rate : float = m_Stats["Fire Rate"];
-					m_FireTimer = 1/rate;//m_FireRate;
+					var fireRate = m_LoadOut.m_BaseFireRate + (rate+1);
+					m_FireTimer = 1/fireRate;//m_FireRate;
 					HandleShotLogic();
 				}
 				
@@ -350,13 +354,14 @@ function OnPlayerLookAt(at : Vector3)
 @RPC function QuickReload()
 {
 	var reload:float = m_Stats["Reload Speed"];
-	
+	reload = m_LoadOut.m_BaseReloadSpeed -  ((reload+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	
 	if(!m_ReloadJam && 1-m_ReloadTimer/reload >= 0.22 && 1-m_ReloadTimer/reload<= 0.38)
 	{
 		m_ReloadTimer = 0;
 		GetComponentInChildren(ParticleRenderer).enabled = true;
-		GetComponentInChildren(BeeParticleScript).SetNumParticles(m_ClipSize);
+		var clip:int = m_Stats["Clip Size"];
+		GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 		if((Network.isServer && gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject) ||
 		Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
 		{
@@ -372,6 +377,7 @@ function OnPlayerLookAt(at : Vector3)
 @RPC function Reload()
 {
 	m_ReloadTimer = m_Stats["Reload Speed"];
+	m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 	if((Network.isServer && gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject) ||
 		Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
@@ -408,7 +414,10 @@ function OnPlayerLookAt(at : Vector3)
 	go.GetComponent(TrailRenderer).startWidth = go.transform.localScale.x;
 	go.GetComponent(TrailRenderer).material.SetColor("_Emission", renderer.material.color);
 	if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
+	{
 		m_ReloadTimer = m_Stats["Reload Speed"];
+		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+	}
 	GetComponentInChildren(BeeParticleScript).RemoveParticle();
     go.renderer.material.SetColor("_TintColor", renderer.material.color);
 }
@@ -460,7 +469,11 @@ function OnPlayerLookAt(at : Vector3)
 	
 	//time to relaod
 	if(GetComponentInChildren(ParticleRenderer).enabled == false)
+	{
 		m_ReloadTimer = m_Stats["Reload Speed"];
+		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+		
+	}
 	
 	go.renderer.material.SetColor("_TintColor", renderer.material.color);
 	go.GetComponent(TrailRenderer).material.SetColor("_TintColor", renderer.material.color);

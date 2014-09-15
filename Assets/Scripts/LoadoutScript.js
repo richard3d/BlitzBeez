@@ -11,6 +11,9 @@ class LoadOut
 {
 	
 	var m_PowerShot : int = 0;
+	var m_BaseFireRate:float = 6.5;
+	var m_BaseReloadSpeed:float = 1.5; //(really the time for the reload)
+	var m_BaseClipSize : int = 30;
 	var m_Pylons : Pylon[];
 	function LoadOut() { m_Pylons = new Pylon[8]; }
 	function CreateLoadOut(type : int)
@@ -28,17 +31,21 @@ class LoadOut
 			break;
 			case 0:
 				// ||
+				m_BaseFireRate = 5.0;
 				m_Pylons[0].PosOffset = Vector3(-3, 0, 0);	
 				m_Pylons[1].PosOffset = Vector3(3, 0, 0);
 			break;
 			case 1:
 				// |||
+				m_BaseFireRate = 4.0;
 				m_Pylons[0].PosOffset = Vector3(-6, 0, 0);
 				m_Pylons[1].PosOffset = Vector3(6, 0, 0);
 				m_Pylons[2].PosOffset = Vector3(0, 0, 1);
 			break;
 			case 2:
 				// ||||
+				m_BaseFireRate = 3.0;
+				m_BaseClipSize = 20;
 				m_Pylons[0].PosOffset = Vector3(-9, 0, 0);
 				m_Pylons[1].PosOffset = Vector3(-3, 0, 0);
 				m_Pylons[2].PosOffset = Vector3(3, 0, 0);
@@ -46,6 +53,7 @@ class LoadOut
 			break;
 			case 3:
 				// \/
+				m_BaseFireRate = 5.0;
 				m_Pylons[0].AngOffset = -5.0;
 				m_Pylons[0].PosOffset = Vector3(-3, 0, 0);
 				m_Pylons[1].AngOffset = 5.0;
@@ -53,6 +61,7 @@ class LoadOut
 			break;
 			case 4:
 				// \|/
+				m_BaseFireRate = 4.0;
 				m_Pylons[0].AngOffset = -5.0;
 				m_Pylons[0].PosOffset = Vector3(-6, 0, 0);
 				m_Pylons[1].AngOffset = 5.0;
@@ -61,6 +70,8 @@ class LoadOut
 			break;
 			case 5:
 				// \\//
+				m_BaseFireRate = 3.0;
+				m_BaseClipSize = 20;
 				m_Pylons[0].PosOffset = Vector3(-9, 0, 0);
 				m_Pylons[1].PosOffset = Vector3(-3, 0, 0);
 				m_Pylons[2].PosOffset = Vector3(3, 0, 0);
@@ -73,6 +84,7 @@ class LoadOut
 			case 6:
 				// |
 				// |
+				m_BaseFireRate = 5.0;
 				m_Pylons[0].PosOffset = Vector3(0, 0, 3);
 				m_Pylons[0].AngOffset = 0;
 				m_Pylons[1].PosOffset = Vector3(0, 0, -3);
@@ -82,6 +94,7 @@ class LoadOut
 			break;
 			case 7:
 				// _|_
+				m_BaseFireRate = 4.0;
 				m_Pylons[0].PosOffset = Vector3(0, 0, 3);
 				m_Pylons[1].AngOffset = 90;
 				m_Pylons[1].PosOffset = Vector3(4, 0, 0);
@@ -91,6 +104,8 @@ class LoadOut
 			case 8:
 				// _|_
 				//  |
+				m_BaseFireRate = 3.0;
+				m_BaseClipSize = 20;
 				m_Pylons[0].PosOffset = Vector3(0, 0, 3);
 				m_Pylons[1].AngOffset = 90;
 				m_Pylons[1].PosOffset = Vector3(4, 0, 0);
