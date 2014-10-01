@@ -28,3 +28,9 @@ function Update () {
 	}
 
 }
+
+function OnDestroy()
+{
+	Debug.Log("Showing");
+	renderer.enabled  = true;
+}

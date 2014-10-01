@@ -9,13 +9,13 @@ function Awake()
 	renderer.enabled = false;
 	collider.enabled = false;
 	
-	GetComponentInChildren(Projector).enabled = false;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 }
 
 function Start () {
 
-	
+	renderer.enabled = false;
+	Debug.Log("hiding");
 
 }
 
@@ -66,7 +66,7 @@ function OnDestroy()
 	collider.enabled = true;
 	gameObject.transform.localScale = Vector3(2,2,2);
 	//gameObject.animation.Play("SpawnPlayer");
-	GetComponentInChildren(Projector).enabled = true;
+	
 	Destroy(GetComponent(ControlDisablerDecorator));
 	GetComponent(BeeScript).enabled = true;
 	GetComponent(TrailRenderer).enabled = false;

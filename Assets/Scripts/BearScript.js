@@ -1,10 +1,12 @@
 #pragma strict
 var m_Radius : float = 100;
 var m_HitTimer : float = 0;
+var m_Diff:Vector3;
 private var m_InitialPos : Vector3;
 function Start () {
 
 	m_InitialPos = transform.position;
+	animation.Play("BearWalk");
 
 }
 
@@ -17,30 +19,39 @@ function Update () {
 	
 	for(var bee : GameObject in gameObject.FindGameObjectsWithTag("Player"))
 	{
-		var diff : Vector3 = bee.transform.position - transform.position;
-		if(diff.magnitude < dist && (m_InitialPos - bee.transform.position).magnitude < m_Radius)
+		var diff : Vector3 = bee.transform.position - transform.parent.position;
+		if(diff.magnitude < dist )
 		{
 			dist = diff.magnitude;
 			target = bee;
 		}
 	}
 	
-	if(target)
+	if(true)
 	{
-		diff = target.transform.position - transform.position;
-		diff.y = 0;
-		GetComponent(UpdateScript).m_Vel += diff * Time.deltaTime;
+		m_Diff = target.transform.position - transform.position;
+		m_Diff.y = 0;
+		//GetComponent(UpdateScript).m_Vel += diff * Time.deltaTime;
 	}
 	else
 	{
-		diff = m_InitialPos - transform.position;
-		diff.y = 0;
-		GetComponent(UpdateScript).m_Vel += diff * Time.deltaTime;	
+		m_Diff = m_InitialPos - transform.position;
+		m_Diff.y = 0;
+		GetComponent(UpdateScript).m_Vel += m_Diff * Time.deltaTime;	
 	}
-	transform.LookAt(transform.position + GetComponent(UpdateScript).m_Vel);
-	transform.eulerAngles.z = Mathf.Sin(Time.time * 6) * 15;
-	transform.position.y = 0;
+	
+	// transform.eulerAngles.z = Mathf.Sin(Time.time * 6) * 15;
+	// transform.position.y = 0;
 
+}
+function Step()
+{
+		transform.parent.position += m_Diff.normalized*14;
+}
+
+function Turn()
+{
+	 transform.parent.LookAt(transform.parent.position + m_Diff);
 }
 
 function OnCollisionEnter(coll : Collision) {

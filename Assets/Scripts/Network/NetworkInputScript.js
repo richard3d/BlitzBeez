@@ -2,6 +2,7 @@
  
 var m_ControlEnabled : boolean = true;
 var m_SeqCounter:int = 0; //the sequence counter for this packet 
+var m_PrevMousePos : Vector3 = Vector3(0,0,0);
 var m_CurrentActions : int = 0; 	 //current actions that were pressed in this frame
 var m_PrevActions : int = 0;    	 //previous actions
 var m_BuffActions : int = 0;		 //the previous, previous actions
@@ -14,6 +15,9 @@ var m_RecordingInput:boolean = false;
 var m_ShowOnce:boolean = false;
 
 private var m_RPCFired : boolean = false;
+var m_CursorTexture:Texture2D;
+var m_CursorPosition:Vector3;
+var m_CursorScreenPosition:Vector3;
 
 var m_ClientOwner : int = -1;
 
@@ -26,6 +30,7 @@ class InputState
 	static var DASH : int = 16;
 	static var SHOOT : int = 32;
 	static var USE : int = 64;
+	static var RELOAD : int = 128;
 	
 	var m_Sequence:int = 0;
 	var m_Timestamp:float = 0;
@@ -62,7 +67,14 @@ function Awake()
 }
 
 function Start () {
+	Screen.showCursor = false;
+	//m_CursorPosition = gameObject.transform.position + gameObject.transform.forward * 10;
+}
 
+function OnGUI()
+{ 
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+		GUI.DrawTexture(Rect(m_CursorScreenPosition.x,Screen.height-m_CursorScreenPosition.y,8,8), m_CursorTexture);
 }
 
 function Update () {
@@ -119,25 +131,22 @@ function Update () {
 	m_CurrentActions = 0;
 	
 	//handle movement keys
-	if(Input.GetKey(KeyCode.W))
+	if(Input.GetAxis("Move Forward/Back") > 0)
 	{
 		m_CurrentActions |= InputState.MOVE_UP;
 	}
 	
-	
-	if(Input.GetKey(KeyCode.D))
-	{
-		m_CurrentActions |= InputState.MOVE_RIGHT;
-	}
-	
-	
-	if(Input.GetKey(KeyCode.S))
+	if(Input.GetAxis("Move Forward/Back") < 0)
 	{
 		m_CurrentActions |= InputState.MOVE_BACK;
 	}
 	
+	if(Input.GetAxis("Strafe Left/Right") > 0)
+	{
+		m_CurrentActions |= InputState.MOVE_RIGHT;
+	}
 	
-	if(Input.GetKey(KeyCode.A))
+	if(Input.GetAxis("Strafe Left/Right") < 0)
 	{
 		m_CurrentActions |= InputState.MOVE_LEFT;
 	}
@@ -145,25 +154,50 @@ function Update () {
 	if(Camera.main.GetComponent(CameraScript) != null &&
 	   Camera.main.GetComponent(CameraScript).m_Target != null)
 	{
-		var vPos : Vector3 = Camera.main.GetComponent(CameraScript).m_Target.transform.position;
-		var LookDiff = Input.mousePosition-Camera.main.WorldToScreenPoint(vPos);
-		LookDiff.z = LookDiff.y;
-		LookDiff.y = 0;
+		//NEW
+		// var delta:Vector3;
+		// if(m_PrevMousePos == Vector3.zero)
+			// delta = Vector3.zero;
+		// else
+			// delta= (Input.mousePosition - m_PrevMousePos);
+		
+		// m_CursorPosition += (delta.x * gameObject.transform.right + delta.y * gameObject.transform.forward); 
+		// m_CursorPosition.y = transform.position.y;
+		
+		// m_PrevMousePos = Input.mousePosition;
+		// var LookDiff:Vector3 = m_CursorPosition - transform.position;
+		// m_CursorPosition = transform.position +LookDiff.normalized* 100; 
+		// m_CursorScreenPosition = Camera.main.WorldToScreenPoint(m_CursorPosition);
+		//END NEW
+		
+		//ORIGINAL
+		var LookDiff :Vector3 = transform.forward;
+		LookDiff =  Quaternion.AngleAxis(Input.GetAxis("Look Left/Right")*10, Vector3.up)*LookDiff;
+		// var vPos : Vector3 = Camera.main.GetComponent(CameraScript).m_Target.transform.position;
+		// var LookDiff = Input.mousePosition-Camera.main.WorldToScreenPoint(vPos);
+		// if(LookDiff.y < 0)
+			// LookDiff.y *=-1;
+		// LookDiff.z = LookDiff.y;
+		//LookDiff.y = 0;
 		LookDiff.Normalize();
-		//var client : ClientScript = GameObject.Find("GameClient").GetComponent(ClientScript) as ClientScript;
-		//make this happen on the client immediately, any fixes will come from the server via the RPC
+		////var client : ClientScript = GameObject.Find("GameClient").GetComponent(ClientScript) as ClientScript;
+		////make this happen on the client immediately, any fixes will come from the server via the RPC
+		//END ORIG
+							//Vector3(transform.position.x,0,transform.position.y)
+		m_CursorPosition = transform.position + transform.forward * 100;
+		m_CursorScreenPosition = Camera.main.WorldToScreenPoint(m_CursorPosition);
 		if(GetComponent(BeeControllerScript).m_LookEnabled)
 		{
-			if(Camera.main.GetComponent(CameraScript).m_Target == gameObject)
-				Camera.main.GetComponent(CameraScript).m_Target.transform.LookAt(vPos + LookDiff);
+			if(NetworkUtils.IsControlledGameObject(gameObject))
+				Camera.main.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + LookDiff);
 			
 			if(m_ClientOwner != 0)
 			{
-				networkView.RPC("PlayerLookat", RPCMode.Server, m_ClientOwner,  LookDiff);
+				networkView.RPC("PlayerLookat", RPCMode.Server, m_ClientOwner,   LookDiff);
 			}
 			else
 			{
-				PlayerLookat(0, LookDiff);
+				PlayerLookat(0,  LookDiff);
 			}
 		}
 	}
@@ -172,51 +206,58 @@ function Update () {
 	 // Camera.main.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + lookDiff);
 	
 	//handle dash button
-	if(Input.GetKeyDown(KeyCode.LeftShift))
+	if(Input.GetAxis("Dash") > 0)
 	{
 		m_CurrentActions |= InputState.DASH;
 	}
 	
 	//handle shooting actions
-	if(Input.GetMouseButton(0) )
+	if(Input.GetAxis("Shoot") > 0)
 	{
 		m_CurrentActions |= InputState.SHOOT;
 	}
 	
 	
 	//handle recording request from client. NOTE: Remove before final version of game
-	if(Input.GetKeyDown(KeyCode.R))
-	{
-		if(m_ClientOwner != 0)
-		{
-			networkView.RPC("RecordInput", RPCMode.Server);
-		}
-		else
-		{
-			RecordInput();
-		}
-	}
+	// if(Input.GetKeyDown(KeyCode.R))
+	// {
+		// if(m_ClientOwner != 0)
+		// {
+			// networkView.RPC("RecordInput", RPCMode.Server);
+		// }
+		// else
+		// {
+			// RecordInput();
+		// }
+	// }
 	
-	if(Input.GetKeyDown(KeyCode.P))
-	{
-		if(m_ClientOwner != 0)
-		{
-			networkView.RPC("StartInputPlayback", RPCMode.Server);
-		}
-		else
-		{
+	// if(Input.GetKeyDown(KeyCode.P))
+	// {
+		// if(m_ClientOwner != 0)
+		// {
+			// networkView.RPC("StartInputPlayback", RPCMode.Server);
+		// }
+		// else
+		// {
 		
-			StartInputPlayback();
-		}
-	}
-	
-	
+			// StartInputPlayback();
+		// }
+	// }
 	
 	//handle use action
-	if(Input.GetMouseButton(1))
+	if(Input.GetAxis("Reload") > 0)
+	{
+	
+		m_CurrentActions |= InputState.RELOAD;
+	}
+	
+	//handle use action
+	if(Input.GetAxis("Use Item/Interact") > 0)
 	{
 		m_CurrentActions |= InputState.USE;
 	}
+	
+	
 	
 	
 	//m_CurrInputState.m_Sequence = m_SeqCounter;
@@ -365,9 +406,9 @@ function Update () {
 	}
 	
 	
-	var vPos : Vector3 = client.m_GameObject.transform.position;
+	//var vPos : Vector3 = client.m_GameObject.transform.position;
 	//client.m_GameObject.transform.LookAt(vPos + lookPt);
-	SendMessage("OnPlayerLookAt", vPos + lookPt, SendMessageOptions.DontRequireReceiver);
+	SendMessage("OnPlayerLookAt", lookPt, SendMessageOptions.DontRequireReceiver);
 }
 
 @RPC function RecordInput()

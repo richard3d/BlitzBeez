@@ -48,24 +48,24 @@ function OnNetworkInput(IN : InputState)
 	
 	if(IN.GetAction(IN.MOVE_UP))
 	{
-		m_DisplaceVector += Vector3.forward;
+		m_DisplaceVector += transform.forward;
 	}
 	
 	if(IN.GetAction(IN.MOVE_BACK))
 	{
-		m_DisplaceVector -= Vector3.forward;
+		m_DisplaceVector -= transform.forward;
 	}
 	
 	if(IN.GetAction(IN.MOVE_RIGHT))
 	{
-		m_DisplaceVector += Vector3.right;
+		m_DisplaceVector += transform.right;
 	}
 	
 	
 	
 	if(IN.GetAction(IN.MOVE_LEFT))
 	{
-		m_DisplaceVector -= Vector3.right;
+		m_DisplaceVector -= transform.right;
 	}
 	
 	if(IN.GetActionBuffered(IN.USE))

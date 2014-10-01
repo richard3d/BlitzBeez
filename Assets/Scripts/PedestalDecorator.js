@@ -144,9 +144,7 @@ function OnDestroy()
 	
 	if(Network.isServer && m_HiveCreated)
 	{
-		GetComponent(BeeScript).m_HoneycombCount--;
 		Camera.main.GetComponent(CameraScript).Shake(0.25, 1.0);
-		//gameObject.networkView.RPC("AddXP", RPCMode.All, 10);
 	}
 	
 	if(NetworkUtils.IsControlledGameObject(gameObject))

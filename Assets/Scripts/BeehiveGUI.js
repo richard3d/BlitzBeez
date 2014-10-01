@@ -101,12 +101,9 @@ function Update () {
 	 if(!m_bShow)
 		 return;
 	
-	if(Input.GetMouseButtonDown(1))
+	if(Input.GetAxis("Use Item/Interact"))
 	{
-		if(Network.isServer)
-			ExitHive();
-		else
-			networkView.RPC("ExitHive", RPCMode.Server);
+	
 	}
 	
 	//if the user clicks off the menu( there is no valid sel index );
@@ -122,7 +119,21 @@ function Update () {
 	}
 }
 
-
+function OnNetworkInput(IN : InputState)
+{
+	if(!networkView.isMine)
+	{
+		return;
+	}
+	if(IN.GetActionBuffered(IN.USE) && m_Fade >= 1)
+	{
+	
+		if(Network.isServer)
+			ExitHive();
+		else
+			networkView.RPC("ExitHive", RPCMode.Server);
+	}
+}
 
 //this is only executed on the server
 @RPC function ExitHive()
@@ -161,6 +172,8 @@ function Show(bShow : boolean, hiveName : String)
 	
 	if(m_bShow)
 	{
+		Screen.showCursor = true;
+		Debug.Log("Showing");
 		m_MainSelIndex = 0;
 		//m_CurrSelMenu.Push(m_MainMenu);
 		//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
@@ -173,13 +186,14 @@ function Show(bShow : boolean, hiveName : String)
 		}
 		
 		GetComponent(SphereCollider).enabled = false;
-		GetComponent(NetworkInputScript).enabled = false;
+		//GetComponent(NetworkInputScript).enabled = false;
 		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
 		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 		transform.position = gameObject.Find(hiveName).transform.position;
 	}
 	else
 	{
+		Screen.showCursor = false;
 		renderer.enabled = true;
 		for(i = 0; i <transform.childCount; i++)
 		{

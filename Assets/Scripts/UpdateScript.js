@@ -3,6 +3,7 @@
 
 var m_MaxSpeed : float = 1;
 var m_MaxAccel : float = 1;
+var m_PrevPos:Vector3;
 var m_Vel : Vector3;
 var m_Accel : Vector3;
 var m_Drag : float = 0;
@@ -43,7 +44,7 @@ function Update () {
 		}
 	}
 	m_PrevParent = transform.parent;
-
+	
 	if(m_Accel.magnitude > m_MaxAccel)
 	{
 		m_Accel.Normalize();
@@ -83,7 +84,7 @@ function Update () {
 	 {
 		// return;
 	 }
-	
+	m_PrevPos = transform.position;
 	transform.position += m_Vel * Time.deltaTime;
 }
 

@@ -97,7 +97,7 @@ function OnNetworkInput(IN : InputState)
 	
 	//unchain ourselves from the parent and dissable collision with the owner entity
 	m_Item.transform.parent = null;
-	if(m_Item.collider != null)
+	if(m_Item != null && m_Item.collider != null && m_Item.collider.active && gameObject.collider.active)
 		Physics.IgnoreCollision(gameObject.collider, m_Item.collider, false);
 		
 	if(m_Item.tag == "Rocks")
@@ -115,6 +115,15 @@ function OnNetworkInput(IN : InputState)
 		m_Item.GetComponent(BombScript).m_Owner = gameObject;
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward)  * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
+		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8 * (3/m_ThrowVelocityScalar);
+		gameObject.AddComponent(ControlDisablerDecorator);
+		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);
+	}
+	else if(m_Item.tag == "Mines")
+	{
+		m_Item.GetComponent(MineScript).m_Owner = gameObject;
+		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;
+		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 10;
 		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8 * (3/m_ThrowVelocityScalar);
 		gameObject.AddComponent(ControlDisablerDecorator);
 		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);

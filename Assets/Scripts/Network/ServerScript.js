@@ -475,6 +475,7 @@ function GetGameObject() : GameObject
 	var viewID : NetworkViewID= Network.AllocateViewID();
 	var go : GameObject = NetworkInstantiate(m_PlayerPrefab.name,"", Vector3.up, Quaternion.identity, viewID ,  0);
 	go.transform.position = go.GetComponent(BeeScript).FindRespawnLocation();
+	go.transform.position.y = 7;
 	ServerRPC.Buffer(m_SyncMsgsView, "NetworkInstantiate", RPCMode.Others, m_PlayerPrefab.name,"", go.transform.position, Quaternion.identity, viewID, 0);
 	go.name = "Bee" + clientID; 
 	SetClientGameObject(clientID,go.name);
@@ -510,6 +511,7 @@ function GetGameObject() : GameObject
 		if(NetworkUtils.IsControlledGameObject(m_Clients[clientID].m_GameObject))
 		{
 			Camera.main.GetComponent(CameraScript).SetFocalPosition(m_Clients[clientID].m_GameObject.transform.position);
+			m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_CursorPosition = m_Clients[clientID].m_GameObject.transform.position + m_Clients[clientID].m_GameObject.transform.forward*10;
 		}
 		
 		

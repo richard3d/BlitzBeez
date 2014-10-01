@@ -15,7 +15,7 @@ private var m_MovementSpeed : float = 240;
 private var m_ShootButtonHeld : boolean = false;
 private var m_ShootButtonTimeHeld : float = 0.0;
 private static var m_PowerShotRequiredHoldTime = 0.5;
-
+var m_ThirdPerson:boolean;
 
 var m_DashSound : AudioClip = null;
 var m_ShootSound : AudioClip = null;
@@ -40,23 +40,18 @@ var m_PowerShotParticlesInstance : GameObject = null;
 
 var m_Drag : float = 1; 
 
-// var m_WeaponStats : float[4][4];	//first index points to direction 0 forward, 1 right, (etc. clockwise),
-									// //the subindices repsent reload time, clipsize, burst rounds, 
-
-// var m_ReloadTime : float;
-// var m_ClipSize : float;
-// var m_BurstSize : float;
-// var m_BurstSpread : float;
 var m_FireRate : float = 5;
 var m_FireTimer : float  = 0;
 var m_ReloadTime : float = 1;
 var m_ReloadTimer : float = 0;
+var m_WorkerGenTime : float = 1;	//how often we generate a new worker
+var m_WorkerGenTimer : float = 0;
 var m_DashTimer : float = 0;
 //var m_ClipSize : int = 30;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1 };
+var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1, "Max Workers":-1, "Worker Generation":-1 };
 
 
 
@@ -93,6 +88,16 @@ function Update()
 			GetComponentInChildren(ParticleRenderer).enabled = true;
 			var clip:int = m_Stats["Clip Size"];
 			GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+		}
+	}
+	
+	if(m_WorkerGenTimer > 0)
+	{
+		m_WorkerGenTimer -= Time.deltaTime;
+		if(m_WorkerGenTimer <= 0)
+		{
+			m_WorkerGenTimer = m_WorkerGenTime;
+			networkView.RPC("GenerateWorkerBee", RPCMode.All);
 		}
 	}
 	
@@ -136,25 +141,37 @@ function OnNetworkInput(IN : InputState)
 
 		if(IN.GetAction(IN.MOVE_UP))
 		{
-			GetComponent(UpdateScript).m_Accel += Vector3.forward *m_MovementSpeed;
+			if(m_ThirdPerson)
+				GetComponent(UpdateScript).m_Accel += transform.forward *m_MovementSpeed;
+			else
+				GetComponent(UpdateScript).m_Accel += Vector3.forward *m_MovementSpeed;
 			m_MovementKeyPressed = true;
 		}
 		
 		if(IN.GetAction(IN.MOVE_RIGHT))
 		{
-			GetComponent(UpdateScript).m_Accel += Vector3.right*m_MovementSpeed;
+			if(m_ThirdPerson)
+				GetComponent(UpdateScript).m_Accel += transform.right *m_MovementSpeed;
+			else
+				GetComponent(UpdateScript).m_Accel += Vector3.right *m_MovementSpeed;
 			m_MovementKeyPressed = true;
 		}
 		
 		if(IN.GetAction(IN.MOVE_BACK))
 		{
-			GetComponent(UpdateScript).m_Accel -= Vector3.forward*m_MovementSpeed;
+			if(m_ThirdPerson)
+				GetComponent(UpdateScript).m_Accel -= transform.forward *m_MovementSpeed;
+			else
+				GetComponent(UpdateScript).m_Accel -= Vector3.forward *m_MovementSpeed;
 			m_MovementKeyPressed = true;
 		}
 		
 		if(IN.GetAction(IN.MOVE_LEFT))
 		{
-			GetComponent(UpdateScript).m_Accel -= Vector3.right*m_MovementSpeed;
+			if(m_ThirdPerson)
+				GetComponent(UpdateScript).m_Accel -= transform.right *m_MovementSpeed;
+			else
+				GetComponent(UpdateScript).m_Accel -= Vector3.right *m_MovementSpeed;
 			m_MovementKeyPressed = true;
 		}
 	}	
@@ -182,18 +199,18 @@ function OnNetworkInput(IN : InputState)
 	//handle shooting actions
 	if(IN.GetAction(IN.SHOOT) && m_AttackEnabled)
 	{
-		m_ShootButtonHeld = true;
-		if(GetComponentInChildren(BeeParticleScript) != null &&
-		   m_ShootButtonTimeHeld < m_PowerShotRequiredHoldTime && 
-		   m_ShootButtonTimeHeld + Time.deltaTime >= m_PowerShotRequiredHoldTime)
+		if(m_ReloadTimer <= 0 && GetComponent(FlowerDecorator) == null)
 		{
-			if(GetComponentInChildren(ParticleEmitter).particles.length >= 5 && GetComponentInChildren(ParticleRenderer).enabled != false)
-				networkView.RPC("AddPowerShotEffect", RPCMode.All);
+			m_ShootButtonHeld = true;
+			if(GetComponentInChildren(BeeParticleScript) != null &&
+			   m_ShootButtonTimeHeld < m_PowerShotRequiredHoldTime && 
+			   m_ShootButtonTimeHeld + Time.deltaTime >= m_PowerShotRequiredHoldTime)
+			{
+				if(GetComponentInChildren(ParticleEmitter).particles.length >= 5 && GetComponentInChildren(ParticleRenderer).enabled != false)
+					networkView.RPC("AddPowerShotEffect", RPCMode.All);
+			}
+			m_ShootButtonTimeHeld += Time.deltaTime;
 		}
-			
-		
-	
-		m_ShootButtonTimeHeld += Time.deltaTime;
 	}
 	if(IN.GetActionUpBuffered(IN.SHOOT) && m_AttackEnabled)
 	{
@@ -215,17 +232,13 @@ function OnNetworkInput(IN : InputState)
 			else
 			{
 				//regular shot
-				
 				if(m_FireTimer <= 0 && m_ReloadTimer <= 0)
-				{
-					
+				{	
 					var rate : float = m_Stats["Fire Rate"];
 					var fireRate = m_LoadOut.m_BaseFireRate + (rate+1);
 					m_FireTimer = 1/fireRate;//m_FireRate;
 					HandleShotLogic();
 				}
-				
-				
 			}
 		}
 		m_ShootButtonHeld = false;
@@ -267,10 +280,10 @@ function OnNetworkInput(IN : InputState)
 				
 				if(GetComponent(ItemDecorator) == null)
 				{						
-					if(m_NearestObject.GetComponentInChildren(BeeParticleScript) == null)
-					{
+					//if(m_NearestObject.GetComponentInChildren(BeeParticleScript) == null)
+					//{
 						ServerRPC.Buffer(networkView, "UseFlower", RPCMode.All, m_NearestObject.name);
-					}
+					//}
 					
 				}
 				
@@ -295,35 +308,42 @@ function OnNetworkInput(IN : InputState)
 			}
 		}
 		else
-		if(beeScript.m_Inventory[1].m_Item != null && GetComponent(ItemDecorator) == null)
+		if(GetComponent(TreeHideDecorator) == null)
 		{
-			var viewID : NetworkViewID= Network.AllocateViewID();
-			go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[1].m_Item.name,"", Vector3(0,0,0), Quaternion.identity, viewID ,  0);
-			ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[1].m_Item.name,go.name, Vector3(0,0,0), Quaternion.identity, viewID, 0);
-			ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
-			ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 1);	
+			if(beeScript.m_Inventory[1].m_Item != null && GetComponent(ItemDecorator) == null)
+			{
+				var viewID : NetworkViewID= Network.AllocateViewID();
+				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[1].m_Item.name,"", Vector3(0,0,0), Quaternion.identity, viewID ,  0);
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[1].m_Item.name,go.name, Vector3(0,0,0), Quaternion.identity, viewID, 0);
+				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
+				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 1);	
+			}
+			else
+			if(beeScript.m_Inventory[0].m_Item != null && GetComponent(ItemDecorator) == null)
+			{
+				viewID = Network.AllocateViewID();
+				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[0].m_Item.name,"", Vector3(0,0,0), Quaternion.identity, viewID ,  0);
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[0].m_Item.name,go.name, Vector3(0,0,0), Quaternion.identity, viewID, 0);
+				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
+				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 0);	
+			}
 		}
-		else
-		if(beeScript.m_Inventory[0].m_Item != null && GetComponent(ItemDecorator) == null)
-		{
-			viewID = Network.AllocateViewID();
-			go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[0].m_Item.name,"", Vector3(0,0,0), Quaternion.identity, viewID ,  0);
-			ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[0].m_Item.name,go.name, Vector3(0,0,0), Quaternion.identity, viewID, 0);
-			ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
-			ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 0);	
+	}
+	
+	if(IN.GetActionBuffered(IN.RELOAD) && !m_ShootButtonHeld)
+	{
+		if(GetComponent(TreeHideDecorator) == null)
+		{	
+			if(GetComponent(ItemDecorator) == null && m_ReloadTimer <= 0)
+			{
+				networkView.RPC("Reload", RPCMode.All);
+			}
+			else if(m_ReloadTimer > 0)
+			{
+				networkView.RPC("QuickReload", RPCMode.All);
+				
+			}
 		}
-		//we can reload if we are not using an object
-		else		
-		if(GetComponent(ItemDecorator) == null && m_ReloadTimer <= 0)
-		{
-			networkView.RPC("Reload", RPCMode.All);
-		}
-		else if(m_ReloadTimer > 0)
-		{
-			networkView.RPC("QuickReload", RPCMode.All);
-			
-		}
-		
 	}
 	
 }
@@ -348,7 +368,9 @@ function HandleShotLogic()
 function OnPlayerLookAt(at : Vector3)
 {
 	if(m_LookEnabled)
-		transform.LookAt(at);
+	{
+		transform.LookAt(transform.position+at);
+	}
 }
 
 @RPC function QuickReload()

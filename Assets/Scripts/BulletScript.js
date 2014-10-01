@@ -99,12 +99,17 @@ function OnCollisionEnter(other : Collision)
 	if(Network.isClient)
 		return;
 		
-	if(other.gameObject.tag != "Bullets" && other.gameObject.tag != "Terrain" && other.gameObject != m_Owner)
+	if(other.gameObject.tag != "Bullets" && other.gameObject != m_Owner)
 	{
 		
 		Debug.Log(other.gameObject.name);
 		
 		//GetComponent(UpdateScript).m_Vel = refVel;
+		if(other.gameObject.tag == "Terrain")
+		{
+			if(Vector3.Dot(other.contacts[0].normal, Vector3.up) > 0.98)
+				return;
+		}
 		
 		if(m_PowerShot)
 		{

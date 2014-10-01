@@ -42,16 +42,8 @@ function Update () {
 			m_Owner.GetComponent(FlowerDecorator).GetFlower() != flower)
 		{
 			var numBees : float = particleEmitter.particles.length;
-			//m_ScoreTimer -= (Time.deltaTime * (numBees / flower.GetComponent(FlowerScript).m_MaxBees));
 			var harvestSpeed : float =  (Time.deltaTime * (numBees / flower.GetComponent(FlowerScript).m_MaxBees));
-			m_Owner.GetComponent(BeeScript).m_CurrSwmXP += harvestSpeed * flower.GetComponent(FlowerScript).m_SwmXPPerSeconds;
 			var beeScript : BeeScript = m_Owner.GetComponent(BeeScript);
-			// if(beeScript.m_CurrSwmXP >= beeScript.m_XPToSwmLevel[beeScript.m_CurrSwmLevel])
-			// {
-				// beeScript.m_CurrSwmLevel++;
-				// beeScript.m_CurrSwmXP = 0;
-			// }
-			
 		}
 	}
 
@@ -184,8 +176,6 @@ function OnDestroy()
 		{
 			gameObject.Destroy(go.gameObject);
 			var effect : GameObject = gameObject.Instantiate(Resources.Load("GameObjects/BeeExplosionParticles"));
-			
-			
 			var parts : ParticleSystem.Particle[] = new ParticleSystem.Particle[effect.GetComponent(ParticleSystem).particleCount];
 			effect.GetComponent(ParticleSystem).renderer.material.SetColor("_EmisColor", gameObject.renderer.material.color);
 			effect.GetComponent(ParticleSystem).startColor = gameObject.renderer.material.color;

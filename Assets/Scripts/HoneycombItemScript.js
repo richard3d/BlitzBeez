@@ -20,28 +20,28 @@ function OnCollisionEnter(coll : Collision)
 	var other : Collider = coll.collider;
 	if(other.gameObject.tag == "Player")
 	{
-		other.GetComponent(BeeScript).m_HoneycombCount++;
-		if(other.GetComponent(BeeScript).m_HoneycombCount == 1)
-		{
+		//other.GetComponent(BeeScript).m_HoneycombCount++;
+		// if(other.GetComponent(BeeScript).m_HoneycombCount == 1)
+		// {
 		
-			GetComponent(SphereCollider).enabled = false;
+			// GetComponent(SphereCollider).enabled = false;
 			
 		
-			// var go	= gameObject.Instantiate(m_HiveInstance);
-			// go.transform.eulerAngles.y = 0;
+			// // var go	= gameObject.Instantiate(m_HiveInstance);
+			// // go.transform.eulerAngles.y = 0;
 			
-			// other.gameObject.AddComponent(ItemDecorator);
-			// other.gameObject.GetComponent(ItemDecorator).SetItem(go, Vector3(0,1,12), Vector3(-90,0,-180), false, true);
-			// other.gameObject.GetComponent(ItemDecorator).m_MaxSpeed = other.GetComponent(UpdateScript).m_DefaultMaxSpeed;
+			// // other.gameObject.AddComponent(ItemDecorator);
+			// // other.gameObject.GetComponent(ItemDecorator).SetItem(go, Vector3(0,1,12), Vector3(-90,0,-180), false, true);
+			// // other.gameObject.GetComponent(ItemDecorator).m_MaxSpeed = other.GetComponent(UpdateScript).m_DefaultMaxSpeed;
 			
 			
-		}
+		// }
 		
 
-		if(other.GetComponent(BeeScript).m_HoneycombCount <= 3)
-		{
-			var server : ServerScript = GameObject.Find("GameServer").GetComponent(ServerScript);
-			ServerRPC.Buffer(server.m_SyncMsgsView, "NetworkDestroy", RPCMode.All, gameObject.name);
-		}
+		// if(other.GetComponent(BeeScript).m_HoneycombCount <= 3)
+		// {
+			// var server : ServerScript = GameObject.Find("GameServer").GetComponent(ServerScript);
+			// ServerRPC.Buffer(server.m_SyncMsgsView, "NetworkDestroy", RPCMode.All, gameObject.name);
+		// }
 	}
 }

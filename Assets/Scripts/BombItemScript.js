@@ -27,7 +27,6 @@ function OnCollisionEnter(coll : Collision)
 		//transform.position = Vector3(0,6,0);
 		//animation.Play("GetBomb");
 		GetComponent(SphereCollider).enabled = false;
-		GetBombItem();
 		
 	//	ServerRPC.Buffer(networkView, "GetCoin", RPCMode.All, other.gameObject.name);
 	}
@@ -41,12 +40,5 @@ function OnCollisionEnter(coll : Collision)
 }
 
 
-function GetBombItem()
-{
 
-	if(Network.isClient)
-			return;
-		
-		
-}
 

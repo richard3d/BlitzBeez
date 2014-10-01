@@ -17,9 +17,11 @@ function Awake()
 function Start () {
 
 		var go:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/WaterRippleParticles"));
-		go.transform.position = transform.position;
-		go.transform.position.y = 1;
+		go.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point;
+		//go.transform.position.y = 1;
 		m_OrigScale = transform.localScale;
+		
+	
 
 }
 

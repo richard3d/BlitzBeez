@@ -1,11 +1,17 @@
 #pragma strict
 
+var m_OrigPosition:Vector3;
 function Start () {
-
+m_OrigPosition = transform.position;
 }
 
 function Update () {
-renderer.material.mainTextureOffset.x += Time.deltaTime*0.1;
+transform.position.y = m_OrigPosition.y + Mathf.Sin(Time.time) *2;
+
+var amt = Time.deltaTime;
+renderer.material.mainTextureOffset.y -= amt*0.02;
+var offset = renderer.material.GetTextureOffset ("_BumpMap");
+renderer.material.SetTextureOffset ("_BumpMap", Vector2(0,offset.y+amt*0.02));
 }
 
 function OnTriggerEnter(coll : Collider)
@@ -15,8 +21,7 @@ function OnTriggerEnter(coll : Collider)
 		
 		if(coll.gameObject.tag == "Player")
 		{
-			var offset:Vector3 = (coll.gameObject.transform.position -  transform.position).normalized*coll.gameObject.transform.localScale.magnitude*4 ;
-			ServerRPC.Buffer(coll.gameObject.networkView, "Drown", RPCMode.All,offset);
+			
 			//coll.gameObject.AddComponent(DrowningDecorator);		
 			//coll.gameObject.transform.position -= 
 	

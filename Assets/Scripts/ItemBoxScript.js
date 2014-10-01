@@ -98,6 +98,8 @@ function OpenEffect()
 				var rot : Quaternion  = Quaternion.AngleAxis(angle, Vector3.up);
 				vel = rot*vel;
 				vel = vel.normalized * 50;
+				if(i == 0)
+					vel = Vector3(0,0,0);
 				//vel= Random.insideUnitCircle.normalized * 50;
 				//vel.z = vel.y;
 				vel.y= 50;
@@ -141,6 +143,6 @@ function OpenEffect()
 	{
 		child.gameObject.active = true;
 	}
-	renderer.material.shader = Shader.Find("Unlit/Texture");
+	//renderer.material.shader = Shader.Find("Unlit/Texture");
 	animation.Play("ItemBoxRespawn");
 }

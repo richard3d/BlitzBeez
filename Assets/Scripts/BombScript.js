@@ -27,10 +27,14 @@ function Update () {
 	if(Network.isServer)
 	{
 		var Comp : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
-		if(transform.position.y - transform.localScale.y + Comp.m_Vel.y * Time.deltaTime < 0)
+		var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
+		if(Terr.m_OverTerrain)
 		{
-			transform.position.y = transform.localScale.y;
-			Comp.m_Vel.y *= -0.75;
+			if(transform.position.y - transform.localScale.y + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+			{
+				transform.position.y = transform.localScale.y;
+				Comp.m_Vel.y *= -0.75;
+			}	
 		}
 		
 		if(Comp.m_Vel.magnitude < 0.01)
@@ -98,7 +102,6 @@ function Explode()
 {
 	if(Network.isServer)
 	{
-		Debug.Log("Killing Bomb");
 		ServerRPC.Buffer(networkView, "KillBomb", RPCMode.All);
 		ServerRPC.DeleteFromBuffer(gameObject);
 	}

@@ -12,7 +12,7 @@ function Start () {
 	{	
 		renderer.enabled = false;
 	}
-	
+	GetComponent(UpdateScript).m_Accel.y = -289.8;
 }
 
 function Update () {
@@ -22,7 +22,44 @@ function Update () {
 	if(Comp == null)
 		return;
 	
-	Comp.m_Accel.y = -289.8;
+	//Comp.m_Accel.y = -289.8;
+	if(Network.isServer)
+	{
+		
+		var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
+		if(Terr != null)
+		{
+			if(Terr.m_OverTerrain)
+			{
+				
+				if(gameObject.tag == "Coins")
+				{
+					if(transform.position.y  + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+					{
+						transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
+						Comp.m_Vel.y *= -0.75;
+					}	
+				}
+					
+				else
+				{
+					var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
+					if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+					{
+						transform.position.y = size+Terr.m_TerrainInfo.point.y;
+						Comp.m_Vel.y *= -0.75;
+					}	
+				}
+			}
+			
+			if(Comp.m_Vel.magnitude < 0.01)
+			{
+				Comp.m_Vel = Vector3(0,0,0);
+				Comp.m_Accel = Vector3(0,0,0);
+			}
+		}	
+	
+	}
 	
 	
 	//handle fade out and death
@@ -77,12 +114,16 @@ function OnItemCollisionEnter(coll : Collision)
 	}
 	else
 	{
-		if(GetComponent(UpdateScript).m_Vel .y < 0)
+		if(GetComponent(UpdateScript).m_Vel .y < 0 && other.gameObject.tag != "Terrain")
 		{
 			for (var contact : ContactPoint in coll.contacts) 
 			  {
-				Debug.Log(contact.normal+" "+ GetComponent(UpdateScript).m_Vel+" "+Vector3.Reflect(GetComponent(UpdateScript).m_Vel, contact.normal));
+				if(gameObject.tag == "Coins")
+					transform.position = contact.point;
+				else
+					transform.position = contact.point+ contact.normal * transform.localScale.z * GetComponent(SphereCollider).radius;
 				 GetComponent(UpdateScript).m_Vel = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, contact.normal) * 0.75;
+				 GetComponent(UpdateScript).m_Accel.y = -289.8;
 				 return;
 			  }
 		}
@@ -92,8 +133,9 @@ function OnItemCollisionEnter(coll : Collision)
 function OnCollisionStay(coll : Collision)
 {
 	var other : Collider = coll.collider;
-	if(other.gameObject.name == "Plane")
+	if(other.gameObject.layer == "Terrain")
 	{
+	Debug.Log("Here too");
 		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
 		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 	}

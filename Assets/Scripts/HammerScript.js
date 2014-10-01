@@ -6,7 +6,7 @@ var m_CollisionEffect : GameObject = null;
 var m_ImpactTimer : float = 0;
 var m_ImpactSound : AudioClip = null;
 
-private var m_Lifetime : float = 15;
+private var m_Lifetime : float = 10;
 
 function Start () {
 
@@ -70,9 +70,9 @@ function OnCollisionEnter(coll : Collision)
 	if(other.gameObject.tag == "Terrain")
 	{
 		AudioSource.PlayClipAtPoint(m_ImpactSound, Camera.main.transform.position);
-		var go : GameObject = gameObject.Instantiate(m_ImpactEffect);
-		go.transform.position = m_Owner.transform.position + m_Owner.transform.forward * 40;
-		go.transform.position.y = 0;
+		 var go : GameObject;// = gameObject.Instantiate(m_ImpactEffect);
+		// go.transform.position = m_Owner.transform.position + m_Owner.transform.forward * 40;
+		// go.transform.position.y = 0;
 		Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 		
 	}
