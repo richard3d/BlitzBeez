@@ -9,7 +9,8 @@ var m_CamVel : Vector3;
 var m_CamDrag : float;
 var m_Offset:Vector3 = Vector3(0,0,200);
 var m_ThirdPerson : boolean = false;
-
+var m_Fixed : boolean = false;
+var m_Freeze: boolean = false;
 function Start () {
 
 	m_CamPos = transform.position;
@@ -34,7 +35,7 @@ function Update () {
 		m_Target = gameObject.Find("Bee0");
 	}
 	
-	if(!m_Target)
+	if(!m_Target || m_Freeze)
 		return;
 	if(GetComponent(Camera).orthographic)
 	{
@@ -56,7 +57,15 @@ function Update () {
 		
 		var diff:Vector3;
 		//transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z));
-		diff = m_Target.transform.position - transform.position - (m_Offset.x*m_Target.transform.right+m_Offset.y*m_Target.transform.up+m_Offset.z*m_Target.transform.forward);
+		if(m_Fixed)
+		{
+			diff = -transform.forward;
+			diff.y = 0;
+			diff = m_Target.transform.position+diff.normalized * m_Offset.z - transform.position;
+			diff.y = 0;
+		}
+		else
+			diff = m_Target.transform.position - transform.position - (m_Offset.x*m_Target.transform.right+m_Offset.y*m_Target.transform.up+m_Offset.z*m_Target.transform.forward);
 		
 		//diff.y = 0;
 		m_CamVel = diff*2;
@@ -69,13 +78,15 @@ function Update () {
 			ShakeOffset = ShakeOffset.normalized *m_ShakeStrength;
 			m_fShakeTime -= Time.deltaTime;
 			transform.position = m_CamPos +  ShakeOffset;
+			transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z)+  ShakeOffset);
 		}
 		else
 		{
 			m_ShakeStrength = 0.0;
 			transform.position = m_CamPos;
+			transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z));
 		}
-		transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z));
+		
 	}
 }
 

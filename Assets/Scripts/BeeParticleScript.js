@@ -79,7 +79,11 @@ function Update () {
 			parts[i].position += (parts[i].velocity+transform.parent.GetComponent(UpdateScript).m_Vel * 0.75) * Time.deltaTime;
 		else
 			parts[i].position += parts[i].velocity * Time.deltaTime;
-			
+		
+		//HAXE
+		if((parts[i].position-transform.position).magnitude > 40)
+				parts[i].position = transform.position+(transform.position-parts[i].position).normalized*40;
+		
 		parts[i].size = 1.0;
 	
 	}

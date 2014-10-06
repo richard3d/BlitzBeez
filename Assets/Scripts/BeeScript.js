@@ -76,34 +76,39 @@ function Update () {
 	rigidbody.velocity = Vector3(0,0,0);
 	var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
 	var coll= Terr.m_TerrainInfo.collider;
-	
-	if(m_GroundPosition.y+ m_GroundPositionVel.y * Time.deltaTime > Terr.m_TerrainInfo.point.y)
-	{
-		m_GroundPositionVel.y -= 99.8*Time.deltaTime;
-		m_GroundPosition.y += m_GroundPositionVel.y* Time.deltaTime;
-		m_Bounce = false;
-		GetComponent(TrailRenderer).enabled = true;
+	if(Network.isServer)
+	{	m_GroundPositionVel.y -= 299.8*Time.deltaTime;
+		if(m_GroundPosition.y+ m_GroundPositionVel.y * Time.deltaTime >= Terr.m_TerrainInfo.point.y)
+		{
+			
+			m_GroundPosition.y += m_GroundPositionVel.y* Time.deltaTime;
+			//m_Bounce = false;
+			GetComponent(TrailRenderer).enabled = true;
+			
+		//	Debug.Log("falling from height "+ (m_GroundPosition.y - Terr.m_TerrainInfo.point.y));
+		}
+		else
+		{
+		//	Debug.Log("Setting to ground level "+Terr.m_TerrainInfo.point);
+			m_GroundPosition.y = Terr.m_TerrainInfo.point.y;
+			m_GroundPositionVel.y = 0;
+			//m_Bounce = true;
+		}
+		
+		if(coll != null && coll.gameObject.tag == "Water" && GetComponent(DrowningDecorator) == null)
+		{
+			var offset:Vector3 = Vector3.zero;//(coll.gameObject.transform.position -  transform.position).normalized*coll.gameObject.transform.localScale.magnitude*4 ;
+			ServerRPC.Buffer(gameObject.networkView, "Drown", RPCMode.All,offset);
+		}
+		if(m_Bounce)
+		{
+			transform.position.y = m_GroundPosition.y + 6 + (Mathf.Sin(Time.time*26)+2)*0.5;
+		}
+		else
+		{
+			transform.position.y = m_GroundPosition.y + 6;
+		}
 	}
-	else
-	{
-		m_GroundPosition.y = Terr.m_TerrainInfo.point.y;
-		m_Bounce = true;
-	}
-	
-	if(coll != null && coll.gameObject.tag == "Water" && GetComponent(DrowningDecorator) == null)
-	{
-		var offset:Vector3 = Vector3.zero;//(coll.gameObject.transform.position -  transform.position).normalized*coll.gameObject.transform.localScale.magnitude*4 ;
-		ServerRPC.Buffer(gameObject.networkView, "Drown", RPCMode.All,offset);
-	}
-	if(m_Bounce)
-	{
-		transform.position.y = m_GroundPosition.y + 6 + (Mathf.Sin(Time.time*26)+2)*0.5;
-	}
-	else
-	{
-		transform.position.y = m_GroundPosition.y + 6;
-	}
-	
 	if(Input.GetKeyDown(KeyCode.LeftControl))
 	{
 		m_ViewMap = !m_ViewMap;
@@ -545,6 +550,21 @@ function DrawGUI()
 	}
 }
 
+function OnCollisionStay(coll : Collision) {
+
+ if(coll.gameObject.tag == "Terrain")
+		{
+			for(var contact:ContactPoint in coll.contacts)
+			{
+				//transform.position += contact.normal*transform.localScale.magnitude;
+				//GetComponent(UpdateScript).m_Vel -= contact.normal*Vector3.Dot(GetComponent(UpdateScript).m_Vel,contact.normal);
+			}
+			
+			
+		}
+
+}
+
 function OnCollisionEnter(coll : Collision) {
 
 	//if we dash and hit an object we should shake the camera
@@ -584,6 +604,15 @@ function OnCollisionEnter(coll : Collision) {
 				
 				networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
 				
+			}
+			
+			
+		}
+		else if(coll.gameObject.tag == "Terrain")
+		{
+			for(var contact:ContactPoint in coll.contacts)
+			{
+				//GetComponent(UpdateScript).m_Vel -= contact.normal*Vector3.Dot(GetComponent(UpdateScript).m_Vel,contact.normal);
 			}
 			
 			
@@ -701,14 +730,10 @@ function FindRespawnLocation() : Vector3
 	}
 	
 	Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
-	Debug.Log("huh");
 	
 	gameObject.AddComponent(RespawnDecorator);
 	GetComponent(RespawnDecorator).SetLifetime(3);
 	GetComponent(RespawnDecorator).m_RespawnPos = pos;
-	
-	
-	
 }
 
 @RPC function SetHP(hp:int)
@@ -766,23 +791,73 @@ function FindRespawnLocation() : Vector3
 	var flowerDec :FlowerDecorator = GetComponent(FlowerDecorator);
 	if(flowerDec != null)
 	{
-		
+		flowerDec.m_FlashTimer = 1;
 		flowerDec.Reset();
 		
-		gameObject.Find(tgt).GetComponent(FlowerScript).m_NumBees++;
-		if(flowerDec.GetFlower().GetComponent(FlowerScript).m_NumBees == 1)
+		
+		
+		var flowerComp:FlowerScript = gameObject.Find(tgt).GetComponent(FlowerScript);
+		//the sanity check for this going value going above max happens in the flower decorator which fires this RPC
+		flowerComp.m_NumBees++;
+		flowerComp.m_HP += flowerComp.m_BaseHP;
+		flowerComp.m_Owner = gameObject;
+		if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
 		{
-			// flowerDec.m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/Shield"));
-			// flowerDec.m_ShieldEffect.name = "Shield";
-			// flowerDec.m_ShieldEffect.transform.position = flowerDec.GetFlower().transform.position;
-			// flowerDec.m_ShieldEffect.transform.parent = flowerDec.GetFlower().transform;
-			// flowerDec.m_ShieldEffect.GetComponent(ParticleSystem).renderer.material.SetColor("_EmisColor", renderer.material.color);
-			// flowerDec.m_ShieldEffect.GetComponent(ParticleSystem).startColor = renderer.material.color;
+			flowerDec.m_ProgressEffect.active = false;
 		}
 		
-		flowerDec.GetFlower().GetComponent(PollenNetworkScript).m_Owner = gameObject;
+		
+		if(NetworkUtils.IsControlledGameObject(gameObject))
+		{
+			var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
+			kudosText.GetComponent(GUIText).material.color = Color.yellow;
+			kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+			kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
+			//gameObject.GetComponent(BeeScript).m_Money +=  25;
+			if(flowerComp.m_NumBees > 1)
+				kudosText.GetComponent(GUIText).text = "+ "+(flowerComp.m_NumBees-1)+" Defense";
+			else
+				kudosText.GetComponent(GUIText).text = "Captured!";
+		}
+		
+		
+				
+		//see if flower is part of a group
+		if(flowerDec.GetFlower().transform.parent != null)
+		{
+			var group:FlowerGroupScript = flowerDec.GetFlower().transform.parent.GetComponent(FlowerGroupScript);
+			var level:int = group.CheckForLevelup(flowerDec.GetFlower());
+		
+			if(level == 0)
+			{
+	
+	
+			}
+			else
+			if(level == 1)
+			{
+				if(NetworkUtils.IsControlledGameObject(gameObject))
+				{
+					var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
+					txt.GetComponent(GUIText).text = "Group Bonus!";
+				}
+				group.Flash();
+			}
+			else
+			{
+				if(NetworkUtils.IsControlledGameObject(gameObject))
+				{	
+					txt  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
+					txt.GetComponent(GUIText).text = "+ "+level+" Group Production";
+				}
+				group.Flash();
+			}
+		}
+	
+		
+		//flowerDec.GetFlower().GetComponent(PollenNetworkScript).m_Owner = gameObject;
 		flowerDec.GetFlower().animation.Play("Flower");
-		AudioSource.PlayClipAtPoint(flowerDec.GetFlower().GetComponent(FlowerScript).m_BuildComplete, transform.position);
+		AudioSource.PlayClipAtPoint(flowerComp.m_BuildComplete, transform.position);
 	}
 	
 	var go : GameObject = gameObject.Instantiate(m_WorkerBeeInstance);
@@ -802,6 +877,11 @@ function FindRespawnLocation() : Vector3
 		go.transform.position = transform.position + offset;
 		go.transform.parent = transform;
 		go.name = go.name+gameObject.name;
+	}
+	
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		Camera.main.GetComponent(CameraScript).Shake(0.25, 0.5);
 	}
 } 
 
@@ -844,27 +924,7 @@ function FindRespawnLocation() : Vector3
 @RPC function RemoveBeesFromSwarm(swarmParent : String, numBees : int)
 {
 	var go : GameObject = gameObject.Find(swarmParent);
-	if(go.tag == "Flowers")
-	{
-		if(go.GetComponentInChildren(ParticleEmitter) != null && go.GetComponentInChildren(ParticleEmitter).particleCount - numBees <= 0)
-		{
-			var deathEffect : GameObject = gameObject.Instantiate(m_DeathEffect);
-			deathEffect.transform.position = go.transform.position + Vector3(0,12,0);
-			deathEffect.renderer.material.color = renderer.material.color;
-			
-			go.GetComponent(FlowerScript).m_LifebarTimer = -1;
-			go.GetComponent(FlowerScript).m_NumBees = 0;
-			for(var i:int = 0;  i < go.transform.childCount; i++)
-			{
-				Destroy(go.transform.GetChild(i).gameObject);
-			}
-			
-		}
-		else
-			go.GetComponent(FlowerScript).m_LifebarTimer = 2;
-		
-	}
-	else if(go.tag == "Player")
+	if(go.tag == "Player")
 	{
 		if(go.GetComponentInChildren(ParticleEmitter).particleCount - numBees <= 0)
 			go.GetComponent(BeeControllerScript).m_ReloadTimer = go.GetComponent(BeeControllerScript).m_ReloadTime;
@@ -872,7 +932,7 @@ function FindRespawnLocation() : Vector3
 	
 	if(go.GetComponentInChildren(BeeParticleScript) != null)
 	{
-		for(i  = 0;i  < numBees; i++)
+		for(var i:int = 0; i  < numBees; i++)
 		{
 			go.GetComponentInChildren(BeeParticleScript).RemoveParticle();	
 		}

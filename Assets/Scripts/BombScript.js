@@ -32,7 +32,7 @@ function Update () {
 		{
 			if(transform.position.y - transform.localScale.y + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
 			{
-				transform.position.y = transform.localScale.y;
+				transform.position.y = Terr.m_TerrainInfo.point.y-transform.localScale.y;
 				Comp.m_Vel.y *= -0.75;
 			}	
 		}
@@ -130,7 +130,7 @@ function Explode()
 	
 	var go : GameObject = gameObject.Instantiate(m_BombExplosion);
 	go.transform.position = transform.position;
-	go.transform.position.y = 0;
+	go.transform.position.y = transform.position.y;
 	Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 	
 	transform.eulerAngles = Vector3(0,0,0);

@@ -97,7 +97,7 @@ function OnNetworkInput(IN : InputState)
 	
 	//unchain ourselves from the parent and dissable collision with the owner entity
 	m_Item.transform.parent = null;
-	if(m_Item != null && m_Item.collider != null && m_Item.collider.active && gameObject.collider.active)
+	if(m_Item != null && m_Item.collider != null && m_Item.collider.enabled && gameObject.collider.enabled)
 		Physics.IgnoreCollision(gameObject.collider, m_Item.collider, false);
 		
 	if(m_Item.tag == "Rocks")

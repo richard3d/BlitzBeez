@@ -85,7 +85,14 @@ function Update () {
 		// return;
 	 }
 	m_PrevPos = transform.position;
-	transform.position += m_Vel * Time.deltaTime;
+	
+	
+	if(GetComponent(CharacterController) != null)
+	{
+		GetComponent(CharacterController).Move(m_Vel*Time.deltaTime);
+	}
+	else
+		transform.position += m_Vel * Time.deltaTime;
 }
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo) 

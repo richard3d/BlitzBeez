@@ -1,5 +1,11 @@
 #pragma strict
+private static var m_InstanceID : int = 0;
 var m_ExitTeleporter : GameObject;
+
+function Awake()
+{
+	gameObject.name = "Teleporter"+ ++m_InstanceID;
+}
 
 function Start () {
 
@@ -9,8 +15,21 @@ function Update () {
 
 }
 
-function OnCollisionEnter (coll:Collision)
+
+
+function OnTriggerEnter(other : Collider)
 {
-	coll.collider.transform.position = m_ExitTeleporter.transform.position+Vector3.up*6+Vector3.right*10;
-	
+	if(other.gameObject.tag == "Player" && other.gameObject.GetComponent(TeleportDecorator) == null)
+	{
+		other.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
+	}
+}
+
+
+function OnTriggerExit(other : Collider)
+{
+	if(other.gameObject.tag == "Player")
+	{
+		other.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
+	}
 }

@@ -14,6 +14,9 @@ private var m_MovementKeyPressed : boolean = false;
 private var m_MovementSpeed : float = 240;
 private var m_ShootButtonHeld : boolean = false;
 private var m_ShootButtonTimeHeld : float = 0.0;
+private var m_DashButtonHeld : boolean = false;
+private var m_DashButtonTimeHeld : float = 0.0;
+private static var m_RTBRequiredHoldTime = 0.5;	//return to base required time
 private static var m_PowerShotRequiredHoldTime = 0.5;
 var m_ThirdPerson:boolean;
 
@@ -176,13 +179,38 @@ function OnNetworkInput(IN : InputState)
 		}
 	}	
 	//handle dash button
-	if(m_MovementKeyPressed && IN.GetAction(IN.DASH) && !IsDashing && m_DashTimer <= 0)
+	if(IN.GetAction(IN.DASH) && GetComponent(TreeHideDecorator) == null)
 	{
-		var stam:float = m_Stats["Stamina"];
-		var dashTime : float = 1.0 + (stam+1.0)*0.35;
-		m_DashTimer = 1/dashTime;
-		networkView.RPC("Dash", RPCMode.All);
+		if(m_MovementKeyPressed )
+		{	
+			if(!IsDashing && m_DashTimer <= 0)
+			{
+				var stam:float = m_Stats["Stamina"];
+				var dashTime : float = 1.0 + (stam+1.0)*0.35;
+				m_DashTimer = 1/dashTime;
+				networkView.RPC("Dash", RPCMode.All);
+			}
+		}
+		else
+		{
+			if(!IsDashing && GetComponent(ItemDecorator) == null)
+			{
+				m_DashButtonHeld = true;
+			    if( m_DashButtonTimeHeld < m_RTBRequiredHoldTime && 
+				   m_DashButtonTimeHeld + Time.deltaTime >= m_RTBRequiredHoldTime)
+				{
+					networkView.RPC("ReturnToBase", RPCMode.All);
+				}
+				m_DashButtonTimeHeld += Time.deltaTime;
+			}
+		}
 	}
+	else
+	{
+		m_DashButtonTimeHeld = 0;
+	}
+	
+
 	
 	//handle mouse look at
 	
@@ -306,6 +334,14 @@ function OnNetworkInput(IN : InputState)
 						networkView.RPC("ShowHiveGUI", RPCMode.All, 1, m_NearestObject.name);
 				   }
 			}
+			//handle hive pedestals
+			if(m_NearestObject.tag == "Teleporters")
+			{
+			    if(GetComponent(ItemDecorator) == null && GetComponent(TeleportDecorator) == null)
+			    {
+				 	ServerRPC.Buffer(networkView,"UseTeleporter", RPCMode.All, m_NearestObject.name);
+			    }
+			}
 		}
 		else
 		if(GetComponent(TreeHideDecorator) == null)
@@ -419,12 +455,13 @@ function OnPlayerLookAt(at : Vector3)
 	AudioSource.PlayClipAtPoint(m_ShootSound, Camera.main.transform.position);
 	var go : GameObject = gameObject.Find(bulletName);
 	go.GetComponent(BulletScript).m_Owner = gameObject;
-	Camera.main.GetComponent(CameraScript).Shake(0.25,0.25);
+	Camera.main.GetComponent(CameraScript).Shake(0.35,0.25);
 	go.GetComponent(BulletScript).m_PowerShot = false;
 	go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
 	//make it so we dont collide with our own bullets
 	Physics.IgnoreCollision(go.collider, collider);
-	
+	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
+	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
 	//set the position and velocity of the bullet
 	go.transform.position = pos;
 	go.GetComponent(UpdateScript).m_Vel = vel; 
@@ -501,6 +538,40 @@ function OnPlayerLookAt(at : Vector3)
 	go.GetComponent(TrailRenderer).material.SetColor("_TintColor", renderer.material.color);
 }
 
+@RPC function ReturnToBase()
+{
+	Debug.Log("Returning To Base");
+	var hives:GameObject[] = GameObject.FindGameObjectsWithTag("Hives");
+	var dist:float = 99999;
+	var closestHive:GameObject = null;
+	for(var hive:GameObject in hives)
+	{
+		if((transform.position - hive.transform.position).magnitude < dist && hive.GetComponent(HiveScript).m_Owner == gameObject)
+		{
+			dist = (transform.position - hive.transform.position).magnitude;
+			closestHive = hive;
+		}
+	}
+	
+	if(closestHive != null)
+	{
+		gameObject.AddComponent(TeleportDecorator);
+		GetComponent(TeleportDecorator).SetLifetime(3);
+		GetComponent(TeleportDecorator).m_TelePos = closestHive.transform.position + Vector3.up*350;
+	}
+	else
+	{
+		
+	}
+}
+
+
+@RPC function UseItem(index : int)
+{
+	GetComponent(BeeScript).m_Inventory[index].m_Item = null;
+	GetComponent(BeeScript).m_Inventory[index].m_Img = null;
+}
+
 @RPC function PickupRock(rockName : String)
 {	
 	AudioSource.PlayClipAtPoint(m_PickupSound, Camera.main.transform.position);
@@ -508,13 +579,6 @@ function OnPlayerLookAt(at : Vector3)
 	gameObject.AddComponent(ItemDecorator);
 	GetComponent(ItemDecorator).SetItem(rock, Vector3(0,1,14), Vector3(0,0,0), false, false);
 	GetComponent(ItemDecorator).m_MaxSpeed = 25;
-	
-}
-
-@RPC function UseItem(index : int)
-{
-	GetComponent(BeeScript).m_Inventory[index].m_Item = null;
-	GetComponent(BeeScript).m_Inventory[index].m_Img = null;
 }
 
 @RPC function UseFlower(name : String)
@@ -523,7 +587,12 @@ function OnPlayerLookAt(at : Vector3)
 	{
 		AudioSource.PlayClipAtPoint(m_PickupSound, Camera.main.transform.position);
 		gameObject.AddComponent(FlowerDecorator);
-		GetComponent(FlowerDecorator).SetFlower(gameObject.Find(name));
+		var flower:GameObject = gameObject.Find(name);
+		if(flower != null)
+		{
+			flower.GetComponent(FlowerScript).m_Owner = gameObject;
+			GetComponent(FlowerDecorator).SetFlower(flower);
+		}
 	}
 }
 
@@ -545,6 +614,14 @@ function OnPlayerLookAt(at : Vector3)
 {
 	gameObject.AddComponent(TreeHideDecorator);
 	GetComponent(TreeHideDecorator).Hide(gameObject.Find(tree));
+}
+
+@RPC function UseTeleporter(teleporter : String)
+{
+
+	gameObject.AddComponent(TeleportDecorator);
+	GetComponent(TeleportDecorator).SetLifetime(3);
+	GetComponent(TeleportDecorator).m_TelePos = GameObject.Find(teleporter).GetComponent(TeleporterScript).m_ExitTeleporter.transform.position + Vector3.up*350;
 }
 
 @RPC function ShowHiveGUI(bShow : int, hiveName : String)

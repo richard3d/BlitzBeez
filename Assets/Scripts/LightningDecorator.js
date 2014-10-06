@@ -11,7 +11,6 @@ function Awake()
 	//renderer.enabled = false;
 	collider.enabled = false;
 	//transform.position = m_StrikePos;
-	GetComponentInChildren(Projector).enabled = false;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 	GetComponent(TrailRenderer).enabled = true;
 	m_LightningEffect = gameObject.Find(gameObject.name+"/Lightning(Clone)");
@@ -114,7 +113,6 @@ function OnDestroy()
 {
 	collider.enabled = true;
 	//gameObject.animation.Play("SpawnPlayer");
-	GetComponentInChildren(Projector).enabled = true;
 	Destroy(GetComponent(ControlDisablerDecorator));
 	GetComponent(BeeScript).enabled = true;
 	GetComponent(TrailRenderer).enabled = false;

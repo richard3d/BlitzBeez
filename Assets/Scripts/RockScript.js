@@ -93,6 +93,7 @@ function DamageHive(hiveName:String, dmgAmt:int)
 
 function OnCollisionEnter(coll : Collision)
 {
+	Debug.Log("hit");
 	if(Network.isServer)
 	{
 		if(transform.parent == null)
@@ -155,6 +156,7 @@ function OnCollisionEnter(coll : Collision)
 
 function OnCollisionStay(coll : Collision)
 {
+		Debug.Log("hitstay");
 	var player:GameObject = null;
 	if(coll.gameObject.tag == "Player" )
 	{

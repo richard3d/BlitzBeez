@@ -65,6 +65,7 @@ private function FindThumnail(name:String) : Texture2D
 			return m_MenuThumbnails[i].m_Tex2D;
 		}
 	}
+	return null;
 }
 
 function Start () {

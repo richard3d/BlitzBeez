@@ -8,7 +8,6 @@ function Start () {
 
 function Update () {
 
-	var hit:RaycastHit;
 	if(Physics.Raycast(transform.position,-Vector3.up,m_TerrainInfo,Mathf.Infinity,m_TerrainLayer))
 	{
 		m_OverTerrain = true;

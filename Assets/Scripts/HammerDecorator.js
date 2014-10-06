@@ -26,12 +26,12 @@ function Start () {
 	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
-		Camera.main.GetComponent(CameraScript).m_ThirdPerson = false;
-		Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
-		Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - dir *200;
-		Camera.main.GetComponent(CameraScript).m_Offset = dir *200;
-		Camera.main.transform.eulerAngles.z = 0;
-		Camera.main.transform.eulerAngles.y = transform.eulerAngles.y;
+		 Camera.main.GetComponent(CameraScript).m_Fixed = true;
+		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
+		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - dir *200;
+		// Camera.main.GetComponent(CameraScript).m_Offset = dir *200 - Vector3.up *200;
+		// Camera.main.transform.eulerAngles.z = 0;
+		// Camera.main.transform.eulerAngles.y = transform.eulerAngles.y;
 	}	
 	
 	
@@ -81,10 +81,10 @@ function OnNetworkInput(IN : InputState)
 	
 	//handle essential strafe movements
 	//we arent allowed to change direction if we hit the dash button though
-	var vRight:Vector3  = Camera.main.transform.right;
+	var vRight:Vector3  = transform.right;
 	vRight.y = 0;
 	vRight.Normalize();
-	var vFwd:Vector3 = Camera.main.transform.forward;
+	var vFwd:Vector3 = transform.forward;
 	vFwd.y = 0;
 	vFwd.Normalize();
 	
@@ -121,10 +121,10 @@ function OnDestroy()
 {
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
-		Camera.main.GetComponent(CameraScript).m_ThirdPerson = true;
-		Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
-		Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - transform.forward *200;
-		Camera.main.GetComponent(CameraScript).m_Offset = Vector3.forward *200;
-		Camera.main.transform.eulerAngles.z = 0;
+		// Camera.main.GetComponent(CameraScript).m_ThirdPerson = true;
+		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
+		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - transform.forward *200;
+		// Camera.main.GetComponent(CameraScript).m_Offset = Vector3.forward *200;
+		// Camera.main.transform.eulerAngles.z = 0;
 	}	
 }

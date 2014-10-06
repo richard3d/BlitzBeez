@@ -8,7 +8,8 @@ private var m_FirstInput : boolean = true;
 private var m_SwarmCreated : boolean = false;
 var m_ShieldEffect : GameObject = null;
 private var m_PollenParticles : GameObject = null;
-private var m_ProgressEffect : GameObject = null;
+ var m_ProgressEffect : GameObject = null;
+var m_FlashTimer : float = -1;
 function Start () {
 
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
@@ -68,6 +69,21 @@ function OnNetworkInput(IN : InputState)
 function Update () {
 	if(!m_Flower)
 		return;
+	var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);	
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		var txt:GameObject= gameObject.Find("SwarmCountText");
+		txt.transform.position = Camera.main.WorldToViewportPoint(m_Flower.transform.position - Vector3.up * transform.localScale.z*18);
+		txt.transform.position.y += 0.04;
+		txt.GetComponent(GUIText).enabled = true;
+		if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
+		{
+			txt.GetComponent(GUIText).material.color = Color.white;
+			txt.GetComponent(GUIText).text = "MAX";
+		}
+		else
+			txt.GetComponent(GUIText).enabled = false;
+	}
 	
 	if(m_LifeTimer < m_Lifetime)	
 	{
@@ -86,7 +102,7 @@ function Update () {
 		
 		if(Network.isServer)
 		{
-			var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);
+			
 			if(flowerComp.m_NumBees == 0 && m_Flower.transform.Find("Swarm"+m_Flower.name) == null)
 			{
 				//add swarm and shield and bee
@@ -96,6 +112,7 @@ function Update () {
 				ServerRPC.Buffer(networkView,"AddSwarm", RPCMode.All, m_Flower.name, offset, 10);
 				
 			}
+			
 			
 			if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
 			{
@@ -108,21 +125,7 @@ function Update () {
 			
 				offset  = Vector3(0,200,0);
 				ServerRPC.Buffer(networkView,"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
-			
-			
-				var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
-				txt.GetComponent(KudosTextScript).m_WorldPos = transform.position;
-				txt.GetComponent(UpdateScript).m_Lifetime = 2;
-				gameObject.GetComponent(BeeScript).m_Money +=  25;
-				if(flowerComp.m_NumBees > 1)
-					txt.GetComponent(GUIText).text = "+ "+(flowerComp.m_NumBees-1)+" Defense";
-				else
-					txt.GetComponent(GUIText).text = "Captured!";
-				if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
-				{
-					m_ProgressEffect.active = false;
-				}
-				txt.GetComponent(GUIText).material.color = Color.yellow;
+	
 			}
 		}
 		
@@ -143,12 +146,12 @@ function Update () {
 	{
 		if(m_Flower.transform.Find("Swarm"+m_Flower.name) == null)
 		{
-			txt= gameObject.Find("SwarmCountText");
-			txt.transform.position = Camera.main.WorldToViewportPoint(transform.position + Vector3.up * transform.localScale.z*5);
-			txt.transform.position.y += 0.04;
-			//txt.GetComponent(GUIText).enabled = true;
-			//txt.GetComponent(GUIText).text = "Capturing";
-			txt.GetComponent(GUIText).fontSize = 24;
+			// txt= gameObject.Find("SwarmCountText");
+			// txt.transform.position = Camera.main.WorldToViewportPoint(transform.position + Vector3.up * transform.localScale.z*5);
+			// txt.transform.position.y += 0.04;
+			// //txt.GetComponent(GUIText).enabled = true;
+			// //txt.GetComponent(GUIText).text = "Capturing";
+			// txt.GetComponent(GUIText).fontSize = 24;
 		}
 	}
 
@@ -180,13 +183,23 @@ function OnGUI()
 		
 		
 		
-		GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).ClockTexture);
+		GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).m_DroneAssignmentTexture);
 		var beeSize:float = 24+Mathf.Sin(Time.time*16)*2;
 		for(var i:int = 0; i < m_Flower.GetComponent(FlowerScript).m_NumBees; i++)
 		{
 			GUI.DrawTexture(Rect(pos.x - 50 + i*32,Screen.height-pos.y +100, beeSize, beeSize), GetComponent(BeeScript).BeeTexture);
 		}
-		GUIUtility.RotateAroundPivot (Mathf.Min(m_LifeTimer/m_Lifetime,1)*359,  Vector2(pos.x, Screen.height-pos.y)); 
+		//GUIUtility.RotateAroundPivot (Mathf.Min(m_LifeTimer/m_Lifetime,1)*359,  Vector2(pos.x, Screen.height-pos.y)); 
+		
+		if(m_FlashTimer > 0)
+		{
+			m_FlashTimer -= Time.deltaTime;
+			var origClr = GUI.color; 
+			GUI.color = Color(1,1,1, m_FlashTimer);
+			GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).m_AssignmentFlasherTexture);
+			//GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).ClockTexture);
+			GUI.color = origClr;
+		}
 		//GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y- width/2, width, width), m_Flower.GetComponent(FlowerScript).ClockHandTexture);
 	}
 }

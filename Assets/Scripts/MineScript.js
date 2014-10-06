@@ -31,26 +31,29 @@ function Update () {
 		}
 	}
 	
-	if(m_HideTimer > 0)
+	if(m_Armed)
 	{
-		m_HideTimer -= Time.deltaTime;
-		if(m_HideTimer <= 0)
+		if(m_HideTimer > 0)
 		{
-			renderer.enabled = false;
-			for(var t:Transform in transform)
+			m_HideTimer -= Time.deltaTime;
+			if(m_HideTimer <= 0)
 			{
-				t.renderer.enabled = false;
+				renderer.enabled = false;
+				for(var t:Transform in transform)
+				{
+					t.renderer.enabled = false;
+				}
+				
 			}
-			
 		}
-	}
 	
-	if(m_TriggerTimer > 0)
-	{
-		m_TriggerTimer -= Time.deltaTime;
-		if(m_TriggerTimer <= 0)
+		if(m_TriggerTimer > 0)
 		{
-			Explode();
+			m_TriggerTimer -= Time.deltaTime;
+			if(m_TriggerTimer <= 0)
+			{
+				Explode();
+			}
 		}
 	}
 }
@@ -136,7 +139,6 @@ function Explode()
 	
 	var go : GameObject = gameObject.Instantiate(m_MineExplosion);
 	go.transform.position = transform.position;
-	go.transform.position.y = 0;
 	Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 	
 	transform.eulerAngles = Vector3(0,0,0);

@@ -1,15 +1,21 @@
 #pragma strict
 
 
-
+public var m_NumberOfFlashes:int = 7;
+public var m_FlashDuration:float = 0.08;
 //this script makes bees flash a certain color
-private var m_OrigColor:Color;
-private var m_OrigColor2:Color;
+private var m_OrigColors:Color[];
+
 function Start () {
 
-	m_OrigColor = renderer.material.color;
-	m_OrigColor2 = renderer.materials[1].color;
-	yield SwitchColor(7, 0.08);
+	m_OrigColors = new Color[ renderer.materials.length];
+	
+	for( var i:int = 0; i < renderer.materials.length; i++)
+	{
+		m_OrigColors[i] = renderer.materials[i].color;
+	}
+	
+	yield SwitchColor(m_NumberOfFlashes, m_FlashDuration);
 }
 
 function Update () {
@@ -21,10 +27,13 @@ function Update () {
 function SwitchColor(num:int,time:float)
 {
 
-	for(var i:int = 0; i < num; i++)
+	for(var k:int = 0; k < num; k++)
 	{
-		renderer.material.color  = renderer.material.color == Color.white ?  m_OrigColor : Color.white;
-		renderer.materials[1].color  = renderer.materials[1].color == Color.white ?  m_OrigColor2 : Color.white;
+		
+		for( var i:int = 0; i < renderer.materials.length; i++)
+		{
+			renderer.materials[i].color  = renderer.materials[i].color == Color.white ?  m_OrigColors[i] : Color.white;
+		}
 		yield WaitForSeconds(time);
 	}
 	Destroy(this);
@@ -32,6 +41,9 @@ function SwitchColor(num:int,time:float)
 
 function OnDestroy()
 {
-	renderer.material.color = m_OrigColor;
-	renderer.materials[1].color = m_OrigColor2;
+	
+	for( var i:int = 0; i < renderer.materials.length; i++)
+	{
+		 renderer.materials[i].color =m_OrigColors[i];
+	}
 }

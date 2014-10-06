@@ -8,14 +8,14 @@ function Awake()
 	
 	renderer.enabled = false;
 	collider.enabled = false;
-	
+	GetComponentInChildren(TrailRenderer).enabled = false;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 }
 
 function Start () {
 
-	renderer.enabled = false;
-	Debug.Log("hiding");
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+		Camera.main.GetComponent(CameraScript).m_Freeze = true;
 
 }
 
@@ -37,8 +37,15 @@ function Update () {
 	if(m_Lifetime <= 0)
 	{
 		if(NetworkUtils.IsControlledGameObject(gameObject))
-			Camera.main.GetComponent(CameraScript).SetFocalPosition(transform.position);
+		{
+			//Camera.main.GetComponent(CameraScript).m_Freeze = false;
+			Camera.main.transform.position = m_RespawnPos +200*Vector3.up-transform.forward*200;
+			Camera.main.transform.position.y = 200;
+			Camera.main.transform.LookAt(Vector3(m_RespawnPos.x,0,m_RespawnPos.z));
+			Camera.main.GetComponent(CameraScript).m_CamPos = Camera.main.transform.position;
+		}
 		gameObject.GetComponent(BeeScript).enabled = false;
+		
 		transform.position = Vector3(m_RespawnPos.x, Mathf.Lerp(m_RespawnPos.y, 5, 1-m_AnimTime/0.25), m_RespawnPos.z);
 		GetComponent(TrailRenderer).enabled = true;
 		m_AnimTime -= Time.deltaTime;
@@ -60,7 +67,10 @@ function SetLifetime(time : float)
 
 function OnDestroy()
 {
-	
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		Camera.main.GetComponent(CameraScript).m_Freeze = false;
+	}
 	
 	GetComponent(BeeScript).m_HP = 3;
 	collider.enabled = true;
