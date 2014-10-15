@@ -144,7 +144,15 @@ function OnTriggerEnter(other : Collider)
 			gameObject.Find(gameObject.name+"/Shield").renderer.enabled = false;
 		}
 	}
-	else if (other.gameObject.tag == "Explosion" )
+	else if (other.gameObject.tag == "Explosion" && other.gameObject == m_Owner)
+	{
+		if(Network.isServer && m_HP > 0)
+		{	
+			m_HP -= m_BaseHP;
+			ServerRPC.Buffer(networkView, "SetHP",RPCMode.All, m_HP);
+		}
+	}
+	else if (other.gameObject.tag == "Hammer" && other.gameObject == m_Owner)
 	{
 		if(Network.isServer && m_HP > 0)
 		{	
@@ -154,8 +162,7 @@ function OnTriggerEnter(other : Collider)
 	}
 }
 
-@RPC
-function  SetHP(hp:int)
+@RPC function  SetHP(hp:int)
 {
 
 	m_HP = hp;

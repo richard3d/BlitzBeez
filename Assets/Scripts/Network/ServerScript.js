@@ -56,6 +56,7 @@ function OnGUI()
 	else
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
+		Debug.Log("tell em who won");
 		skin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
 		GUILayout.BeginArea(Rect(0,256, Screen.width,512), skin.customStyles[0]);
 		GUILayout.Label("All Hail "+m_Clients[GameStateManager.m_WinningPlayer].m_Name+".\n The new QUEEN (OR KING) BEE!", skin.label);
@@ -104,7 +105,9 @@ function OnStateChange(state:int)
 
 function InitiateMatchShutdown()
 {
-	yield WaitForSeconds(2);
+	
+	yield WaitForSeconds(10);
+	GetComponent(GameStateManager).SetState(GameStateManager.MATCH_EXITING);
 	//stop sending gameplay updates
 	Network.SetSendingEnabled(0, false); 
 	//tell everyone else to shutdown
@@ -186,7 +189,7 @@ function Update () {
 		}
 	
 	}
-	else if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
+	else if(mgr.m_CurrState == GameStateManager.MATCH_EXITING)
 	{
 		//see if all clients have safely made it before we load the lobby ourselves
 		var numClientsExited = 0;
@@ -194,8 +197,9 @@ function Update () {
 		{
 			if(GetClient(i).m_GameObject == null){
 					numClientsExited++;
-				}
+			}
 		}
+		Debug.Log(numClientsExited+" "+GetNumClients());
 		if(numClientsExited == GetNumClients()-1)
 		{
 			Debug.Log("Exiting match from server");
@@ -414,8 +418,9 @@ function GetGameObject() : GameObject
 
 @RPC function NetworkDestroy(name : String)
 {
-	ServerRPC.DeleteFromBuffer(gameObject.Find(name));	
 	Destroy(gameObject.Find(name));
+	ServerRPC.DeleteFromBuffer(gameObject.Find(name));	
+
 	
 }
 

@@ -21,6 +21,7 @@ var m_Bounce : boolean = true;
 var m_CanTeleport : boolean = false;
 var m_HP : int = 3;
 var m_WorkerBees:int = 3;
+var m_MaxWorkerBees:int = 3;
 var m_Money : int = 0;
 var m_PollenCount:int = 0;
 var m_Honey:int = 0;
@@ -69,45 +70,59 @@ function Awake()
 }
 
 function Start () {
-	m_Money = 9500;
+	m_Money = 0;
 }
 
 function Update () {
 	rigidbody.velocity = Vector3(0,0,0);
 	var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
 	var coll= Terr.m_TerrainInfo.collider;
+	if(!GetComponent(CharacterController).isGrounded)
+	{	
+		//Debug.Log("in air");
+		GetComponent(UpdateScript).m_Accel.y = -300;
+	}
+	else
+	{
+		//Debug.Log("ground");
+		//GetComponent(UpdateScript).m_Accel.y = 0;
+		GetComponent(UpdateScript).m_Vel.y = 0;
+	}
 	if(Network.isServer)
-	{	m_GroundPositionVel.y -= 299.8*Time.deltaTime;
-		if(m_GroundPosition.y+ m_GroundPositionVel.y * Time.deltaTime >= Terr.m_TerrainInfo.point.y)
-		{
+	 {	
+	 
+		
+		//m_GroundPositionVel.y -= 299.8*Time.deltaTime;
+		// if(m_GroundPosition.y+ m_GroundPositionVel.y * Time.deltaTime >= Terr.m_TerrainInfo.point.y)
+		// {
 			
-			m_GroundPosition.y += m_GroundPositionVel.y* Time.deltaTime;
-			//m_Bounce = false;
-			GetComponent(TrailRenderer).enabled = true;
+			// m_GroundPosition.y += m_GroundPositionVel.y* Time.deltaTime;
+			// //m_Bounce = false;
+			// GetComponent(TrailRenderer).enabled = true;
 			
-		//	Debug.Log("falling from height "+ (m_GroundPosition.y - Terr.m_TerrainInfo.point.y));
-		}
-		else
-		{
-		//	Debug.Log("Setting to ground level "+Terr.m_TerrainInfo.point);
-			m_GroundPosition.y = Terr.m_TerrainInfo.point.y;
-			m_GroundPositionVel.y = 0;
-			//m_Bounce = true;
-		}
+		// //	Debug.Log("falling from height "+ (m_GroundPosition.y - Terr.m_TerrainInfo.point.y));
+		// }
+		// else
+		// {
+		// //	Debug.Log("Setting to ground level "+Terr.m_TerrainInfo.point);
+			// m_GroundPosition.y = Terr.m_TerrainInfo.point.y;
+			// m_GroundPositionVel.y = 0;
+			// //m_Bounce = true;
+		// }
 		
 		if(coll != null && coll.gameObject.tag == "Water" && GetComponent(DrowningDecorator) == null)
 		{
 			var offset:Vector3 = Vector3.zero;//(coll.gameObject.transform.position -  transform.position).normalized*coll.gameObject.transform.localScale.magnitude*4 ;
 			ServerRPC.Buffer(gameObject.networkView, "Drown", RPCMode.All,offset);
 		}
-		if(m_Bounce)
-		{
-			transform.position.y = m_GroundPosition.y + 6 + (Mathf.Sin(Time.time*26)+2)*0.5;
-		}
-		else
-		{
-			transform.position.y = m_GroundPosition.y + 6;
-		}
+		// if(m_Bounce)
+		// {
+			// transform.position.y = m_GroundPosition.y + 6 + (Mathf.Sin(Time.time*26)+2)*0.5;
+		// }
+		// else
+		// {
+			// transform.position.y = m_GroundPosition.y + 6;
+		// }
 	}
 	if(Input.GetKeyDown(KeyCode.LeftControl))
 	{
@@ -453,27 +468,8 @@ function DrawGUI()
 
 		
 		//draw hive bar
-	//	GUI.DrawTexture(Rect(30,Screen.height - 40, 253, 41), BarBGTexture, ScaleMode.ScaleToFit, true);
-		var pollenPerc:float  = (m_PollenCount % 3.0)/3;
-		var pollenIndex : int = m_PollenCount/3;
-		
-		
-		for(i =  0; i < pollenIndex; i++)
-		{
-			GUI.color = Color.Lerp(Color.white,Color(1,0.75,0,1), (Mathf.Sin(Time.time*16)+1)*0.5);
-			//GUI.Color = Color.yellow;
-			GUI.DrawTexture(Rect(90 + (i) *45 ,118, 38, 16), HiveBarTexture, ScaleMode.StretchToFill, true);		
-		}
-		GUI.color = Color.white;
-		GUI.DrawTexture(Rect(90 + (i) *45 ,118, 38*pollenPerc, 16), HiveBarTexture, ScaleMode.StretchToFill, true);
-		
-		
-		
-		GUI.DrawTexture(Rect(90,118, 38, 16), PollenMeterTexture, ScaleMode.StretchToFill, true);
-		GUI.DrawTexture(Rect(135,118, 38, 16), PollenMeterTexture, ScaleMode.StretchToFill, true);
-		GUI.DrawTexture(Rect(180,118, 38, 16), PollenMeterTexture, ScaleMode.StretchToFill, true);
-		
-		
+		GUI.DrawTexture(Rect(90 ,118, 32, 32), BeeTexture, ScaleMode.StretchToFill, true);
+		GUI.Label(Rect(135,118,256,48), m_WorkerBees+"/"+m_MaxWorkerBees,FontStyle);
 		
 			
 		//draw the actual honey meter that shows the race for the crown
@@ -487,16 +483,20 @@ function DrawGUI()
 			honeyPerc = Mathf.Min(honeyPerc, 1);
 			
 
-			m_HoneyInterpolator = Mathf.Lerp(m_HoneyInterpolator, honeyPerc, Time.deltaTime);
+			
 			if(NetworkUtils.IsControlledGameObject(NetworkUtils.GetClientObject(i)))
 			{
-				GUI.DrawTexture(Rect(Screen.width - 306, 95, m_HoneyInterpolator*256, 24), HiveBarTexture, ScaleMode.StretchToFill, true);
+				m_HoneyInterpolator = Mathf.Lerp(m_HoneyInterpolator, honeyPerc, Time.deltaTime);
+				//Debug.Log(NetworkUtils.GetClientObject(i).m_Name);
+				GUI.DrawTexture(Rect(Screen.width - 306, 95, m_HoneyInterpolator*206, 24), HiveBarTexture, ScaleMode.StretchToFill, true);
 				GUI.DrawTexture(Rect(Screen.width - 356,90, 256, 32), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
-				GUI.DrawTexture(Rect(Screen.width - 318+m_HoneyInterpolator*256, 70, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
+				GUI.DrawTexture(Rect(Screen.width - 318+m_HoneyInterpolator*200, 70, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
 			}
 			else
 			{
-				GUI.DrawTexture(Rect(Screen.width - 318+honeyPerc*256, 70, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
+				GUI.color = Color.black;
+				GUI.DrawTexture(Rect(Screen.width - 318+honeyPerc*200, 70, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
+				GUI.color = Color.white;
 			}
 		}
 		
@@ -565,6 +565,9 @@ function OnCollisionStay(coll : Collision) {
 
 }
 
+function OnControllerColliderHit (hit : ControllerColliderHit) {
+}
+
 function OnCollisionEnter(coll : Collision) {
 
 	//if we dash and hit an object we should shake the camera
@@ -579,7 +582,7 @@ function OnCollisionEnter(coll : Collision) {
 				GetComponent(PauseDecorator).m_Lifetime = 0.25;
 			}
 			else
-			if(coll.gameObject.transform.localScale.x > 5 )
+			if(coll.gameObject.GetComponent(BulletScript).m_PowerShot )
 			{
 				//hit by a powershot 
 				//we got hit by a bullet
@@ -631,7 +634,6 @@ function OnCollisionEnter(coll : Collision) {
 		}
 		else if(coll.gameObject.tag == "Explosion" && coll.gameObject.GetComponent(BombExplosionScript).m_Owner != gameObject)
 		{
-			
 			networkView.RPC("SetHP", RPCMode.All, 0);
 		}
 		else if(coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != gameObject)
@@ -757,8 +759,11 @@ function FindRespawnLocation() : Vector3
 	}
 	
 	m_HP = hp;
-	
-	
+}
+
+@RPC function SetHoneyPoints(pts:int)
+{
+	m_Honey = pts;
 }
 
 @RPC function Daze(velEnabled : boolean)
@@ -782,6 +787,7 @@ function FindRespawnLocation() : Vector3
 @RPC function GenerateWorkerBee()
 {
 	var maxBees:int = GetComponent(BeeControllerScript).m_Stats["Max Workers"];
+	maxBees = m_MaxWorkerBees + maxBees+1;
 	if(maxBees > m_WorkerBees)
 		m_WorkerBees++;
 }
@@ -791,6 +797,7 @@ function FindRespawnLocation() : Vector3
 	var flowerDec :FlowerDecorator = GetComponent(FlowerDecorator);
 	if(flowerDec != null)
 	{
+		m_WorkerBees--;
 		flowerDec.m_FlashTimer = 1;
 		flowerDec.Reset();
 		

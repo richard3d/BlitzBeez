@@ -23,41 +23,41 @@ function Update () {
 		return;
 	
 	//Comp.m_Accel.y = -289.8;
+	
 	if(Network.isServer)
+{	
+	var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
+	if(Terr != null)
 	{
-		
-		var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
-		if(Terr != null)
+		if(Terr.m_OverTerrain)
 		{
-			if(Terr.m_OverTerrain)
-			{
-				
-				if(gameObject.tag == "Coins")
-				{
-					if(transform.position.y  + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
-					{
-						transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
-						Comp.m_Vel.y *= -0.75;
-					}	
-				}
-					
-				else
-				{
-					var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
-					if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
-					{
-						transform.position.y = size+Terr.m_TerrainInfo.point.y;
-						Comp.m_Vel.y *= -0.75;
-					}	
-				}
-			}
 			
-			if(Comp.m_Vel.magnitude < 0.01)
+			if(gameObject.tag == "Coins")
 			{
-				Comp.m_Vel = Vector3(0,0,0);
-				Comp.m_Accel = Vector3(0,0,0);
+				if(transform.position.y  + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+				{
+					transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
+					Comp.m_Vel.y *= -0.75;
+				}	
 			}
-		}	
+				
+			else
+			{
+				var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
+				if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+				{
+					transform.position.y = size+Terr.m_TerrainInfo.point.y;
+					Comp.m_Vel.y *= -0.75;
+				}	
+			}
+		}
+		
+		if(Comp.m_Vel.magnitude < 0.01)
+		{
+			Comp.m_Vel = Vector3(0,0,0);
+			Comp.m_Accel = Vector3(0,0,0);
+		}
+	}	
 	
 	}
 	
@@ -72,7 +72,7 @@ function Update () {
 		{
 			var server : ServerScript = GameObject.Find("GameServer").GetComponent(ServerScript);
 			ServerRPC.Buffer(server.m_SyncMsgsView, "NetworkDestroy", RPCMode.All, gameObject.name);
-			//ServerRPC.DeleteFromBuffer(gameObject);
+			ServerRPC.DeleteFromBuffer(gameObject);
 			
 		}
 	}
@@ -92,31 +92,29 @@ function Update () {
 	}
 }
 
-function OnDestroy()
+
+
+function OnTriggerEnter(coll:Collider)
 {
-	Debug.Log("Destroying "+ gameObject.name);
+	if(coll.gameObject.tag == "Player")
+	{
+		if(Network.isServer && gameObject.tag != "Coins")
+		{
+			ServerRPC.Buffer(networkView, "AddItemToPlayerInvetory", RPCMode.All, coll.gameObject.name);
+			ServerRPC.DeleteFromBuffer(gameObject);
+		}
+	}
 }
 
 function OnItemCollisionEnter(coll : Collision)
 {
 	var other : Collider = coll.collider;
 	
-	if(other.gameObject.tag == "Player")
-	{
-		if(Network.isServer)
-		{
-			//ServerRPC.DeleteFromBuffer(gameObject);
-			ServerRPC.Buffer(networkView, "AddItemToPlayerInvetory", RPCMode.All, other.gameObject.name);
-			ServerRPC.DeleteFromBuffer(gameObject);
-			var server : ServerScript = GameObject.Find("GameServer").GetComponent(ServerScript);
-			//ServerRPC.Buffer(server.m_SyncMsgsView, "NetworkDestroy", RPCMode.All, gameObject.name);
-		}
-	}
-	else
+	if(other.gameObject.tag != "Player")
 	{
 		if(GetComponent(UpdateScript).m_Vel .y < 0 && other.gameObject.tag != "Terrain")
 		{
-			for (var contact : ContactPoint in coll.contacts) 
+		    for (var contact : ContactPoint in coll.contacts) 
 			  {
 				if(gameObject.tag == "Coins")
 					transform.position = contact.point;
@@ -135,7 +133,6 @@ function OnCollisionStay(coll : Collision)
 	var other : Collider = coll.collider;
 	if(other.gameObject.layer == "Terrain")
 	{
-	Debug.Log("Here too");
 		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
 		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 	}
@@ -165,4 +162,9 @@ function OnCollisionStay(coll : Collision)
 	}
 	Destroy(gameObject);
 } 
+
+function OnDestroy()
+{
+	Debug.Log("Destroying "+ gameObject.name);
+}
 

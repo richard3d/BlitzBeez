@@ -67,8 +67,17 @@ function OnNetworkInput(IN : InputState)
 }
 
 function Update () {
+
+	if(Network.isServer && GetComponent(BeeScript).m_WorkerBees == 0)
+	{
+		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
+		return;
+	}
+
 	if(!m_Flower)
 		return;
+		
+	GetComponent(BeeControllerScript).m_WorkerGenTimer = 	GetComponent(BeeControllerScript).m_WorkerGenTime;
 	var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
@@ -122,9 +131,11 @@ function Update () {
 			}
 			else
 			{
-			
-				offset  = Vector3(0,200,0);
-				ServerRPC.Buffer(networkView,"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
+				if(GetComponent(BeeScript).m_WorkerBees > 0)
+				{
+					offset  = Vector3(0,200,0);
+					ServerRPC.Buffer(networkView,"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
+				}
 	
 			}
 		}

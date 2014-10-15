@@ -74,20 +74,18 @@ function Update () {
 	}
 	
 	
-	if(m_Vel.magnitude > m_MaxSpeed)
+	if(Vector3(m_Vel.x,0,m_Vel.z).magnitude > m_MaxSpeed)
 	{
+		var vertSpeed = m_Vel.y;
 		m_Vel.Normalize();
 		m_Vel *= m_MaxSpeed;
+		m_Vel.y = vertSpeed;
 	}
-	
-	 if(Physics.Raycast (transform.position, m_Vel, m_Vel.magnitude*Time.deltaTime))
-	 {
-		// return;
-	 }
+
 	m_PrevPos = transform.position;
 	
 	
-	if(GetComponent(CharacterController) != null)
+	if(GetComponent(CharacterController) != null && GetComponent(CharacterController).enabled)
 	{
 		GetComponent(CharacterController).Move(m_Vel*Time.deltaTime);
 	}

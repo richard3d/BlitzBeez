@@ -26,7 +26,7 @@ function GetHosts()
 
 function Awake()
 {
-	m_MenuPos = Vector2(-Screen.width, 256);
+	m_MenuPos = Vector2(-Screen.width, Screen.height*0.25);
 }
 
 function Start () {
@@ -71,7 +71,7 @@ function OnGUI()
 		if(Network.isServer)
 		{
 			var width : float = 800;
-			GUILayout.BeginArea (Rect(m_MenuPos.x, m_MenuPos.y, 512,512), m_GUISkin.customStyles[0]);
+			GUILayout.BeginArea (Rect(m_MenuPos.x, m_MenuPos.y, 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 				
 				GUILayout.BeginHorizontal();
 					
@@ -93,15 +93,16 @@ function OnGUI()
 				GUILayout.EndHorizontal();
 				
 				
-				GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,  m_GUISkin.label);
+				GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,  m_GUISkin.label, GUILayout.MaxHeight(64));
+				
 				GUILayout.BeginHorizontal();
 					
-					if(GUILayout.Button("Returnz to Main Menuz", m_GUISkin.button))
+					if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
 					{
 						gameObject.Destroy(gameObject.Find("GameServer"));
 						Application.LoadLevel(0);
 					}
-					if(GUILayout.Button("Startz Match", m_GUISkin.button))
+					if(GUILayout.Button("Start Match", m_GUISkin.button))
 					{
 						// //Tell the clients which level to load
 					   GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
@@ -110,7 +111,7 @@ function OnGUI()
 				GUILayout.EndHorizontal();
 			GUILayout.EndArea();
 			
-			GUILayout.BeginArea (Rect(m_MenuPos.x+512, m_MenuPos.y, Screen.width - 512,512), m_GUISkin.customStyles[0]);
+			GUILayout.BeginArea (Rect(m_MenuPos.x+512, m_MenuPos.y, Screen.width - 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 			var comp : ServerScript = GetComponent(ServerScript) as ServerScript;
 			if(comp.GetNumClients() == 0)
 			{
@@ -132,23 +133,23 @@ function OnGUI()
 		else
 		{
 			width = 800;
-			GUILayout.BeginArea (Rect(m_MenuPos.x, m_MenuPos.y, Screen.width,512), m_GUISkin.customStyles[0]);
+			GUILayout.BeginArea (Rect(m_MenuPos.x, m_MenuPos.y, Screen.width,Screen.height*0.5), m_GUISkin.customStyles[0]);
 			
 			
 			
 			var cliScript:ClientScript = gameObject.Find("GameClient").GetComponent(ClientScript);
 			if(cliScript.GetNumClients() > 0)
 			{
-				GUILayout.BeginArea (Rect(0, 0, 512,512), m_GUISkin.customStyles[0]);
+				GUILayout.BeginArea (Rect(0, 0, 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 					GUILayout.Label(m_LevelPreviews[m_LevelIndex].m_Name, m_GUISkin.label);
-					GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,  m_GUISkin.label);
-					if(GUILayout.Button("Returnz to Main Menuz", m_GUISkin.button))
+					GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,  m_GUISkin.label,GUILayout.MaxHeight(64));
+					if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
 					{
 						gameObject.Destroy(gameObject.Find("GameClient"));
 						Application.LoadLevel(0);
 					}
 				GUILayout.EndArea();
-				GUILayout.BeginArea (Rect(m_MenuPos.x+512, 0, Screen.width - 512,512), m_GUISkin.customStyles[0]);
+				GUILayout.BeginArea (Rect(m_MenuPos.x+512, 0, Screen.width - 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 				GUILayout.Label("Waiting for Match to Start..." , m_GUISkin.label);
 				for(i= 0; i < cliScript.GetNumClients(); i++)
 				{
@@ -203,7 +204,7 @@ function OnGUI()
 				GUILayout.FlexibleSpace();
 				GUILayout.BeginHorizontal();
 			//	GUILayout.FlexibleSpace();		
-				if(GUILayout.Button("Returnz to Main Menuz", m_GUISkin.button))
+				if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
 				{	
 					gameObject.Destroy(gameObject.Find("GameClient"));
 					Application.LoadLevel(0);

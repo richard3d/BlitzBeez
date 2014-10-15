@@ -77,6 +77,7 @@ function OnStateChange(state:int)
 	else
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
+		Debug.Log("over bitch");
 		GetGameObject().GetComponent(NetworkInputScript).enabled = false;
 	}
 	else if(mgr.m_CurrState == GameStateManager.MATCH_LOBBY)
@@ -92,7 +93,8 @@ function OnStateChange(state:int)
 //however the client needs to notify the server when it is done first
 @RPC function ShutdownMatch()
 {
-	GetGameObject().GetComponent(NetworkInputScript).enabled = false;
+	if(GetGameObject() != null)
+		GetGameObject().GetComponent(NetworkInputScript).enabled = false;
 	m_SyncMsgsView.RPC("ClientShutdownMatch", RPCMode.Server,m_ClientID);
 }
 
@@ -292,6 +294,7 @@ function GetGameObject() : GameObject
 	 {
 		clone.name = instName;
 	 }
+	 Debug.Log(instName);
 	 return clone.gameObject;
 }
 
@@ -374,6 +377,7 @@ function GetGameObject() : GameObject
 
 @RPC function NetworkDestroy(name : String)
 {
+	Debug.Log("Network Destroy: "+name);
 	Destroy(gameObject.Find(name));
 }
 

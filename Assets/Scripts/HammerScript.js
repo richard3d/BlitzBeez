@@ -15,7 +15,7 @@ function Start () {
 function Update () {
 
 	transform.position = m_Owner.transform.position + m_Owner.transform.forward * 9;
-	transform.position.y = 7;
+	//transform.position.y = 7;
 	transform.eulerAngles = m_Owner.transform.eulerAngles;
 	var fSin : float = Mathf.Sin(Time.time*28);	
 	
@@ -64,6 +64,36 @@ function Update () {
 	}
 }
 
+function OnTriggerEnter(other: Collider)
+{
+	if( other.gameObject.tag == "Hives" )
+		{
+			if(other.GetComponent(HiveScript).m_Owner != null && other.GetComponent(HiveScript).m_Owner != m_Owner)
+			{
+				Debug.Log(other.gameObject .name);
+				m_ImpactTimer = 0.5;
+				m_Owner.GetComponent(HammerDecorator).m_MovementEnabled = false;
+				
+				var go:GameObject = gameObject.Instantiate(m_CollisionEffect);
+				go.transform.position = other.gameObject.transform.position;
+			}
+		
+		}
+	else if( other.gameObject.tag == "Flowers")
+		{
+			if(other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner != m_Owner)
+			{
+				Debug.Log(other.gameObject .name);
+				m_ImpactTimer = 0.5;
+				m_Owner.GetComponent(HammerDecorator).m_MovementEnabled = false;
+				
+				go = gameObject.Instantiate(m_CollisionEffect);
+				go.transform.position = other.gameObject.transform.position;
+			}
+			
+		}
+}
+
 function OnCollisionEnter(coll : Collision)
 {
 	var other : Collider = coll.collider;
@@ -79,7 +109,7 @@ function OnCollisionEnter(coll : Collision)
 	else if(other.gameObject != m_Owner)
 	{
 		if(other.gameObject.tag == "Player" ||
-		other.gameObject.tag == "ItemBoxes" ||
+		/*other.gameObject.tag == "ItemBoxes" ||*/
 		   other.gameObject.tag == "Rocks")
 		{
 			Debug.Log(other.gameObject .name);

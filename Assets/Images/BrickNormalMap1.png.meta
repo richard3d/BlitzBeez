@@ -14,8 +14,8 @@ TextureImporter:
   bumpmap:
     convertToNormalMap: 0
     externalNormalMap: 1
-    heightScale: .0299999993
-    normalMapFilter: 0
+    heightScale: .119000003
+    normalMapFilter: 1
   isReadable: 0
   grayScaleToAlpha: 0
   generateCubemap: 0

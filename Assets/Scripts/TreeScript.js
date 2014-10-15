@@ -15,6 +15,48 @@ function Update () {
 
 }
 
+function OnTriggerStay(coll : Collider)
+{
+	var player:GameObject = null;
+
+	if(coll.gameObject.tag == "Player" )
+	{		
+		
+		//handle player specific logic if the player is us
+		if(coll.gameObject.GetComponent(ItemDecorator) == null)
+		{
+			coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
+			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+			{	
+				var txt : GameObject  = gameObject.Find("UseText");
+				txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
+				txt.transform.position.y += 0.04;
+				txt.GetComponent(GUIText).enabled = true;
+				txt.GetComponent(GUIText).text = "Use";
+			}
+			//burn the player if the fire animation is playing
+			if(animation.isPlaying && Network.isServer)
+			{
+				ServerRPC.Buffer(coll.gameObject.networkView, "SetHP", RPCMode.All, coll.gameObject.GetComponent(BeeScript).m_HP-3);
+			}
+		}
+	}
+}
+
+function OnTriggerExit(coll : Collider)
+{
+	if(coll.gameObject.tag == "Player")
+	{	
+		//code to handle if the player is our controlling player
+		if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+		{
+			var txt : GameObject  = gameObject.Find("UseText");	
+			txt.GetComponent(GUIText).enabled = false;
+		}
+		coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
+	}
+}
+
 function OnCollisionEnter(coll : Collision)
 {
 
@@ -51,13 +93,6 @@ function OnCollisionEnter(coll : Collision)
 			}
 		 }
 	}
-	
-	if(coll.gameObject.tag == "Player")
-	{
-		coll.gameObject.GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-		coll.gameObject.GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
-	}
-	
 	
 	if(coll.gameObject.tag == "Explosion")
 	{
@@ -103,43 +138,7 @@ function OnCollisionEnter(coll : Collision)
 
 function OnCollisionStay(coll : Collision)
 {
-	if(coll.gameObject.tag == "Player")
-	{
-		var player:GameObject = null;
-		if(Network.isServer)
-		{
-			var server:ServerScript = gameObject.Find("GameServer").GetComponent(ServerScript) as ServerScript;
-			player = server.GetGameObject();
-		}
-		else
-		{
-			var client:ClientScript = gameObject.Find("GameClient").GetComponent(ClientScript) as ClientScript;
-			player = client.GetGameObject();
-		}
-		
-		coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
-		//handle player specific logic if the player is us
-		if(coll.gameObject == player)
-		{
-			
-			var txt : GameObject  = gameObject.Find("UseText");
-			txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
-			txt.transform.position.y += 0.04;
-			txt.GetComponent(GUIText).enabled = true;
-			txt.GetComponent(GUIText).text = "Use";
-		}
-		//handle standard collision if the player is not us
-		if(animation.isPlaying && Network.isServer)
-		{
-			ServerRPC.Buffer(coll.gameObject.networkView, "SetHP", RPCMode.All, coll.gameObject.GetComponent(BeeScript).m_HP-3);
-		}
-		if(coll.gameObject.GetComponent(BeeDashDecorator) != null)
-		{
-			coll.gameObject.GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-			coll.gameObject.GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
-		}
-		
-	}
+	
 }
 
 function OnCollisionExit(coll : Collision)

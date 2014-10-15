@@ -14,22 +14,7 @@ function Start () {
 }
 
 function Update () {
-	if(Network.isServer)
-	{
-		var Comp : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
-		var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
-		if(Terr.m_OverTerrain)
-		{
-			if(transform.position.y - transform.localScale.y + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
-			{
-				transform.position.y = Terr.m_TerrainInfo.point.y+transform.localScale.y;
-				Comp.m_Vel = Vector3(0,0,0);
-				Comp.m_Accel = Vector3(0,0,0);
-				ServerRPC.Buffer(networkView,"ArmMine", RPCMode.All); 
-				
-			}	
-		}
-	}
+	
 	
 	if(m_Armed)
 	{
@@ -53,6 +38,25 @@ function Update () {
 			if(m_TriggerTimer <= 0)
 			{
 				Explode();
+			}
+		}
+	}
+	else
+	{
+		if(Network.isServer)
+		{
+			var Comp : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
+			var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
+			if(Terr.m_OverTerrain)
+			{
+				if(transform.position.y - transform.localScale.y + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+				{
+					transform.position.y = Terr.m_TerrainInfo.point.y+transform.localScale.y;
+					Comp.m_Vel = Vector3(0,0,0);
+					Comp.m_Accel = Vector3(0,0,0);
+					ServerRPC.Buffer(networkView,"ArmMine", RPCMode.All); 
+					
+				}	
 			}
 		}
 	}

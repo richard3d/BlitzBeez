@@ -12,14 +12,14 @@ private var m_FirstInput : boolean = true;
 
 
 
-var m_ThrowVelocityScalar : float = 2;
+var m_ThrowVelocityScalar : float = 0;
 
 var m_MaxSpeed : float;		//the max speedd the entity can move when carrying this item
 
 function Awake()
 {
 	m_FirstInput = true;
-	m_ThrowVelocityScalar = 1;
+	m_ThrowVelocityScalar = 0;
 	m_PrevMaxSpeed = GetComponent(UpdateScript).m_DefaultMaxSpeed;
 }
 
@@ -70,14 +70,18 @@ function OnNetworkInput(IN : InputState)
 		}
 		if(m_Item != null)
 		{
-			ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+			if(Network.isServer)
+			{
+				ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+				ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "ItemDecorator");
+			}
 		}
 	}
 	
 	if(IN.GetAction(IN.USE))
 	{
-		m_ThrowVelocityScalar += Time.deltaTime*4;
-		m_ThrowVelocityScalar = Mathf.Min(m_ThrowVelocityScalar, 3);
+		m_ThrowVelocityScalar += Time.deltaTime*0.5;
+		m_ThrowVelocityScalar = Mathf.Min(m_ThrowVelocityScalar, 1);
 	}
 	
 	
@@ -102,10 +106,11 @@ function OnNetworkInput(IN : InputState)
 		
 	if(m_Item.tag == "Rocks")
 	{
+		m_ThrowVelocityScalar = Mathf.Max(m_ThrowVelocityScalar*3, 1);
 		m_Item.GetComponent(RockScript).m_Owner = gameObject;
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward ) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;//  + transform.up*0.15* GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar ;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
-		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8 * (3/m_ThrowVelocityScalar);
+		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8;
 		m_Item.GetComponent(TrailRenderer).enabled = true;
 		gameObject.AddComponent(ControlDisablerDecorator);
 		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);	
@@ -113,26 +118,27 @@ function OnNetworkInput(IN : InputState)
 	else if(m_Item.tag == "Bombs")
 	{
 		m_Item.GetComponent(BombScript).m_Owner = gameObject;
-		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward)  * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;
+		//var distScalar = Mathf.Min
+		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward + Vector3.up*m_ThrowVelocityScalar).normalized  * m_Item.GetComponent(UpdateScript).m_DefaultMaxSpeed ;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
-		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8 * (3/m_ThrowVelocityScalar);
+		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8;
 		gameObject.AddComponent(ControlDisablerDecorator);
 		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);
 	}
 	else if(m_Item.tag == "Mines")
 	{
+		m_ThrowVelocityScalar = Mathf.Max(m_ThrowVelocityScalar*3, 1);
 		m_Item.GetComponent(MineScript).m_Owner = gameObject;
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 10;
-		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8 * (3/m_ThrowVelocityScalar);
+		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8;
 		gameObject.AddComponent(ControlDisablerDecorator);
 		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);
 	}
 	
 	
 	
-	if(Network.isServer)
-		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "ItemDecorator");
+	
 } 
 
 function OnDestroy()

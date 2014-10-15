@@ -89,7 +89,7 @@ function Update () {
 
 	if(!m_Pedestal)
 		return;
-	
+	GetComponent(UpdateScript).m_Vel = Vector3.zero;
 	transform.position +=   (m_Pedestal.transform.position + Vector3(0,12,0) - transform.position) * Time.deltaTime * 20;
 	transform.position. y = m_Pedestal.transform.position.y + 12;
 	

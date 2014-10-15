@@ -28,22 +28,39 @@ function Update () {
 	{
 		var Comp : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
 		var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
-		if(Terr.m_OverTerrain)
+		if(Terr != null)
 		{
-			if(transform.position.y - transform.localScale.y + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+			if(Terr.m_OverTerrain)
 			{
-				transform.position.y = Terr.m_TerrainInfo.point.y-transform.localScale.y;
-				Comp.m_Vel.y *= -0.75;
-			}	
-		}
-		
-		if(Comp.m_Vel.magnitude < 0.01)
-		{
-			Comp.m_Vel = Vector3(0,0,0);
-			Comp.m_Accel = Vector3(0,0,0);
-		}
-		
-	
+				
+				if(gameObject.tag == "Coins")
+				{
+					if(transform.position.y  + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+					{
+						transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
+						//Comp.m_Vel.y *= -0.75;
+						Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, Vector3.up)*0.75;
+					}	
+				}
+					
+				else
+				{
+					var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
+					if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+					{
+						transform.position.y = size+Terr.m_TerrainInfo.point.y;
+					//	Comp.m_Vel.y *= -0.75;
+						Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, Vector3.up)*0.75;
+					}	
+				}
+			}
+			
+			if(Comp.m_Vel.magnitude < 0.01)
+			{
+				Comp.m_Vel = Vector3(0,0,0);
+				Comp.m_Accel = Vector3(0,0,0);
+			}
+		}	
 	}
 }
 
@@ -72,13 +89,23 @@ function OnCollisionEnter(coll : Collision)
 				{
 					  for (var contact : ContactPoint in coll.contacts) 
 					  {
-						 Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, contact.normal) * 0.5;
+						 Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, contact.normal)*0.75;
 						 AudioSource.PlayClipAtPoint(m_BounceSound, Camera.main.transform.position);
 						 return;
 					  }
 				}
 			}
 		}
+	}
+}
+
+function OnCollisionStay(coll : Collision)
+{
+	var other : Collider = coll.collider;
+	if(other.gameObject.layer == "Terrain")
+	{
+		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
+		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 	}
 }
 

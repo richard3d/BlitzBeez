@@ -63,7 +63,10 @@ function Flash()
 		}
 		child.gameObject.animation.Play();
 		var impactEffect:GameObject =  GameObject.Instantiate(Resources.Load("GameObjects/ImpactEffect"));
+		
 		impactEffect.transform.position = child.transform.position;
+		impactEffect.transform.localScale.x = impactEffect.transform.localScale.z = child.transform.localScale.x;
+		impactEffect.transform.localScale.y = 50;
 	}
 }
 
@@ -87,21 +90,26 @@ function CalcScore()
 	}
 	
 	//find out who the single owner is
+
 	if(singleOwner)
 	{
 		//look at the production level
 		//each flower gets a multiplier on the score for this group
+		var honey:int = 0;
 		for(var child:Transform in transform)
 		{
-			child.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Honey += ( GetCurrentLevel()+1 * child.GetComponent(FlowerScript).m_NumBees);
+			honey += ( GetCurrentLevel()+1 * child.GetComponent(FlowerScript).m_NumBees);
 		}
+		
+		ServerRPC.Buffer(currOwner.networkView, "SetHoneyPoints", RPCMode.All, currOwner.GetComponent(BeeScript).m_Honey+honey);
 	}
 	else
 	{
 		for(var child:Transform in transform)
 		{
-			if(child.GetComponent(FlowerScript).m_Owner != null)
-				child.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Honey += 1;
+			var owner:GameObject = child.GetComponent(FlowerScript).m_Owner; 
+			if(owner != null)
+				ServerRPC.Buffer(owner.networkView, "SetHoneyPoints", RPCMode.All, owner.GetComponent(BeeScript).m_Honey+1);	
 		}
 	}
 }
@@ -112,7 +120,13 @@ function Update () {
 	{
 		m_ScoreTimer -= Time.deltaTime;
 		if(m_ScoreTimer <= 0)
-		{CalcScore();
+		{
+			
+			if(Network.isServer)
+			{
+				CalcScore();
+				GameStateManager.CheckForWin();
+			}
 			m_ScoreTimer = 5;
 		}
 	}

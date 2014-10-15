@@ -122,24 +122,27 @@ function Update () {
 
 function OnNetworkInput(IN : InputState)
 {
+
 	if(!networkView.isMine)
 	{
 		return;
 	}
-	if(IN.GetActionBuffered(IN.USE) && m_Fade >= 1)
+	if(IN.GetActionBuffered(IN.USE))
 	{
-	
-		if(Network.isServer)
-			ExitHive();
-		else
-			networkView.RPC("ExitHive", RPCMode.Server);
+		
+		if(Network.isServer && m_Fade >= 1)
+			networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
+			// ExitHive();
+		// else
+			// networkView.RPC("ExitHive", RPCMode.Server);
+			// networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
 	}
 }
 
 //this is only executed on the server
 @RPC function ExitHive()
 {
-	networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
+	//networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
 }
 
 @RPC function MakePurchase(attr:String, itemIndex:int,subSelIndex:int, cost:float)
@@ -167,7 +170,7 @@ function OnNetworkInput(IN : InputState)
 	}
 }
 
-function Show(bShow : boolean, hiveName : String)
+function Show(bShow : boolean)
 {
 	m_bShow = bShow;
 	
@@ -178,43 +181,24 @@ function Show(bShow : boolean, hiveName : String)
 		m_MainSelIndex = 0;
 		//m_CurrSelMenu.Push(m_MainMenu);
 		//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
-		renderer.enabled = false;
-		
-	
-		for(var i = 0; i <transform.childCount; i++)
-		{
-			transform.GetChild(i).gameObject.active = false;
-		}
-		
-		GetComponent(SphereCollider).enabled = false;
-		//GetComponent(NetworkInputScript).enabled = false;
-		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
-		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-		transform.position = gameObject.Find(hiveName).transform.position;
 	}
 	else
 	{
 		Screen.showCursor = false;
-		renderer.enabled = true;
-		for(i = 0; i <transform.childCount; i++)
-		{
-			transform.GetChild(i).gameObject.active = true;
-		}
+		
 		m_Fade = 0;
 		Camera.main.orthographicSize = 100;
-		GetComponent(SphereCollider).enabled = true;
-		GetComponent(NetworkInputScript).enabled = true;
+		
 		Debug.Log("Hiding");
 		//hide the menu
 		GUIMenu.m_FocusedItem.m_SelIndex = -1;
 		GUIMenu.m_FocusedItem.m_Menu = null;
-		for(i = 0 ; i < m_WeaponsMenu.m_MenuItems.Length; i++)
+		for(var i = 0 ; i < m_WeaponsMenu.m_MenuItems.Length; i++)
 			m_WeaponsMenu.m_MenuItems[i].m_SubMenu.Show(false);
 		for(i = 0 ; i < m_HiveMenu.m_MenuItems.Length; i++)
 			m_HiveMenu.m_MenuItems[i].m_SubMenu.Show(false);
 		for(i = 0 ; i < m_StatsMenu.m_MenuItems.Length; i++)
 			m_StatsMenu.m_MenuItems[i].m_SubMenu.Show(false);
-		
 	}
 }
 
@@ -222,29 +206,20 @@ function OnGUI()
 {
 	if(m_bShow)
 	{	
-		var myDisplay : boolean  = false;
-		if(Network.isServer)
+		if(m_Fade < 1 && m_bShow)
 		{
-		
-			if(gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject)
-				myDisplay = true;
+			m_Fade += Time.deltaTime * 2;
+			Camera.main.orthographicSize -= Time.deltaTime * 90;
 		}
-		else
-		if(Network.isClient)
-		{
-		
-			if(gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
+		var myDisplay : boolean  = false;
+		if(NetworkUtils.IsControlledGameObject(gameObject)) {
 				myDisplay = true;
 		}
 		
 		if(myDisplay  == true)
 		{
 			//first fade in the background
-			if(m_Fade < 1 && m_bShow)
-			{
-				m_Fade += Time.deltaTime * 2;
-				Camera.main.orthographicSize -= Time.deltaTime * 90;
-			}
+			
 			//GUI.color = Color.black;
 			GUI.color.a = m_Fade;
 			GUI.DrawTexture(Rect(0,0, Screen.width, Screen.height), m_BGTexture);

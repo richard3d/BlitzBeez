@@ -10,6 +10,7 @@ private var m_ShowMainMenu:boolean = true;
 public var m_MenuPos :Vector2;
 function Start () {
 GameObject.Find("MainBee").renderer.material.color = PlayerProfile.m_PlayerColor;
+m_MenuPos.y = Screen.height*0.25;
 }
 
 function Update () {
@@ -43,7 +44,7 @@ function OnGUI()
 	{
 		GUILayout.BeginArea (Rect(Screen.width*0.5 - width, Screen.height * 0.65, width*2,width));
 		
-		if (GUILayout.Button ("Create Gamez", Style)) 
+		if (GUILayout.Button ("Create Game", Style)) 
 		{
 			GetComponent(Animation).Play("CameraIntro");
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
@@ -53,7 +54,7 @@ function OnGUI()
 			this.enabled = false;
 			
 		}
-		if(GUILayout.Button ("Joinz Game", Style))
+		if(GUILayout.Button ("Join Game", Style))
 		{
 			GetComponent(Animation).Play("CameraClientIntro");
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
@@ -63,7 +64,7 @@ function OnGUI()
 			this.enabled = false;
 			
 		}
-		if(GUILayout.Button ("Optionz", Style))
+		if(GUILayout.Button ("Options", Style))
 		{
 			ShowOptions();
 		}
@@ -72,8 +73,8 @@ function OnGUI()
 	if(m_ShowOptions)
 	{
 		var pos : Vector2 = m_MenuPos;
-		GUILayout.BeginArea (Rect(pos.x, pos.y, Screen.width,512), m_Skin.customStyles[0]);
-			GUILayout.BeginArea (Rect(Screen.width*0.5-256, 0, 512,512), m_Skin.customStyles[0]);
+		GUILayout.BeginArea (Rect(pos.x, pos.y, Screen.width,Screen.height*0.50), m_Skin.customStyles[0]);
+			GUILayout.BeginArea (Rect(Screen.width*0.5-256, 0, 512,Screen.height*0.50), m_Skin.customStyles[0]);
 			GUILayout.BeginHorizontal();
 				GUILayout.Label("Bee Tag",m_Skin.label, GUILayout.Width(256));
 				PlayerProfile.m_PlayerTag =	GUILayout.TextField(PlayerProfile.m_PlayerTag,m_Skin.textField,GUILayout.Width(245));
@@ -85,7 +86,7 @@ function OnGUI()
 				
 				var oldColor = GUI.color;
 				GUI.color  = PlayerProfile.m_PlayerColor;
-				GUILayout.Label("RGB",m_Skin.label,GUILayout.Height(128));
+				GUILayout.Label("RGB",m_Skin.label);
 				GUI.color = oldColor;
 				if (GUILayout.RepeatButton (m_ColorPicker,[GUILayout.Width(128), GUILayout.Height(128)])) 
 				{
@@ -114,7 +115,7 @@ function OnGUI()
 			GUILayout.EndHorizontal();
 			//GUILayout.BeginHorizontal();
 			//	GUILayout.FlexibleSpace();
-				if(GUILayout.Button("Returnz to Main Menuz", m_Skin.button))
+				if(GUILayout.Button("Return to Main Menu", m_Skin.button))
 				{
 					HideOptions();
 				}

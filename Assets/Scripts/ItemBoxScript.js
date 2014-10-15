@@ -39,7 +39,7 @@ function Update () {
 	}
 }
 
-function OnCollisionEnter (coll : Collision)
+function OnTriggerEnter (coll : Collider)
 {
 	if(Network.isServer)
 	{

@@ -64,7 +64,6 @@ function OnTriggerEnter(other : Collider)
 			{
 				if(other.GetComponent(HiveScript).m_Owner != m_Owner)
 				{
-					networkView.RPC("DamageHive", RPCMode.All,other.gameObject.name, 25);
 					ServerRPC.Buffer(networkView, "KillRock", RPCMode.All);	
 				}
 			}
@@ -77,23 +76,44 @@ function OnTriggerEnter(other : Collider)
 	}
 }
 
-@RPC
-function DamageHive(hiveName:String, dmgAmt:int)
+function OnTriggerStay(coll : Collider)
 {
-	var hive:GameObject = gameObject.Find(hiveName);
-	hive.GetComponent(HiveScript).m_HP -= dmgAmt;
-	if(hive.GetComponent(HiveScript).m_HP <= 0)
-	{
-		//destroy the hive
-		Destroy(gameObject.Find(hiveName));
+	var player:GameObject = null;
+	if(coll.gameObject.tag == "Player" )
+	{	
+		//handle player specific logic if the player is us
+		if(coll.gameObject.GetComponent(ItemDecorator) == null)
+		{
+			coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
+			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+			{	
+				var txt : GameObject  = gameObject.Find("UseText");
+				txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
+				txt.transform.position.y += 0.04;
+				txt.GetComponent(GUIText).enabled = true;
+				txt.GetComponent(GUIText).text = "Use";
+			}
+		}
 	}
-	else
-		hive.GetComponent(HiveScript).m_LifebarTimer = 2;
 }
+
+function OnTriggerExit(coll : Collider)
+{
+	if(coll.gameObject.tag == "Player")
+	{	
+		//code to handle if the player is our controlling player
+		if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+		{
+			var txt : GameObject  = gameObject.Find("UseText");	
+			txt.GetComponent(GUIText).enabled = false;
+		}
+		coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
+	}
+}
+
 
 function OnCollisionEnter(coll : Collision)
 {
-	Debug.Log("hit");
 	if(Network.isServer)
 	{
 		if(transform.parent == null)
@@ -109,13 +129,7 @@ function OnCollisionEnter(coll : Collision)
 					coll.gameObject.networkView.RPC("Daze", RPCMode.All, false);
 				}
 			}
-			else
-			{
-				 if(coll.gameObject.tag == "Player")
-				 {
-					// coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
-				 }
-			}	
+				
 			
 			if(coll.gameObject.tag == "Explosion")
 			{
@@ -156,76 +170,12 @@ function OnCollisionEnter(coll : Collision)
 
 function OnCollisionStay(coll : Collision)
 {
-		Debug.Log("hitstay");
 	var player:GameObject = null;
-	if(coll.gameObject.tag == "Player" )
-	{
-		if(Network.isServer)
-		{
-			var server:ServerScript = gameObject.Find("GameServer").GetComponent(ServerScript) as ServerScript;
-			player = server.GetGameObject();
-		}
-		else
-		{
-			var client:ClientScript = gameObject.Find("GameClient").GetComponent(ClientScript) as ClientScript;
-			player = client.GetGameObject();
-		}
-		//handle player specific logic if the player is us
-		coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
-		if(coll.gameObject == player)
-		{	
-			var txt : GameObject  = gameObject.Find("UseText");
-			txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
-			txt.transform.position.y += 0.04;
-			txt.GetComponent(GUIText).enabled = true;
-			txt.GetComponent(GUIText).text = "Use";
-		}
-	}
-	else
 	if(coll.gameObject.tag == "Explosion")
 	{
 		if(Network.isServer)
 			ServerRPC.Buffer(networkView, "KillRock", RPCMode.All);
 	}
-	
-	/*if(Network.isServer)
-	{
-		if(transform.parent == null)
-		{
-			
-			var server:ServerScript = gameObject.Find("GameServer").GetComponent(ServerScript) as ServerScript;
-			if(coll.gameObject.tag == "Player" && coll.gameObject == server.GetGameObject())
-			{
-				Debug.Log("serve");
-				coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
-				var txt : GameObject  = gameObject.Find("UseText");
-				txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
-				txt.transform.position.y += 0.04;
-				txt.GetComponent(GUIText).enabled = true;
-				txt.GetComponent(GUIText).text = "Use";
-			}
-			else
-			if(coll.gameObject.tag == "Explosion")
-			{
-				ServerRPC.Buffer(networkView, "KillRock", RPCMode.All);
-			}
-			
-		}
-	}
-	else
-	{
-		var client:ClientScript = gameObject.Find("GameClient").GetComponent(ClientScript) as ClientScript;
-		if(coll.gameObject.tag == "Player" && coll.gameObject == client.GetGameObject())
-		{
-			Debug.Log("Client");
-			coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
-			txt  = gameObject.Find("UseText");
-			txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
-			txt.transform.position.y += 0.04;
-			txt.GetComponent(GUIText).enabled = true;
-			txt.GetComponent(GUIText).text = "Use";
-		}
-	}*/
 }
 
 @RPC function CrackRock()
@@ -262,7 +212,7 @@ function OnCollisionExit(coll : Collision)
 			var txt : GameObject  = gameObject.Find("UseText");	
 			txt.GetComponent(GUIText).enabled = false;
 		}
-		coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
+		//coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
 	}
 }
 
@@ -316,8 +266,9 @@ function OnDestroy()
 				var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(InstType.name,"", transform.position + Vector3(0,6,0), Quaternion.identity, viewID ,  0);
 				go1.GetComponent(UpdateScript).m_Vel = vel.normalized * Random.Range(20, 50);
 				//go1.GetComponent(UpdateScript).m_Vel.z = vel.y;
-				go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);;
-				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, InstType.name,"", transform.position+ Vector3(0,6,0), Quaternion.identity, viewID, 0);
+				go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, InstType.name,go1.name, transform.position+ Vector3(0,6,0), Quaternion.identity, viewID, 0);
+				go1.GetComponent(UpdateScript).MakeNetLive(); 	
 			}
 		}
 		
@@ -375,6 +326,9 @@ function OnDestroy()
 	// Comp.m_Accel = Vector3(0,0,0);
 	m_Owner = null;
 	
+	//make a splash
+	var splash:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SplashParticles"), transform.position, Quaternion.identity);
+	splash.GetComponent(ParticleSystem).startSize = transform.localScale.magnitude;
 	//transform.position = m_InitiaPos;
 }
 

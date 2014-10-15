@@ -44,3 +44,9 @@ function Activate()
 	m_Activated = true;
 }
 
+@RPC
+function SetHiveHP(hive:String, hp:int)
+{
+	GameObject.Find(hive).GetComponent(HiveScript).SetHP(hp);
+	
+}

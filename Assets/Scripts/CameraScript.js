@@ -59,10 +59,11 @@ function Update () {
 		//transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z));
 		if(m_Fixed)
 		{
-			diff = -transform.forward;
-			diff.y = 0;
-			diff = m_Target.transform.position+diff.normalized * m_Offset.z - transform.position;
-			diff.y = 0;
+			diff = (m_Target.transform.position - m_Offset) - transform.position;
+			// diff = -transform.forward;
+			// diff.y = 0;
+			// diff = m_Target.transform.position+diff.normalized * m_Offset.z - transform.position;
+			// diff.y = 0;
 		}
 		else
 			diff = m_Target.transform.position - transform.position - (m_Offset.x*m_Target.transform.right+m_Offset.y*m_Target.transform.up+m_Offset.z*m_Target.transform.forward);

@@ -47,7 +47,7 @@ var m_FireRate : float = 5;
 var m_FireTimer : float  = 0;
 var m_ReloadTime : float = 1;
 var m_ReloadTimer : float = 0;
-var m_WorkerGenTime : float = 1;	//how often we generate a new worker
+var m_WorkerGenTime : float = 5;	//how often we generate a new worker
 var m_WorkerGenTimer : float = 0;
 var m_DashTimer : float = 0;
 //var m_ClipSize : int = 30;
@@ -71,7 +71,7 @@ function Start () {
 
 	m_FireTimer = 0;
 	//AudioSource.PlayClipAtPoint(m_FlySound, Camera.main.transform.position, 0.75);
-	
+	m_WorkerGenTimer = m_WorkerGenTime;
 	m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
 	
 }
@@ -94,7 +94,7 @@ function Update()
 		}
 	}
 	
-	if(m_WorkerGenTimer > 0)
+	if(m_WorkerGenTimer > 0 && (GetComponent(BeeScript).m_WorkerBees < GetComponent(BeeScript).m_MaxWorkerBees))
 	{
 		m_WorkerGenTimer -= Time.deltaTime;
 		if(m_WorkerGenTimer <= 0)
@@ -117,9 +117,10 @@ function OnNetworkInput(IN : InputState)
 
 	
 	var Updater : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
-		Updater.m_Accel = Vector3(0,0,0);
+	
 	if(!m_MovementKeyPressed)
 	{
+			Updater.m_Accel = Vector3(0,Updater.m_Accel.y,0);
 		var currSpeed : float = Updater.m_Vel.magnitude;
 		if(currSpeed - m_Drag* Time.deltaTime <= 0)
 		{
@@ -253,7 +254,7 @@ function OnNetworkInput(IN : InputState)
 				//powershot
 				if(GetComponentInChildren(ParticleEmitter).particles.length >= 5 && GetComponentInChildren(ParticleRenderer).enabled != false)
 				{
-					var go : GameObject = Network.Instantiate(m_PowerBulletInstance, transform.position, Quaternion.identity, 0);
+					var go : GameObject = Network.Instantiate(m_PowerBulletInstance, transform.position, transform.rotation, 0);
 					networkView.RPC("PowerShot", RPCMode.All, go.name);
 				}
 			}
@@ -296,7 +297,7 @@ function OnNetworkInput(IN : InputState)
 			if(m_NearestObject.tag == "Trees")
 			{
 				//make sure we arent already carrying something
-				if(GetComponent(ItemDecorator) == null)
+				if(GetComponent(ItemDecorator) == null && GetComponent(TreeHideDecorator) == null)
 				{
 					networkView.RPC("HideInTree", RPCMode.All, m_NearestObject.name);
 				}
@@ -306,7 +307,7 @@ function OnNetworkInput(IN : InputState)
 			if(m_NearestObject.tag == "Flowers")
 			{
 				
-				if(GetComponent(ItemDecorator) == null)
+				if(GetComponent(ItemDecorator) == null && GetComponent(BeeScript).m_WorkerBees > 0)
 				{						
 					//if(m_NearestObject.GetComponentInChildren(BeeParticleScript) == null)
 					//{
@@ -349,8 +350,8 @@ function OnNetworkInput(IN : InputState)
 			if(beeScript.m_Inventory[1].m_Item != null && GetComponent(ItemDecorator) == null)
 			{
 				var viewID : NetworkViewID= Network.AllocateViewID();
-				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[1].m_Item.name,"", Vector3(0,0,0), Quaternion.identity, viewID ,  0);
-				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[1].m_Item.name,go.name, Vector3(0,0,0), Quaternion.identity, viewID, 0);
+				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[1].m_Item.name,"", transform.position, Quaternion.identity, viewID ,  0);
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[1].m_Item.name,go.name, transform.position, Quaternion.identity, viewID, 0);
 				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
 				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 1);	
 			}
@@ -358,8 +359,8 @@ function OnNetworkInput(IN : InputState)
 			if(beeScript.m_Inventory[0].m_Item != null && GetComponent(ItemDecorator) == null)
 			{
 				viewID = Network.AllocateViewID();
-				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[0].m_Item.name,"", Vector3(0,0,0), Quaternion.identity, viewID ,  0);
-				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[0].m_Item.name,go.name, Vector3(0,0,0), Quaternion.identity, viewID, 0);
+				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[0].m_Item.name,"", transform.position, Quaternion.identity, viewID ,  0);
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[0].m_Item.name,go.name, transform.position, Quaternion.identity, viewID, 0);
 				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
 				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 0);	
 			}
@@ -395,10 +396,57 @@ function HandleShotLogic()
 			var bulletVel : Vector3 =  rot * transform.forward;// - (transform.right * halfSpread) + (i * 4) * transform.right;
 			bulletVel.Normalize();
 			bulletPos.y = transform.position.y;
+			
+			
+			//viewID = Network.AllocateViewID();
+			//var go : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(m_BulletInstance.name,"", transform.position, Quaternion.identity, viewID ,  0);
+			//ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, m_BulletInstance.name,go.name, transform.position, Quaternion.identity, viewID, 0);
 			var go : GameObject  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
 			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed);
 		}
 	}
+}
+
+@RPC function Dash()
+{
+	gameObject.AddComponent(BeeDashDecorator);
+	
+}
+
+@RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3)
+{
+	AudioSource.PlayClipAtPoint(m_ShootSound, Camera.main.transform.position);
+	var go : GameObject = gameObject.Find(bulletName);
+	go.GetComponent(BulletScript).m_Owner = gameObject;
+	
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+		Camera.main.GetComponent(CameraScript).Shake(0.35,0.5);
+	go.GetComponent(BulletScript).m_PowerShot = false;
+	go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
+	//make it so we dont collide with our own bullets
+	if(go.collider.enabled && collider.enabled)
+		Physics.IgnoreCollision(go.collider, collider);
+	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
+	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
+	//set the position and velocity of the bullet
+	go.transform.position = pos;
+	go.GetComponent(UpdateScript).m_Vel = vel; 
+	go.transform.LookAt(pos+vel);
+	go.transform.localEulerAngles.y += 45;
+	
+	//go.transform.localScale.x = 0.3;
+	//go.transform.localScale.z = 0.3;
+	go.GetComponent(TrailRenderer).startWidth = go.transform.localScale.x;
+	go.GetComponent(TrailRenderer).material.color = renderer.material.color;
+	go.GetComponent(TrailRenderer).material.SetColor("_Emission", renderer.material.color);
+	if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
+	{
+		m_ReloadTimer = m_Stats["Reload Speed"];
+		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+	}
+	GetComponentInChildren(BeeParticleScript).RemoveParticle();
+    go.renderer.material.color = renderer.material.color;
+	go.renderer.material.SetColor("_Emission", renderer.material.color);
 }
 
 function OnPlayerLookAt(at : Vector3)
@@ -444,42 +492,7 @@ function OnPlayerLookAt(at : Vector3)
 	}
 }
 
-@RPC function Dash()
-{
-	gameObject.AddComponent(BeeDashDecorator);
-	
-}
 
-@RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3)
-{
-	AudioSource.PlayClipAtPoint(m_ShootSound, Camera.main.transform.position);
-	var go : GameObject = gameObject.Find(bulletName);
-	go.GetComponent(BulletScript).m_Owner = gameObject;
-	Camera.main.GetComponent(CameraScript).Shake(0.35,0.25);
-	go.GetComponent(BulletScript).m_PowerShot = false;
-	go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
-	//make it so we dont collide with our own bullets
-	Physics.IgnoreCollision(go.collider, collider);
-	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
-	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
-	//set the position and velocity of the bullet
-	go.transform.position = pos;
-	go.GetComponent(UpdateScript).m_Vel = vel; 
-	go.transform.LookAt(pos+vel);
-	go.transform.localEulerAngles.y += 45;
-	
-	//go.transform.localScale.x = 0.3;
-	//go.transform.localScale.z = 0.3;
-	go.GetComponent(TrailRenderer).startWidth = go.transform.localScale.x;
-	go.GetComponent(TrailRenderer).material.SetColor("_Emission", renderer.material.color);
-	if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
-	{
-		m_ReloadTimer = m_Stats["Reload Speed"];
-		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
-	}
-	GetComponentInChildren(BeeParticleScript).RemoveParticle();
-    go.renderer.material.SetColor("_TintColor", renderer.material.color);
-}
 
 
 @RPC function AddPowerShotEffect()
@@ -488,12 +501,15 @@ function OnPlayerLookAt(at : Vector3)
 	powerShot.transform.position = transform.position;
 	powerShot.transform.parent = transform;
 	
+	
+	
 	audio.PlayClipAtPoint(m_PowerShotEffectSound, transform.position);
 }
 
 @RPC function PowerShot(bulletName : String)
 {
-	//m_PowerShotSound.Play();
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+		Camera.main.GetComponent(CameraScript).Shake(0.25,3);
 	AudioSource.PlayClipAtPoint(m_PowerShotSound, Camera.main.transform.position);
 	var go : GameObject = gameObject.Find(bulletName);
 	go.GetComponent(BulletScript).m_Owner = gameObject;
@@ -558,6 +574,7 @@ function OnPlayerLookAt(at : Vector3)
 		gameObject.AddComponent(TeleportDecorator);
 		GetComponent(TeleportDecorator).SetLifetime(3);
 		GetComponent(TeleportDecorator).m_TelePos = closestHive.transform.position + Vector3.up*350;
+		GetComponent(TeleportDecorator).m_ReturnToBase = true;
 	}
 	else
 	{
@@ -618,10 +635,26 @@ function OnPlayerLookAt(at : Vector3)
 
 @RPC function UseTeleporter(teleporter : String)
 {
-
 	gameObject.AddComponent(TeleportDecorator);
-	GetComponent(TeleportDecorator).SetLifetime(3);
+	GetComponent(TeleportDecorator).SetLifetime(0.25);
+	GetComponent(TeleportDecorator).m_ReturnToBase = false;
 	GetComponent(TeleportDecorator).m_TelePos = GameObject.Find(teleporter).GetComponent(TeleporterScript).m_ExitTeleporter.transform.position + Vector3.up*350;
+	
+	transform.position.x = GameObject.Find(teleporter).transform.position.x;
+	transform.position.z = GameObject.Find(teleporter).transform.position.z;
+	GetComponent(UpdateScript).m_Vel = Vector3.zero;
+	GetComponent(UpdateScript).m_Accel = Vector3.zero;
+	
+	var m_TeleportEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/TeleporterParticles"),transform.position, Quaternion.identity);
+	m_TeleportEffect.transform.eulerAngles = Vector3(270,0,0);
+	
+	//m_TeleportEffect = GameObject.Instantiate(Resources.Load("GameObjects/StrobeParticles"),GameObject.Find(teleporter).transform.position+Vector3.up*GameObject.Find(teleporter).transform.localScale.y*2,Quaternion.identity);
+	//m_TeleportEffect.GetComponent(ParticleSystem).startSpeed = 90;
+	//m_TeleportEffect.transform.position = GameObject.Find(teleporter).transform;
+//	m_TeleportEffect.transform.parent = transform;
+	//m_TeleportEffect.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*0.1;
+	
+	
 }
 
 @RPC function ShowHiveGUI(bShow : int, hiveName : String)
@@ -631,11 +664,29 @@ function OnPlayerLookAt(at : Vector3)
 	parts.transform.position = transform.position;
 	if(bShow == 1)
 	{
-		GetComponent(BeehiveGUI).Show(true, hiveName);
+		GetComponent(BeehiveGUI).Show(true);
+		renderer.enabled = false;
+		for(var i = 0; i <transform.childCount; i++)
+		{
+			transform.GetChild(i).gameObject.active = false;
+		}
+		
+		GetComponent(SphereCollider).enabled = false;
+		//GetComponent(NetworkInputScript).enabled = false;
+		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
+		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+		transform.position = gameObject.Find(hiveName).transform.position;
 	}
 	else
 	{
-		GetComponent(BeehiveGUI).Show(false, hiveName);
+		GetComponent(BeehiveGUI).Show(false);
+		renderer.enabled = true;
+		for(i = 0; i <transform.childCount; i++)
+		{
+			transform.GetChild(i).gameObject.active = true;
+		}
+		GetComponent(SphereCollider).enabled = true;
+		GetComponent(NetworkInputScript).enabled = true;
 	}
 	
 	

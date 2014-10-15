@@ -6,7 +6,8 @@
 static var MATCH_STARTING : int = 0;
 static var MATCH_PLAYING : int = 1;
 static var MATCH_OVER : int = 2;
-static var MATCH_LOBBY : int = 3;
+static var MATCH_EXITING : int = 3;
+static var MATCH_LOBBY : int = 4;
 
 static var m_CurrState:int = -1;
 var m_MatchTick : int = 3;
@@ -23,6 +24,18 @@ function Update()
 {
 }
 
+static function CheckForWin()
+{
+	var players : GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+	for(var player:GameObject in players)
+	{
+		if(player.GetComponent(BeeScript).m_Honey >= m_PointsToWin)
+		{
+			ServerRPC.Buffer(GameObject.Find("GameServer").networkView, "EndMatch", RPCMode.All,  NetworkUtils.GetClientFromGameObject(player));
+			return;
+		}
+	}
+}
 
 function SetState(state:int)
 {
@@ -49,6 +62,8 @@ function SetState(state:int)
 {
 	SetState(MATCH_LOBBY);
 }
+
+
 
 
 function MatchTickCoroutine(numTicks:int, ticksPerSec:int)

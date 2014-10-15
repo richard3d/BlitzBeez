@@ -2,7 +2,9 @@
 
 private var m_MovementKeyPressed : boolean = false;
 private var m_MovementSpeed : float = 240;
-
+private var m_Forward:Vector3;
+private var m_Right:Vector3;
+private var m_OrigCamOffset:Vector3;
 var m_MovementEnabled : boolean = true;
 
 function Start () {
@@ -11,29 +13,32 @@ function Start () {
 	var xDot = Vector3.Dot(transform.forward, Vector3.right);
 	
 	//find out which direction we are pointing most towards
-	var dir = Vector3(1,0,0);
+	m_Forward = Vector3(1,0,0);
 	if(Mathf.Abs(zDot) > Mathf.Abs(xDot))
 	{
 		//forward
-		dir = (zDot * Vector3.forward).normalized;
+		m_Forward = (zDot * Vector3.forward).normalized;
 	}
 	else
 	{
 		//right
-		dir = (xDot * Vector3.right).normalized;
+		m_Forward = (xDot * Vector3.right).normalized;
 	}
-	transform.LookAt(transform.position + dir);		
+	m_Right = Vector3.Cross(Vector3.up,m_Forward);
+	transform.LookAt(transform.position + m_Forward);		
 	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
 		 Camera.main.GetComponent(CameraScript).m_Fixed = true;
 		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
 		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - dir *200;
-		// Camera.main.GetComponent(CameraScript).m_Offset = dir *200 - Vector3.up *200;
+		m_OrigCamOffset = Camera.main.GetComponent(CameraScript).m_Offset;
+		Camera.main.GetComponent(CameraScript).m_Offset = m_Forward *200 - Vector3.up *200;
 		// Camera.main.transform.eulerAngles.z = 0;
 		// Camera.main.transform.eulerAngles.y = transform.eulerAngles.y;
 	}	
-	
+	GetComponent(BeeControllerScript).m_ControlEnabled = false;
+	GetComponent(BeeControllerScript).m_LookEnabled = false;
 	
 }
 
@@ -81,39 +86,35 @@ function OnNetworkInput(IN : InputState)
 	
 	//handle essential strafe movements
 	//we arent allowed to change direction if we hit the dash button though
-	var vRight:Vector3  = transform.right;
-	vRight.y = 0;
-	vRight.Normalize();
-	var vFwd:Vector3 = transform.forward;
-	vFwd.y = 0;
-	vFwd.Normalize();
+	var yVel:float = Updater.m_Vel.y;
 	
 	if(IN.GetAction(IN.MOVE_UP))
 	{
-		Updater.m_Vel = vFwd *m_MovementSpeed;
+		Updater.m_Vel = m_Forward *m_MovementSpeed;
 		m_MovementKeyPressed = true;
 	}
 	else
 	if(IN.GetAction(IN.MOVE_RIGHT))
 	{
-		Updater.m_Vel = vRight*m_MovementSpeed;
+		Updater.m_Vel = m_Right*m_MovementSpeed;
 		m_MovementKeyPressed = true;
 	}
 	else
 	if(IN.GetAction(IN.MOVE_BACK))
 	{
-		Updater.m_Vel = -vFwd*m_MovementSpeed;
+		Updater.m_Vel = -m_Forward*m_MovementSpeed;
 		m_MovementKeyPressed = true;
 	}
 	else	
 	if(IN.GetAction(IN.MOVE_LEFT))
 	{
-		Updater.m_Vel = -vRight*m_MovementSpeed;
+		Updater.m_Vel = -m_Right*m_MovementSpeed;
 		m_MovementKeyPressed = true;
 	}
+	Updater.m_Vel.y = yVel;
 	
 	if(Updater.m_Vel.magnitude != 0)
-		transform.LookAt(transform.position + Updater.m_Vel);
+		transform.LookAt(transform.position + Vector3(Updater.m_Vel.x, 0,Updater.m_Vel.z));
 
 }
 
@@ -121,6 +122,8 @@ function OnDestroy()
 {
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
+		Camera.main.GetComponent(CameraScript).m_Fixed = false;
+		Camera.main.GetComponent(CameraScript).m_Offset = m_OrigCamOffset;
 		// Camera.main.GetComponent(CameraScript).m_ThirdPerson = true;
 		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
 		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - transform.forward *200;
