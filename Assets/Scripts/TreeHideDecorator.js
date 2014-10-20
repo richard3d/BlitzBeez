@@ -1,7 +1,7 @@
 #pragma strict
 var m_Tree : GameObject = null;
 private var m_FirstInput : boolean = true; //this component is added during a message that is sent and wil lbe processed asap on this component, so we use this variable to defer it
-private var m_DisplaceVector : Vector3;
+public var m_DisplaceVector : Vector3;
 private var m_OrigPosition : Vector3; //original position of the character before they hid. We will put them this distance away
 
 
@@ -9,7 +9,7 @@ function Start () {
 
 m_OrigPosition = transform.position;
 
-
+GetComponent(BeeControllerScript).m_ControlEnabled = false;
 }
 
 function Update () {
@@ -73,15 +73,17 @@ function OnNetworkInput(IN : InputState)
 	
 	if(IN.GetActionBuffered(IN.USE))
 	{
-		RemoveTreeDecorator(m_DisplaceVector);
-		networkView.RPC("RemoveTreeDecorator", RPCMode.Others,m_DisplaceVector);
+	
+		networkView.RPC("UnHideFromTree", RPCMode.All,m_DisplaceVector);
+		//RemoveTreeDecorator(m_DisplaceVector);
+		//networkView.RPC("RemoveTreeDecorator", RPCMode.Others,m_DisplaceVector);
 	}
 }
 
 @RPC function RemoveTreeDecorator(vDisplacement : Vector3)
 {
 	m_DisplaceVector = vDisplacement;
-	Debug.Log(m_Tree.name);
+	Debug.Log("Shouldnt be here"+m_Tree.name);
 	Destroy(this);
 }
 
@@ -90,15 +92,12 @@ function Hide(tree : GameObject)
 	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, Camera.main.transform.position);
 	m_Tree = tree;
 	collider.enabled = false;
-	Debug.Log("Here "+tree.name);
+	
 	//gameObject.transform.position = tree.transform.position;
 	
 	if(GetComponentInChildren(ParticleRenderer) != null)
 		GetComponentInChildren(ParticleRenderer).enabled = false;
 	tree.transform.position.y = 1;
-	
-	gameObject.AddComponent(ControlDisablerDecorator);
-	GetComponent(ControlDisablerDecorator).EnableNetworkInput(true);
 }
 
 function OnDestroy()
@@ -117,12 +116,12 @@ function OnDestroy()
 	transform.position = m_Tree.transform.position + m_DisplaceVector * (m_OrigPosition-m_Tree.transform.position).magnitude;
 	transform.position.y = m_OrigPosition.y;
 	collider.enabled = true;
-	GetComponent(UpdateScript).m_Vel = m_DisplaceVector * GetComponent(UpdateScript).m_MaxSpeed;
-	
-	gameObject.AddComponent(BeeDashDecorator);
+	GetComponent(UpdateScript).m_Vel = m_DisplaceVector * GetComponent(UpdateScript).m_DefaultMaxSpeed;
+	if(gameObject.GetComponent(BeeDashDecorator) == null)
+		gameObject.AddComponent(BeeDashDecorator);
 	if(GetComponentInChildren(ParticleRenderer) != null)
 		GetComponentInChildren(ParticleRenderer).enabled = true;
-	
-	Destroy(GetComponent(ControlDisablerDecorator));
+	GetComponent(BeeControllerScript).m_ControlEnabled = true;
+	//(GetComponent(ControlDisablerDecorator));
 	
 }

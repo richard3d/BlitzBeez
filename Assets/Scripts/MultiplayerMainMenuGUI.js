@@ -42,7 +42,7 @@ function OnGUI()
 	var width : float = 100;
 	if(m_ShowMainMenu)
 	{
-		GUILayout.BeginArea (Rect(Screen.width*0.5 - width, Screen.height * 0.65, width*2,width));
+		GUILayout.BeginArea (Rect(Screen.width*0.5 - width, Screen.height * 0.65, width*2,500));
 		
 		if (GUILayout.Button ("Create Game", Style)) 
 		{
@@ -67,6 +67,10 @@ function OnGUI()
 		if(GUILayout.Button ("Options", Style))
 		{
 			ShowOptions();
+		}
+		if(GUILayout.Button ("Exit Game", Style))
+		{
+			Application.Quit();
 		}
 		GUILayout.EndArea();
 	}

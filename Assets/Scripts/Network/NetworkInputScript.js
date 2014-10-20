@@ -18,7 +18,7 @@ private var m_RPCFired : boolean = false;
 var m_CursorTexture:Texture2D;
 var m_CursorPosition:Vector3;
 var m_CursorScreenPosition:Vector3;
-
+var m_CursorDist:float = 100;
 var m_ClientOwner : int = -1;
 
 class InputState
@@ -54,6 +54,8 @@ class InputState
 	
 	function GetActionUpBuffered(action : int) : boolean
 	{
+		//Debug.Log("currAction "+this.m_CurrentActions+ " prevAction "+m_PrevActions+ " desiredAction "+action);
+		
 		var Input : boolean = ((this.m_CurrentActions & action) != action) && 
 							   (this.m_PrevActions & action) == action ;
 		return Input;
@@ -74,14 +76,19 @@ function Start () {
 function OnGUI()
 { 
 	if(NetworkUtils.IsControlledGameObject(gameObject))
-		GUI.DrawTexture(Rect(m_CursorScreenPosition.x,Screen.height-m_CursorScreenPosition.y,8,8), m_CursorTexture);
+	{
+		//GUI.color = renderer.material.color;
+		var scale:float = 26+2*Mathf.Sin(Time.time*16);
+		GUI.DrawTexture(Rect(m_CursorScreenPosition.x-scale*0.5,Screen.height-m_CursorScreenPosition.y-scale*0.5,scale,scale), m_CursorTexture);
+		//GUI.color = Color.white;
+	}
 }
 
 function Update () {
 	
 	
-	if(!m_ControlEnabled)
-		return;
+	//if(Network.isClient && !m_ControlEnabled)
+	//	return;
 	
 	if(Network.isServer)
 	{
@@ -173,6 +180,8 @@ function Update () {
 		//ORIGINAL
 		var LookDiff :Vector3 = transform.forward;
 		LookDiff =  Quaternion.AngleAxis(Input.GetAxis("Look Left/Right")*10, Vector3.up)*LookDiff;
+		m_CursorDist += Input.GetAxis("Look Up/Down")*15;
+		m_CursorDist = Mathf.Max(10,Mathf.Min(m_CursorDist, 200));
 		// var vPos : Vector3 = Camera.main.GetComponent(CameraScript).m_Target.transform.position;
 		// var LookDiff = Input.mousePosition-Camera.main.WorldToScreenPoint(vPos);
 		// if(LookDiff.y < 0)
@@ -184,7 +193,7 @@ function Update () {
 		////make this happen on the client immediately, any fixes will come from the server via the RPC
 		//END ORIG
 							//Vector3(transform.position.x,0,transform.position.y)
-		m_CursorPosition = transform.position + transform.forward * 100;
+		m_CursorPosition = transform.position + transform.forward * m_CursorDist;
 		m_CursorScreenPosition = Camera.main.WorldToScreenPoint(m_CursorPosition);
 		if(GetComponent(BeeControllerScript).m_LookEnabled)
 		{
@@ -373,7 +382,8 @@ function Update () {
 
 	m_RPCFired = true;
 	m_ShowOnce = true;
-	SendMessage("OnNetworkInput", input, SendMessageOptions.DontRequireReceiver);	
+	//if(m_ControlEnabled)
+		SendMessage("OnNetworkInput", input, SendMessageOptions.DontRequireReceiver);	
 	
 	
 	//acknowledge the input to the client
@@ -386,7 +396,7 @@ function Update () {
 @RPC function PlayerLookat(clientID : int, lookPt : Vector3)
 {
 	//no need to do anythign if we are the client, its the server who should be handling the calls
-	if(Network.isClient)
+	if(Network.isClient )
 		return;
 		
 	if(clientID == -1)

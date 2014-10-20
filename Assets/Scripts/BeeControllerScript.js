@@ -110,7 +110,7 @@ function Update()
 
 function OnNetworkInput(IN : InputState)
 {
-	if(!networkView.isMine)
+	if(!networkView.isMine || GetComponent(ControlDisablerDecorator) != null)
 	{
 		return;
 	}
@@ -120,7 +120,7 @@ function OnNetworkInput(IN : InputState)
 	
 	if(!m_MovementKeyPressed)
 	{
-			Updater.m_Accel = Vector3(0,Updater.m_Accel.y,0);
+		Updater.m_Accel = Vector3(0,Updater.m_Accel.y,0);
 		var currSpeed : float = Updater.m_Vel.magnitude;
 		if(currSpeed - m_Drag* Time.deltaTime <= 0)
 		{
@@ -212,19 +212,6 @@ function OnNetworkInput(IN : InputState)
 	}
 	
 
-	
-	//handle mouse look at
-	
-	// if(Input.GetKey(KeyCode.LeftArrow))
-	// {
-		// transform.eulerAngles.y -= 360 * Time.deltaTime;
-	// }
-	// if(Input.GetKey(KeyCode.RightArrow))
-	// {
-		// transform.eulerAngles.y += 360 * Time.deltaTime;
-	// }
-	
-	
 	//handle shooting actions
 	if(IN.GetAction(IN.SHOOT) && m_AttackEnabled)
 	{
@@ -299,7 +286,8 @@ function OnNetworkInput(IN : InputState)
 				//make sure we arent already carrying something
 				if(GetComponent(ItemDecorator) == null && GetComponent(TreeHideDecorator) == null)
 				{
-					networkView.RPC("HideInTree", RPCMode.All, m_NearestObject.name);
+					HideInTree(m_NearestObject.name);
+					networkView.RPC("HideInTree", RPCMode.Others, m_NearestObject.name);
 				}
 			}
 			else
@@ -377,7 +365,14 @@ function OnNetworkInput(IN : InputState)
 			}
 			else if(m_ReloadTimer > 0)
 			{
-				networkView.RPC("QuickReload", RPCMode.All);
+				var reload:float = m_Stats["Reload Speed"];
+				reload = m_LoadOut.m_BaseReloadSpeed -  ((reload+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+				if(!m_ReloadJam && 1-m_ReloadTimer/reload >= 0.22 && 1-m_ReloadTimer/reload<= 0.38)
+				{
+					networkView.RPC("QuickReload", RPCMode.All);
+				}
+				else
+					networkView.RPC("ReloadJammed", RPCMode.All);
 				
 			}
 		}
@@ -457,31 +452,32 @@ function OnPlayerLookAt(at : Vector3)
 	}
 }
 
+//this function is just responsible for making a quick reload request
 @RPC function QuickReload()
 {
-	var reload:float = m_Stats["Reload Speed"];
-	reload = m_LoadOut.m_BaseReloadSpeed -  ((reload+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+	Debug.Log("Quick Reload Exectured");
+	m_ReloadTimer = 0;
+	GetComponentInChildren(ParticleRenderer).enabled = true;
+	var clip:int = m_Stats["Clip Size"];
+	GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		AudioSource.PlayClipAtPoint(m_ReloadSound, transform.position);
+	}
 	
-	if(!m_ReloadJam && 1-m_ReloadTimer/reload >= 0.22 && 1-m_ReloadTimer/reload<= 0.38)
-	{
-		m_ReloadTimer = 0;
-		GetComponentInChildren(ParticleRenderer).enabled = true;
-		var clip:int = m_Stats["Clip Size"];
-		GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
-		if((Network.isServer && gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject) ||
-		Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
-		{
-			AudioSource.PlayClipAtPoint(m_ReloadSound, transform.position);
-		}
-	}
-	else
-	{
-		m_ReloadJam = true;
-	}
+
+}
+
+
+@RPC function ReloadJammed()
+{
+	m_ReloadJam = true;
+	Debug.Log("Jammed");
 }
 
 @RPC function Reload()
 {
+	Debug.Log("Reload Standard");
 	m_ReloadTimer = m_Stats["Reload Speed"];
 	m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
@@ -629,8 +625,22 @@ function OnPlayerLookAt(at : Vector3)
 
 @RPC function HideInTree(tree : String)
 {
-	gameObject.AddComponent(TreeHideDecorator);
-	GetComponent(TreeHideDecorator).Hide(gameObject.Find(tree));
+	if(GetComponent(TreeHideDecorator) == null)
+	{
+		Debug.Log("Hiding "+tree);
+		gameObject.AddComponent(TreeHideDecorator);
+		GetComponent(TreeHideDecorator).Hide(gameObject.Find(tree));
+	}
+}
+
+@RPC function UnHideFromTree(vDisplacement : Vector3)
+{
+	if(GetComponent(TreeHideDecorator) != null)
+	{
+		Debug.Log("Unhiding "+GetComponent(TreeHideDecorator).m_Tree.name);
+		GetComponent(TreeHideDecorator).m_DisplaceVector = vDisplacement;
+		DestroyImmediate(GetComponent(TreeHideDecorator));
+	}
 }
 
 @RPC function UseTeleporter(teleporter : String)

@@ -81,6 +81,13 @@ function OnTriggerStay(coll : Collider)
 	var player:GameObject = null;
 	if(coll.gameObject.tag == "Player" )
 	{	
+	
+		// if(animation.isPlaying)
+		// {
+			// Debug.Log("Pushing");
+			// coll.gameObject.transform.position += (coll.gameObject.transform.position - transform.position);
+		// }
+	
 		//handle player specific logic if the player is us
 		if(coll.gameObject.GetComponent(ItemDecorator) == null)
 		{
@@ -92,6 +99,14 @@ function OnTriggerStay(coll : Collider)
 				txt.transform.position.y += 0.04;
 				txt.GetComponent(GUIText).enabled = true;
 				txt.GetComponent(GUIText).text = "Use";
+			}
+		}
+		else
+		{
+			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+			{	
+				txt  = gameObject.Find("UseText");
+				txt.GetComponent(GUIText).enabled = false;
 			}
 		}
 	}
@@ -171,10 +186,15 @@ function OnCollisionEnter(coll : Collision)
 function OnCollisionStay(coll : Collision)
 {
 	var player:GameObject = null;
-	if(coll.gameObject.tag == "Explosion")
+	if(coll.gameObject.tag == "Explosion" || (coll.gameObject.tag == "Terrain" && GetComponent(UpdateScript).m_Vel.magnitude != 0))
 	{
 		if(Network.isServer)
 			ServerRPC.Buffer(networkView, "KillRock", RPCMode.All);
+	}
+	
+	if(coll.gameObject.tag == "Player")
+	{
+		Debug.Log("CollisionStaying");
 	}
 }
 
@@ -193,20 +213,9 @@ function OnCollisionExit(coll : Collision)
 {
 	if(coll.gameObject.tag == "Player")
 	{
-		var player:GameObject = null;
-		if(Network.isServer)
-		{
-			var server:ServerScript = gameObject.Find("GameServer").GetComponent(ServerScript) as ServerScript;
-			player = server.GetGameObject();
-		}
-		else
-		{
-			var client:ClientScript = gameObject.Find("GameClient").GetComponent(ClientScript) as ClientScript;
-			player = client.GetGameObject();
-		}
-		
+	
 		//code to handle if the player is our controlling player
-		if(coll.gameObject == player)
+		if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 		{
 			
 			var txt : GameObject  = gameObject.Find("UseText");	

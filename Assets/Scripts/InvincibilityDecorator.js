@@ -1,15 +1,16 @@
 #pragma strict
+var m_Blink:boolean = true;
 private var m_BlinkFreq:float = 0.10f;
 private var m_BlinkTimer:float = 0.10f;
-private var m_Lifetime:float =2;
+private var m_Lifetime:float =0.5;
 function Start () {
-m_Lifetime = 1.5;
+m_Lifetime = 0.5;
 }
 
 function Update () {
 
 
-	if(m_BlinkTimer > 0)
+	if(m_BlinkTimer > 0 && m_Blink)
 	{
 		m_BlinkTimer -= Time.deltaTime;
 		if(m_BlinkTimer <= 0)

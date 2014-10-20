@@ -32,27 +32,13 @@ function Update () {
 		{
 			if(Terr.m_OverTerrain)
 			{
-				
-				if(gameObject.tag == "Coins")
+				var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
+				if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
 				{
-					if(transform.position.y  + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
-					{
-						transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
-						//Comp.m_Vel.y *= -0.75;
-						Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, Vector3.up)*0.75;
-					}	
-				}
-					
-				else
-				{
-					var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
-					if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
-					{
-						transform.position.y = size+Terr.m_TerrainInfo.point.y;
-					//	Comp.m_Vel.y *= -0.75;
-						Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, Vector3.up)*0.75;
-					}	
-				}
+					transform.position.y = size+Terr.m_TerrainInfo.point.y;
+				//	Comp.m_Vel.y *= -0.75;
+					Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, Vector3.up)*0.75;
+				}		
 			}
 			
 			if(Comp.m_Vel.magnitude < 0.01)
@@ -144,7 +130,10 @@ function Explode()
 	if(m_Owner != null)
 	{
 		if(m_Owner.GetComponent(ItemDecorator))
+		{
 			m_Owner.GetComponent(ItemDecorator).ThrowItem();
+			Destroy(m_Owner.GetComponent(ItemDecorator));
+		}
 	}
 	
 	

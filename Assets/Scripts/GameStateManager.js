@@ -12,12 +12,12 @@ static var MATCH_LOBBY : int = 4;
 static var m_CurrState:int = -1;
 var m_MatchTick : int = 3;
 static var m_WinningPlayer : int = -1;
-static var m_PointsToWin : int = 200;
+static var m_PointsToWin : int = 400;
 function Start()
 {
 	m_CurrState =-1;
 	m_WinningPlayer = -1;
-	m_PointsToWin = 200;
+	m_PointsToWin = 400;
 }
 
 function Update()

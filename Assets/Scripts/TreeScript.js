@@ -23,11 +23,12 @@ function OnTriggerStay(coll : Collider)
 	{		
 		
 		//handle player specific logic if the player is us
-		if(coll.gameObject.GetComponent(ItemDecorator) == null)
+		if(coll.gameObject.GetComponent(ItemDecorator) == null && coll.gameObject.GetComponent(TreeHideDecorator) == null)
 		{
 			coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
 			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 			{	
+				
 				var txt : GameObject  = gameObject.Find("UseText");
 				txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
 				txt.transform.position.y += 0.04;
@@ -38,6 +39,14 @@ function OnTriggerStay(coll : Collider)
 			if(animation.isPlaying && Network.isServer)
 			{
 				ServerRPC.Buffer(coll.gameObject.networkView, "SetHP", RPCMode.All, coll.gameObject.GetComponent(BeeScript).m_HP-3);
+			}
+		}
+		else
+		{
+			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+			{
+				txt  = gameObject.Find("UseText");
+				txt.GetComponent(GUIText).enabled = false;
 			}
 		}
 	}
@@ -89,7 +98,7 @@ function OnCollisionEnter(coll : Collision)
 				player.GetComponent(TreeHideDecorator).m_Tree == gameObject)
 			{
 				diff.y = 0;
-				player.networkView.RPC("RemoveTreeDecorator", RPCMode.All, -diff);
+				//player.networkView.RPC("RemoveTreeDecorator", RPCMode.All, -diff);
 			}
 		 }
 	}
@@ -111,8 +120,9 @@ function OnCollisionEnter(coll : Collision)
 				player.GetComponent(TreeHideDecorator).m_Tree == gameObject)
 			{
 				diff.y = 0;
-				player.networkView.RPC("RemoveTreeDecorator", RPCMode.All, -diff);
-				ServerRPC.Buffer(player.networkView, "SetHP", RPCMode.All, player.GetComponent(BeeScript).m_HP-3);
+				ServerRPC.Buffer(player.networkView, "KillBee", RPCMode.All, true);
+				//player.networkView.RPC("RemoveTreeDecorator", RPCMode.All, -diff);
+				
 			}
 		}
 	}

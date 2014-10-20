@@ -1,6 +1,6 @@
 #pragma strict
 
-
+public var m_Color:Color = Color.white;
 public var m_NumberOfFlashes:int = 7;
 public var m_FlashDuration:float = 0.08;
 //this script makes bees flash a certain color
@@ -32,7 +32,7 @@ function SwitchColor(num:int,time:float)
 		
 		for( var i:int = 0; i < renderer.materials.length; i++)
 		{
-			renderer.materials[i].color  = renderer.materials[i].color == Color.white ?  m_OrigColors[i] : Color.white;
+			renderer.materials[i].color  = renderer.materials[i].color == m_Color?  m_OrigColors[i] : m_Color;
 		}
 		yield WaitForSeconds(time);
 	}
@@ -44,6 +44,6 @@ function OnDestroy()
 	
 	for( var i:int = 0; i < renderer.materials.length; i++)
 	{
-		 renderer.materials[i].color =m_OrigColors[i];
+		 renderer.materials[i].color = m_OrigColors[i];
 	}
 }

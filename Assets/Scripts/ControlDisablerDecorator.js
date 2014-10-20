@@ -10,7 +10,7 @@ function Awake()
 
 function Start () {
 
-	
+	Debug.Log("added disaabler");
 
 }
 

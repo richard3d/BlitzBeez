@@ -98,7 +98,7 @@ function CalcScore()
 		var honey:int = 0;
 		for(var child:Transform in transform)
 		{
-			honey += ( GetCurrentLevel()+1 * child.GetComponent(FlowerScript).m_NumBees);
+			honey += ( GetCurrentLevel()+1 /** child.GetComponent(FlowerScript).m_NumBees*/);
 		}
 		
 		ServerRPC.Buffer(currOwner.networkView, "SetHoneyPoints", RPCMode.All, currOwner.GetComponent(BeeScript).m_Honey+honey);

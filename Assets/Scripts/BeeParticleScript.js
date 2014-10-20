@@ -38,7 +38,7 @@ function Update () {
 	{
 		var flower : GameObject = transform.parent.gameObject;
 		//make sure our flower does not have the bee on it, to see if we can start adding points
-		if(m_Owner.GetComponent(FlowerDecorator) == null ||
+		if(m_Owner != null && m_Owner.GetComponent(FlowerDecorator) == null ||
 			m_Owner.GetComponent(FlowerDecorator).GetFlower() != flower)
 		{
 			var numBees : float = particleEmitter.particles.length;

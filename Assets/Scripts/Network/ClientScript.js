@@ -77,7 +77,7 @@ function OnStateChange(state:int)
 	else
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
-		Debug.Log("over bitch");
+		Screen.showCursor = true;
 		GetGameObject().GetComponent(NetworkInputScript).enabled = false;
 	}
 	else if(mgr.m_CurrState == GameStateManager.MATCH_LOBBY)
@@ -166,6 +166,7 @@ function OnConnectedToServer()
 
 function OnDisconnectedFromServer()
 {
+	Screen.showCursor = true;
 	Application.LoadLevel("MultiplayerMainMenu");
 	Destroy(gameObject);
 }

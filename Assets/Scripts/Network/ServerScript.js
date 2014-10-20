@@ -56,7 +56,6 @@ function OnGUI()
 	else
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
-		Debug.Log("tell em who won");
 		skin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
 		GUILayout.BeginArea(Rect(0,256, Screen.width,512), skin.customStyles[0]);
 		GUILayout.Label("All Hail "+m_Clients[GameStateManager.m_WinningPlayer].m_Name+".\n The new QUEEN (OR KING) BEE!", skin.label);
@@ -93,7 +92,9 @@ function OnStateChange(state:int)
 			m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_ControlEnabled = false;	
 		}
 		//after some time tell clients we are bumping out
+		Screen.showCursor = true;
 		yield InitiateMatchShutdown();
+		
 		
 	}
 	else if(mgr.m_CurrState == GameStateManager.MATCH_LOBBY)

@@ -49,16 +49,14 @@ function Update () {
 
 function OnNetworkInput(IN : InputState)
 {
-	if(!networkView.isMine)
+	if(!networkView.isMine || GetComponent(ControlDisablerDecorator) != null)
 	{
 		return;
 	}
 	
 	
-	
 	if(m_Item == null)
 		return;
-		
 		
 	//handle use action
 	if(IN.GetActionUpBuffered(IN.USE))
@@ -68,6 +66,7 @@ function OnNetworkInput(IN : InputState)
 			 m_FirstInput = false;
 			return;
 		}
+		Debug.Log("throwing");
 		if(m_Item != null)
 		{
 			if(Network.isServer)
@@ -80,7 +79,7 @@ function OnNetworkInput(IN : InputState)
 	
 	if(IN.GetAction(IN.USE))
 	{
-		m_ThrowVelocityScalar += Time.deltaTime*0.5;
+		m_ThrowVelocityScalar += Time.deltaTime*0.66;
 		m_ThrowVelocityScalar = Mathf.Min(m_ThrowVelocityScalar, 1);
 	}
 	
@@ -106,7 +105,7 @@ function OnNetworkInput(IN : InputState)
 		
 	if(m_Item.tag == "Rocks")
 	{
-		m_ThrowVelocityScalar = Mathf.Max(m_ThrowVelocityScalar*3, 1);
+		m_ThrowVelocityScalar = Mathf.Max(m_ThrowVelocityScalar*3, 1.5);
 		m_Item.GetComponent(RockScript).m_Owner = gameObject;
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward ) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;//  + transform.up*0.15* GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar ;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
@@ -121,13 +120,13 @@ function OnNetworkInput(IN : InputState)
 		//var distScalar = Mathf.Min
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward + Vector3.up*m_ThrowVelocityScalar).normalized  * m_Item.GetComponent(UpdateScript).m_DefaultMaxSpeed ;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
-		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8;
+		m_Item.GetComponent(UpdateScript).m_Accel.y = -350;
 		gameObject.AddComponent(ControlDisablerDecorator);
 		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);
 	}
 	else if(m_Item.tag == "Mines")
 	{
-		m_ThrowVelocityScalar = Mathf.Max(m_ThrowVelocityScalar*3, 1);
+		m_ThrowVelocityScalar = Mathf.Max(m_ThrowVelocityScalar*3, 1.5);
 		m_Item.GetComponent(MineScript).m_Owner = gameObject;
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 10;
@@ -174,6 +173,7 @@ function SetItem (go : GameObject, itemPosOffset : Vector3, itemOrientation : Ve
 	
 	if(go.tag == "Rocks")
 	{
+		Debug.Log("why do i not change?");
 		m_Item.GetComponent(RockScript).m_Owner = gameObject;
 		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);

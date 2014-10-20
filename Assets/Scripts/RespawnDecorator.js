@@ -45,10 +45,10 @@ function Update () {
 			Camera.main.GetComponent(CameraScript).m_CamPos = Camera.main.transform.position;
 		}
 		gameObject.GetComponent(BeeScript).enabled = false;
-		
-		transform.position = Vector3(m_RespawnPos.x, Mathf.Lerp(m_RespawnPos.y, 5, 1-m_AnimTime/0.25), m_RespawnPos.z);
-		GetComponent(TrailRenderer).enabled = true;
 		m_AnimTime -= Time.deltaTime;
+		transform.position = Vector3(m_RespawnPos.x, Mathf.Lerp(m_RespawnPos.y, 7, Mathf.Max(1-m_AnimTime/0.25, 0)), m_RespawnPos.z);
+		GetComponent(TrailRenderer).enabled = true;
+		
 		if(m_AnimTime <= 0)
 		{
 			if(Network.isServer)
@@ -76,7 +76,7 @@ function OnDestroy()
 	collider.enabled = true;
 	gameObject.transform.localScale = Vector3(2,2,2);
 	//gameObject.animation.Play("SpawnPlayer");
-	
+	renderer.enabled = true;
 	Destroy(GetComponent(ControlDisablerDecorator));
 	GetComponent(BeeScript).enabled = true;
 	GetComponent(TrailRenderer).enabled = false;

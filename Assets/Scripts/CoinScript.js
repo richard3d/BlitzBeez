@@ -8,6 +8,7 @@ function Awake()
 
 function Start () {
 
+	GetComponent(UpdateScript).m_NetUpdateRotation = false;
 
 }
 

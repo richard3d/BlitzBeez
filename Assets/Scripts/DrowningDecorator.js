@@ -29,10 +29,11 @@ function Update () {
 	
 	GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
 	GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+	gameObject.GetComponent(BeeScript).enabled = false;
 	if(m_Lifetime > 0.0)
 	{
 		m_Lifetime -= Time.deltaTime;
-		gameObject.GetComponent(BeeScript).enabled = false;
+		//gameObject.GetComponent(BeeScript).enabled = false;
 		transform.position = Vector3(transform.position.x, Mathf.Lerp(transform.position.y, -20, 1-m_Lifetime/1.5), transform.position.z);
 		transform.localScale = Vector3(Mathf.Lerp(transform.localScale.x, 0, 1-m_Lifetime/1.5), Mathf.Lerp(transform.localScale.y, 0, 1-m_Lifetime/1.5), Mathf.Lerp(transform.localScale.z, 0, 1-m_Lifetime/1.5));
 		if(m_Lifetime <= 0.0)
@@ -40,9 +41,10 @@ function Update () {
 			//respawn
 			if(Network.isServer)
 			 {
-				 ServerRPC.Buffer(networkView,"SetHP", RPCMode.All, 0);
-				 ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "DrowningDecorator");
-				 
+				 GetComponent(BeeScript).KillAndRespawn(false);
+				 //var pos:Vector3 = GetComponent(BeeScript).FindRespawnLocation();
+				 //networkView.RPC("Respawn", RPCMode.All,pos);
+				//ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "DrowningDecorator");
 			 }
 		}
 	}
@@ -58,5 +60,11 @@ function SetLifetime(time : float)
 function OnDestroy()
 {
 	transform.localScale = m_OrigScale;
+	if(Network.isServer)
+	{
+	   //  gameObject.GetComponent(BeeScript).enabled = true;
+		// var pos:Vector3 = GetComponent(BeeScript).FindRespawnLocation();
+		// ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);
+	}
 	
 }

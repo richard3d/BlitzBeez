@@ -34,6 +34,7 @@ var m_HoneyInterpolator:float = 0;
 // var m_CurrSwmLevel : int = 0;
 // var m_XPToSwmLevel : int[];
 
+var HandIconTexture : Texture2D = null;
 var XPText : GameObject = null;
 var BarBGTexture : Texture2D = null;
 var m_LifeTextureContainer : Texture2D = null;
@@ -565,7 +566,36 @@ function OnCollisionStay(coll : Collision) {
 
 }
 
+
+
+@RPC function DeflectBullet()
+{
+	gameObject.AddComponent(PauseDecorator);
+	GetComponent(PauseDecorator).m_Lifetime = 0.25;
+	var deflectEffect:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashEffectParticles"),transform.position, Quaternion.identity);
+	 deflectEffect.transform.parent = transform;
+	 deflectEffect.GetComponent(ParticleSystem).startRotation = Mathf.Acos(Vector3.Dot(GetComponent(UpdateScript).m_Vel.normalized,Vector3.forward));
+	
+	  if(GetComponent(UpdateScript).m_Vel.x < 0)
+		  deflectEffect.GetComponent(ParticleSystem).startRotation = 2*Mathf.PI-deflectEffect.GetComponent(ParticleSystem).startRotation;
+	 deflectEffect.GetComponent(ParticleSystem).startRotation += 0.785;
+}
+
 function OnControllerColliderHit (hit : ControllerColliderHit) {
+
+	
+	// if(Network.isServer)
+	// {
+		
+		// if(hit.gameObject.tag == "Bullets" && gameObject.GetComponent(InvincibilityDecorator) == null)
+		// {	Debug.Log("yowza");
+			// if(GetComponent(BeeDashDecorator) != null)
+			// {
+				// hit.gameObject.GetComponent(UpdateScript).m_Vel = Vector3.Reflect(hit.gameObject.GetComponent(UpdateScript).m_Vel, GetComponent(UpdateScript).m_Vel.normalized);
+				// networkView.RPC("DeflectBullet", RPCMode.All);
+			// }
+		// }
+		// }
 }
 
 function OnCollisionEnter(coll : Collision) {
@@ -573,13 +603,13 @@ function OnCollisionEnter(coll : Collision) {
 	//if we dash and hit an object we should shake the camera
 	if(Network.isServer)
 	{
+	
 		if(coll.gameObject.tag == "Bullets" && gameObject.GetComponent(InvincibilityDecorator) == null)
-		{
+		{	
 			if(GetComponent(BeeDashDecorator) != null)
 			{
 				coll.gameObject.GetComponent(UpdateScript).m_Vel = Vector3.Reflect(coll.gameObject.GetComponent(UpdateScript).m_Vel, GetComponent(UpdateScript).m_Vel.normalized);
-				gameObject.AddComponent(PauseDecorator);
-				GetComponent(PauseDecorator).m_Lifetime = 0.25;
+				networkView.RPC("DeflectBullet", RPCMode.All);
 			}
 			else
 			if(coll.gameObject.GetComponent(BulletScript).m_PowerShot )
@@ -591,25 +621,36 @@ function OnCollisionEnter(coll : Collision) {
 					//drop item if we have it out
 					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
 				}
-				networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
-				
-				
+				if(m_HP - 3 <= 0)
+				{
+					ServerRPC.Buffer(networkView,"KillBee", RPCMode.All, true);
+					var pos:Vector3 = FindRespawnLocation();
+					networkView.RPC("Respawn", RPCMode.All,pos);
+				}
+				else
+					networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
 			}
 			else
 			{
-				//we got hit by a bullet
-				if(GetComponent(ItemDecorator) != null)
+				if(coll.gameObject.GetComponent(BulletScript).m_Owner != gameObject)
 				{
-					//drop item if we have it out
-					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+					//we got hit by a bullet
+					if(GetComponent(ItemDecorator) != null)
+					{
+						//drop item if we have it out
+						ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+					}
+					
+					if(m_HP - 1 <= 0)
+					{
+						ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, true);
+						pos = FindRespawnLocation();
+						networkView.RPC("Respawn", RPCMode.All,pos);
+					}
+					else
+						networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
 				}
-				
-				
-				networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
-				
 			}
-			
-			
 		}
 		else if(coll.gameObject.tag == "Terrain")
 		{
@@ -632,10 +673,6 @@ function OnCollisionEnter(coll : Collision) {
 			 //coll.gameObject.GetComponent(RockScript).m_Owner != gameObject)
 			
 		}
-		else if(coll.gameObject.tag == "Explosion" && coll.gameObject.GetComponent(BombExplosionScript).m_Owner != gameObject)
-		{
-			networkView.RPC("SetHP", RPCMode.All, 0);
-		}
 		else if(coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != gameObject)
 		{
 			networkView.RPC("SetHP", RPCMode.All, 0);
@@ -646,14 +683,14 @@ function OnCollisionEnter(coll : Collision) {
 	if(GetComponent(BeeDashDecorator) != null && (coll.gameObject.tag == "Rocks" ||
 		coll.gameObject.tag == "Trees"))
 	{
-		Destroy(GetComponent(BeeDashDecorator));
-		Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
-		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-		GetComponent(UpdateScript).m_Vel = -GetComponent(UpdateScript).m_Vel * 0.2;
-		gameObject.AddComponent(ControlDisablerDecorator);
-		GetComponent(ControlDisablerDecorator).SetLifetime(0.25);
+		// Destroy(GetComponent(BeeDashDecorator));
+		// Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
+		// GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+		// GetComponent(UpdateScript).m_Vel = -GetComponent(UpdateScript).m_Vel * 0.2;
+		// gameObject.AddComponent(ControlDisablerDecorator);
+		// GetComponent(ControlDisablerDecorator).SetLifetime(0.25);
 		
-		//coll.gameObject.GetComponent(RockScript).Crack();
+		
 	}
 }
 
@@ -677,6 +714,13 @@ function OnTriggerEnter(other:Collider)
 			GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
 			networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
 		}
+		
+		else if(other.gameObject.tag == "Explosion" )
+		{
+			networkView.RPC("KillBee", RPCMode.All, true);
+			var pos:Vector3 = FindRespawnLocation();
+			networkView.RPC("Respawn", RPCMode.All,pos);
+		}
 	}
 }
 
@@ -694,31 +738,97 @@ function FindRespawnLocation() : Vector3
 		return pos;
 }
 
+function KillAndRespawn(splat:boolean)
+{
+	ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, splat);
+	var pos:Vector3 = FindRespawnLocation();
+	ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);
+}
+
+@RPC function KillBee(splat:boolean)
+{	
+     m_HP = 0;
+	//play death effect
+	if(splat)
+	{
+		var gb : GameObject = gameObject.Instantiate(m_HitEffect);
+		gb.transform.position = transform.position;
+		gb.transform.localScale = Vector3(10.1, 10.1, 10.1);
+		var ps : ParticleSystem = gb.GetComponent(ParticleSystem) as ParticleSystem;
+		gb.renderer.material.SetColor("_TintColor", renderer.material.color);
+		ps.startSize = 16;
+
+		ps = gb.transform.Find("GrenadeInnerExplosion").GetComponent(ParticleSystem) as ParticleSystem;
+		ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
+		ps.startSize = 10;
+		ps = gb.transform.Find("GrenadeRing").GetComponent(ParticleSystem) as ParticleSystem;
+		//ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
+		ps.startSize = 30;
+		
+		var go : GameObject = gameObject.Instantiate(m_DeathEffect);
+		go.transform.position = transform.position;
+		go.renderer.material.color = renderer.material.color;
+		
+		var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
+		splatter.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*01;
+		splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
+		splatter.renderer.material.color = renderer.material.color;
+		
+		Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
+	}
+	
+	if(GetComponent(ItemDecorator) != null)
+	{
+		//gameObject.Destroy(GetComponent(ItemDecorator).GetItem());
+		GetComponent(ItemDecorator).ThrowItem();
+	}
+	
+	var comps:Component[] = gameObject.GetComponents(Component);
+	for (var comp:Component in comps)
+	{
+		Debug.Log(comp.ToString());
+		if(comp.ToString().Contains("decorator") || comp.ToString().Contains("Decorator"))
+		{
+			DestroyImmediate(comp);
+		}
+	}
+	
+	//var pos:Vector3 = FindRespawnLocation();
+	//Respawn( pos);
+	// if(GetComponent(InvincibilityDecorator) != null)
+		// gameObject.DestroyImmediate(gameObject.GetComponent(InvincibilityDecorator));
+	// if(GetComponent(DizzyDecorator) != null)
+		// gameObject.Destroy(gameObject.GetComponent(DizzyDecorator));
+	
+	
+}
+
 @RPC function Respawn(pos:Vector3)
 {
-	m_PollenCount = 0;
-	var gb : GameObject = gameObject.Instantiate(m_HitEffect);
-	gb.transform.position = transform.position;
-	gb.transform.localScale = Vector3(10.1, 10.1, 10.1);
-	var ps : ParticleSystem = gb.GetComponent(ParticleSystem) as ParticleSystem;
-	gb.renderer.material.SetColor("_TintColor", renderer.material.color);
-	ps.startSize = 16;
+	m_Money = 0;
+	Debug.Log("Respawning");
+	// var gb : GameObject = gameObject.Instantiate(m_HitEffect);
+	// gb.transform.position = transform.position;
+	// gb.transform.localScale = Vector3(10.1, 10.1, 10.1);
+	// var ps : ParticleSystem = gb.GetComponent(ParticleSystem) as ParticleSystem;
+	// gb.renderer.material.SetColor("_TintColor", renderer.material.color);
+	// ps.startSize = 16;
 
-	ps = gb.transform.Find("GrenadeInnerExplosion").GetComponent(ParticleSystem) as ParticleSystem;
-	ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
-	ps.startSize = 10;
-	ps = gb.transform.Find("GrenadeRing").GetComponent(ParticleSystem) as ParticleSystem;
-	//ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
-	ps.startSize = 30;
+	// ps = gb.transform.Find("GrenadeInnerExplosion").GetComponent(ParticleSystem) as ParticleSystem;
+	// ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
+	// ps.startSize = 10;
+	// ps = gb.transform.Find("GrenadeRing").GetComponent(ParticleSystem) as ParticleSystem;
+	// //ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
+	// ps.startSize = 30;
 	
-	var go : GameObject = gameObject.Instantiate(m_DeathEffect);
-	go.transform.position = transform.position;
-	go.renderer.material.color = renderer.material.color;
+	// var go : GameObject = gameObject.Instantiate(m_DeathEffect);
+	// go.transform.position = transform.position;
+	// go.renderer.material.color = renderer.material.color;
 	
-	var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
-	splatter.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*01;
-	splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
-	splatter.renderer.material.color = renderer.material.color;
+	// var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
+	// splatter.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*01;
+	// splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
+	// splatter.renderer.material.color = renderer.material.color;
 	
 	if(GetComponent(InvincibilityDecorator) != null)
 		gameObject.DestroyImmediate(gameObject.GetComponent(InvincibilityDecorator));
@@ -729,9 +839,10 @@ function FindRespawnLocation() : Vector3
 	{
 		//gameObject.Destroy(GetComponent(ItemDecorator).GetItem());
 		GetComponent(ItemDecorator).ThrowItem();
+		Destroy(GetComponent(ItemDecorator));
 	}
 	
-	Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
+	
 	
 	gameObject.AddComponent(RespawnDecorator);
 	GetComponent(RespawnDecorator).SetLifetime(3);
@@ -745,7 +856,9 @@ function FindRespawnLocation() : Vector3
 	{
 		//add invincibility decorator
 		gameObject.AddComponent(InvincibilityDecorator);
-		
+		gameObject.GetComponent(InvincibilityDecorator).m_Blink = false;
+		//gameObject.AddComponent(FlasherDecorator);
+		//gameObject.GetComponent(FlasherDecorator).m_Color = Color.red;
 	}
 	
 	if(hp <= 0)

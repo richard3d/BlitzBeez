@@ -16,7 +16,19 @@ var m_Lifetime : float = -1;
 //this variable is used so that when a parent is added or removed we 
 //can let the network know once by comparing the prev parent
 private var m_PrevParent : Transform = null;
+private var m_UpdateCount:int = 0;
+private var m_MsgCount:int = 0;
+private var m_Msgs:Array = new Array();
 
+class UpdatePacket
+{
+	var seq:int = 0;
+	var deltaTime:float = 0;
+	var pos:Vector3;
+	var ang:Quaternion;
+	var vel:Vector3;
+	var accel:Vector3;
+}
 
 function Start () {
 
@@ -25,9 +37,10 @@ function Start () {
 
 function Update () {
 	
+	var delta:float = Time.deltaTime;
 	if(m_Lifetime >= 0)
 	{
-		m_Lifetime -= Time.deltaTime;
+		m_Lifetime -= delta;
 		if(m_Lifetime < 0)
 		{
 			Destroy(gameObject);
@@ -50,26 +63,26 @@ function Update () {
 		m_Accel.Normalize();
 		m_Accel *= m_MaxAccel;
 	}
-	m_Vel += m_Accel * Time.deltaTime;
+	m_Vel += m_Accel * delta;
 	
 	//handle special case for drag
 	if(m_Drag > 0)
 	{
 		if(m_DragAffectsVelY)
 		{
-			if(m_Vel.magnitude - m_Drag * Time.deltaTime <= 0)
+			if(m_Vel.magnitude - m_Drag * delta <= 0)
 				m_Vel = Vector3(0,0,0);
 			else
-				m_Vel -= m_Vel.normalized * m_Drag* Time.deltaTime;
+				m_Vel -= m_Vel.normalized * m_Drag* delta;
 		}
 		else
 		{
 			var velTemp : Vector3 = m_Vel;
 			velTemp.y = 0;
-			if(velTemp.magnitude - m_Drag * Time.deltaTime <= 0)
+			if(velTemp.magnitude - m_Drag * delta <= 0)
 				m_Vel.x = m_Vel.z = 0;
 			else
-				m_Vel -= velTemp.normalized * m_Drag* Time.deltaTime;
+				m_Vel -= velTemp.normalized * m_Drag*delta;
 		}
 	}
 	
@@ -87,10 +100,70 @@ function Update () {
 	
 	if(GetComponent(CharacterController) != null && GetComponent(CharacterController).enabled)
 	{
-		GetComponent(CharacterController).Move(m_Vel*Time.deltaTime);
+		GetComponent(CharacterController).Move(m_Vel*delta);
 	}
 	else
-		transform.position += m_Vel * Time.deltaTime;
+		transform.position += m_Vel * delta;
+	
+
+	// if(NetworkUtils.IsControlledGameObject(gameObject))
+	// {		
+		// m_UpdateCount++;
+		// var update:UpdatePacket = new UpdatePacket();
+		// update.pos = transform.position;
+		// update.ang = transform.rotation;
+		// update.vel = m_Vel;
+		// update.accel = m_Accel;
+		// update.deltaTime = delta;
+		// update.seq = m_UpdateCount;
+		// m_Msgs.Push(update);
+		// Debug.Log("Updating "+m_UpdateCount);
+	// }
+}
+
+function RecalcUpdate (pos:Vector3, ang:Quaternion, vel:Vector3, accel:Vector3, delta:float) {
+	
+	
+
+	vel += accel * delta;
+	
+	//handle special case for drag
+	if(m_Drag > 0)
+	{
+		if(m_DragAffectsVelY)
+		{
+			if(vel.magnitude - m_Drag * delta <= 0)
+				vel = Vector3(0,0,0);
+			else
+				vel -= vel.normalized * m_Drag* delta;
+		}
+		else
+		{
+			var velTemp : Vector3 = vel;
+			velTemp.y = 0;
+			if(velTemp.magnitude - m_Drag * delta <= 0)
+				vel.x = vel.z = 0;
+			else
+				vel -= velTemp.normalized * m_Drag*delta;
+		}
+	}
+	
+	
+	if(Vector3(vel.x,0,vel.z).magnitude > m_MaxSpeed)
+	{
+		var vertSpeed = vel.y;
+		vel.Normalize();
+		vel *= m_MaxSpeed;
+		vel.y = vertSpeed;
+	}
+
+		
+	if(GetComponent(CharacterController) != null && GetComponent(CharacterController).enabled)
+	{
+		GetComponent(CharacterController).Move(vel*delta);
+	}
+	else
+		transform.position += vel * delta;
 }
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo) 
@@ -108,14 +181,15 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 	    stream.Serialize(m_Accel);
         stream.Serialize(m_Vel);
 		stream.Serialize(m_MaxSpeed);
+	//	stream.Serialize(m_MsgCount);
 		
 		
     } 
 	else 
 	{
 		stream.Serialize(vPos);
-		if(gameObject.tag == "Rocks")
-			Debug.Log(gameObject.name + " Serializing");
+	
+		//Debug.Log(gameObject.name + " Serializing");
 		transform.position = Vector3.Lerp(transform.position,vPos, 0.5f);
 		if(m_NetUpdateRotation)
 		{
@@ -125,6 +199,30 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 		stream.Serialize(m_Accel);
 		stream.Serialize(m_Vel);
 		stream.Serialize(m_MaxSpeed);
+		
+		// if(NetworkUtils.IsControlledGameObject(gameObject))
+		// {
+		// var seq:int = m_MsgCount++;
+		// Debug.Log("Streamin "+m_MsgCount);
+		
+		// while(m_Msgs.length > 1)
+		// {
+			// var msg:UpdatePacket = m_Msgs[0] as UpdatePacket;
+			// if(msg.seq <= m_MsgCount)
+				// m_Msgs.Shift();
+			// else
+				// break;
+		// }
+		
+		// for(var i = 0; i < m_Msgs.length; i++)
+		// {
+			// //Debug.Log(m_MsgCount +" "+m_MsgCount);
+			// msg = m_Msgs[i] as UpdatePacket;
+			// RecalcUpdate(msg.pos,msg.ang, msg.vel, msg.accel, msg.deltaTime);
+		// }
+		
+		// }
+		
     }    
 }
 
