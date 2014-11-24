@@ -1,7 +1,7 @@
 #pragma strict
 private static var m_InstanceID : int = 0;
 var m_ExitTeleporter : GameObject;
-
+var m_TeleportSound:AudioClip;
 function Awake()
 {
 	gameObject.name = "Teleporter"+ ++m_InstanceID;

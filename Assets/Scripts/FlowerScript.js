@@ -5,12 +5,12 @@ public var m_PollinationTimer : float = 0;
 var m_PollinationTime : float = 5;
 
 var m_Owner:GameObject = null; //which player controls this flower?
+var m_Occupied:boolean = false; //Is there a bee currently on this flower?
 var m_PointsPerSecond:float = 1; //how many points per second does this flower generate when it is controlled
 @HideInInspector
 var m_NumBees : int = 0;		 //how many bees are on this flower?
 var m_MaxBees : int = 3;		 //what is the maximum number of bees that may be put on this flower?
 var m_BaseHP : int = 10;		 //(the starting HP for the flower, m_MaxHP = m_MaxBees * m_BaseHP
-
 var m_HP : int = 0;  			 //curr flower hp           
 
 //GUI stuff
@@ -21,6 +21,8 @@ var m_AssignmentFlasherTexture : Texture2D = null;
 
 
 //Effects
+var m_DeathSound : AudioClip = null; 
+var m_HurtSound : AudioClip = null; 
 var m_DeathEffect : GameObject = null;
 var m_PollenItem : GameObject = null;
 var m_PollenParticles : GameObject = null;
@@ -86,10 +88,10 @@ function OnGUI()
 	if(m_LifebarTimer > 0)
 	{
 		m_LifebarTimer -= Time.deltaTime;
-		var scrPos:Vector3 = Camera.main.WorldToScreenPoint(transform.position);
+		var scrPos:Vector3 = Camera.main.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.y * 1.25);
 		var height = 12;
 		var width = 48;
-		if(transform.Find("Swarm"+gameObject.name) != null)
+		if(transform.Find("Shield") != null)
 		var percent:float = m_HP;
 		percent /= (m_NumBees * m_BaseHP);
 		GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
@@ -142,6 +144,7 @@ function OnTriggerEnter(other : Collider)
 		{
 			Debug.Log("Here");
 			gameObject.Find(gameObject.name+"/Shield").renderer.enabled = false;
+			gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = false;
 		}
 	}
 	else if (other.gameObject.tag == "Explosion" && other.gameObject == m_Owner)
@@ -162,6 +165,37 @@ function OnTriggerEnter(other : Collider)
 	}
 }
 
+function OnTriggerStay(coll : Collider)
+{
+	var player:GameObject = null;
+
+	if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+	{	
+		
+		//handle player specific logic if the player is us
+		if(coll.gameObject.GetComponent(ItemDecorator) == null && coll.gameObject.GetComponent(FlowerDecorator) == null)
+		{
+			
+			var txt : GameObject  = gameObject.Find("GUITexture");	
+			txt.transform.position = Camera.main.WorldToViewportPoint(coll.gameObject.transform.position);
+			txt.transform.position.y += 0.03;
+			if(!txt.GetComponent(GUITexture).enabled)
+			{
+				txt.GetComponent(GUITexture).enabled = true;
+				txt.animation.Play();
+			}
+		}
+		else
+		{
+			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+			{
+				txt  = gameObject.Find("GUITexture");	
+				txt.GetComponent(GUITexture).enabled = false;
+			}
+		}
+	}
+}
+
 @RPC function  SetHP(hp:int)
 {
 
@@ -170,9 +204,14 @@ function OnTriggerEnter(other : Collider)
 	{
 		//technically we should never be negative, but just in case
 		m_HP = 0;
+		AudioSource.PlayClipAtPoint(m_DeathSound, Camera.main.transform.position);
 	
 		//spawn effects
 		var deathEffect : GameObject = gameObject.Instantiate(m_DeathEffect);
+		deathEffect.transform.position = transform.position + Vector3(0,12,0);
+		deathEffect.renderer.material.color = m_Owner.renderer.material.color;
+		
+		deathEffect = gameObject.Instantiate(Resources.Load("GameObjects/ExplosionParticles"));
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
 		deathEffect.renderer.material.color = m_Owner.renderer.material.color;
 		
@@ -186,18 +225,43 @@ function OnTriggerEnter(other : Collider)
 		//destroy any children we have left
 		for(var i:int = 0;  i < transform.childCount; i++)
 		{
-			Destroy(transform.GetChild(i).gameObject);
+			if(transform.GetChild(i).gameObject.GetComponent(WorkerBeeScript) != null)
+				transform.GetChild(i).gameObject.GetComponent(WorkerBeeScript).Kill();
+			else
+				Destroy(transform.GetChild(i).gameObject);
 		}
 		
 		//this object has essentially been reset
 		if(Network.isServer)
 		{
 			ServerRPC.DeleteFromBuffer(gameObject);
+			// for(i = 0; i < 3; i++)
+			// {
+				// var Quat = Quaternion.AngleAxis(360.0/3 * i, Vector3.up);
+				// var vel =  Quat*Vector3(0,0,1) ;//: Vector2 = Random.insideUnitCircle.normalized*50;
+				// var viewID : NetworkViewID= Network.AllocateViewID();
+				// var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate("Coin","", transform.position + Vector3.up *transform.localScale.magnitude, Quaternion.identity, viewID ,  0);
+				// go1.GetComponent(UpdateScript).m_Vel = vel.normalized * Random.Range(20, 50);
+				// //go1.GetComponent(UpdateScript).m_Vel.z = vel.y;
+				// go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);
+				// ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, "Coin",go1.name, transform.position + Vector3.up *transform.localScale.magnitude, Quaternion.identity, viewID, 0);
+				// go1.GetComponent(UpdateScript).MakeNetLive(); 	
+			// }
 		}
 	}
 	else
 	{
 		m_LifebarTimer = 2;
+		AudioSource.PlayClipAtPoint(m_HurtSound, Camera.main.transform.position);
+		if(GetComponent(FlasherDecorator) == null)
+		{
+			gameObject.AddComponent(FlasherDecorator);
+			GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
+			GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+			transform.Find("LightSpot").animation.Stop();
+			transform.Find("LightSpot").animation.Play();
+		}
+		//GetComponent(FlasherDecorato
 	}
 	
 }
@@ -206,10 +270,17 @@ function OnTriggerExit(other : Collider)
 {
 	if(other.gameObject.tag == "Player")
 	{
+		
 		other.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
 		if(gameObject.Find(gameObject.name+"/Shield"))
 		{
 			gameObject.Find(gameObject.name+"/Shield").renderer.enabled = true;
+			gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
+		}
+		if(NetworkUtils.IsControlledGameObject(other.gameObject))
+		{
+			var txt : GameObject  = gameObject.Find("GUITexture");	
+			txt.GetComponent(GUITexture).enabled = false;
 		}
 	}
 }

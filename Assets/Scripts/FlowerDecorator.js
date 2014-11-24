@@ -1,18 +1,20 @@
 #pragma strict
 
-private var m_Lifetime : float = 1.0;
+private var m_Lifetime : float = 3.0;
 private var m_LifeTimer : float = 0;
 private var m_Flower : GameObject = null;
 private var m_BeeAdditionTimer : float = 0.1;
 private var m_FirstInput : boolean = true;
-private var m_SwarmCreated : boolean = false;
+var m_SwarmCreated : boolean = false;
 var m_ShieldEffect : GameObject = null;
+var m_FlowerShieldEffect : GameObject = null;
 private var m_PollenParticles : GameObject = null;
  var m_ProgressEffect : GameObject = null;
 var m_FlashTimer : float = -1;
 function Start () {
 
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
+	
 	var trgt : Transform = transform.Find("PowerShotParticleSystem(Clone)");
 	if(trgt != null)
 		Destroy(trgt.gameObject);
@@ -32,9 +34,16 @@ function Start () {
 		m_ProgressEffect = GameObject.Instantiate(m_Flower.GetComponent(FlowerScript).m_ProgressEffectInstance);
 		m_ProgressEffect.transform.position = m_Flower.transform.position + Vector3.up * 6;
 		m_ProgressEffect.transform.localScale = Vector3(25,0,25);
-		m_ProgressEffect.renderer.material.SetColor("_Emission", renderer.material.color);
+		m_ProgressEffect.renderer.material.SetColor("_Emission", NetworkUtils.GetColor(gameObject));
 	}
-	//m_ProgressEffect.transform.eulerAngles.y = transform.eulerAngles.y;
+
+	var color = NetworkUtils.GetColor(gameObject);
+	m_FlowerShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Flower.transform.position + Vector3.up * 6,Quaternion.identity);
+	m_FlowerShieldEffect.name = "FlowerShield";
+	m_FlowerShieldEffect.transform.localEulerAngles = Vector3(0,180,0);
+	m_FlowerShieldEffect.GetComponent(ParticleSystem).startColor= color;
+	m_FlowerShieldEffect.GetComponent(FlowerShieldScript).m_Owner = gameObject;
+
 	
 }
 
@@ -60,7 +69,6 @@ function OnNetworkInput(IN : InputState)
 	if(!IN.GetAction(IN.USE))
 	{
 		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
-		
 	}
 	
 	
@@ -68,6 +76,9 @@ function OnNetworkInput(IN : InputState)
 
 function Update () {
 
+
+GetComponent(UpdateScript).m_Vel = Vector3.zero;
+	GetComponent(UpdateScript).m_Accel = Vector3.zero;
 	if(Network.isServer && GetComponent(BeeScript).m_WorkerBees == 0)
 	{
 		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
@@ -77,7 +88,14 @@ function Update () {
 	if(!m_Flower)
 		return;
 		
-	GetComponent(BeeControllerScript).m_WorkerGenTimer = 	GetComponent(BeeControllerScript).m_WorkerGenTime;
+	if(m_FlowerShieldEffect != null)
+	{
+		m_FlowerShieldEffect.transform.rotation = transform.rotation;
+		m_FlowerShieldEffect.transform.localEulerAngles.y += 180;
+		m_FlowerShieldEffect.GetComponent(ParticleSystem).startRotation = Mathf.Deg2Rad*(transform.localEulerAngles.y+45);
+	}
+		
+	//GetComponent(BeeControllerScript).m_WorkerGenTimer = 	GetComponent(BeeControllerScript).m_WorkerGenTime;
 	var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
@@ -118,7 +136,7 @@ function Update () {
 				var offset : Vector3 = Vector3(0,12,0);
 				m_SwarmCreated = true;
 				flowerComp.m_PollinationTimer = flowerComp.m_PollinationTime;
-				ServerRPC.Buffer(networkView,"AddSwarm", RPCMode.All, m_Flower.name, offset, 10);
+				//ServerRPC.Buffer(networkView,"AddSwarm", RPCMode.All, m_Flower.name, offset, 10);
 				
 			}
 			
@@ -135,6 +153,49 @@ function Update () {
 				{
 					offset  = Vector3(0,200,0);
 					ServerRPC.Buffer(networkView,"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
+					if(Network.isServer)
+					{
+						//Since the rock is destroying there is no reason to keep its messages in the buffer up to this point
+						//hence we clear them out
+						
+						var InstType : GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Coin"));
+						if(InstType != null)
+						{
+							var count : int =1;
+							
+							//perform a damage roll to see how many coins we should spawn
+							var sum : int = Dice.RollDice(2,6);
+							
+							if(sum >= 4 && sum <= 6)
+							{
+								count = 3;
+							}
+							else if(sum >= 0 && sum <= 3)
+							{
+								count = 3;
+							}
+							else if(sum >= 7 && sum <= 12)
+							{
+								count = 3;
+							}
+							
+							
+							Debug.Log("Coin Count" +count);
+							for(var i : int = 0; i < count; i++)
+							{
+								var Quat = Quaternion.AngleAxis(360.0/count * i, Vector3.up);
+								var vel =  Quat*Vector3(0,0,1) ;//: Vector2 = Random.insideUnitCircle.normalized*50;
+								var viewID : NetworkViewID= Network.AllocateViewID();
+								var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate("Coin","", transform.position + Vector3.up *transform.localScale.magnitude*4, Quaternion.identity, viewID ,  0);
+								go1.GetComponent(UpdateScript).m_Vel = vel.normalized * Random.Range(20, 50);
+								//go1.GetComponent(UpdateScript).m_Vel.z = vel.y;
+								go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);
+								ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, "Coin",go1.name, transform.position + Vector3.up *transform.localScale.magnitude*4, Quaternion.identity, viewID, 0);
+								go1.GetComponent(UpdateScript).MakeNetLive(); 	
+							}
+						}
+						
+					}
 				}
 	
 			}
@@ -198,7 +259,10 @@ function OnGUI()
 		var beeSize:float = 24+Mathf.Sin(Time.time*16)*2;
 		for(var i:int = 0; i < m_Flower.GetComponent(FlowerScript).m_NumBees; i++)
 		{
+			GUI.color = NetworkUtils.GetColor(gameObject);
 			GUI.DrawTexture(Rect(pos.x - 50 + i*32,Screen.height-pos.y +100, beeSize, beeSize), GetComponent(BeeScript).BeeTexture);
+			GUI.color = Color.white;
+			GUI.DrawTexture(Rect(pos.x - 50 + i*32,Screen.height-pos.y +100, beeSize, beeSize), GetComponent(BeeScript).BeeWingsTexture);
 		}
 		//GUIUtility.RotateAroundPivot (Mathf.Min(m_LifeTimer/m_Lifetime,1)*359,  Vector2(pos.x, Screen.height-pos.y)); 
 		
@@ -219,7 +283,9 @@ function OnGUI()
 function OnDestroy()
 {
 	m_Flower.audio.Stop();
-	if(m_Flower.transform.Find("Swarm"+m_Flower.name) == null)
+	Destroy(m_FlowerShieldEffect);
+	m_Flower.GetComponent(FlowerScript).m_Occupied = false;
+	if(!m_SwarmCreated)
 	{
 		
 		gameObject.Destroy(m_ShieldEffect);
@@ -236,13 +302,34 @@ function OnDestroy()
 	}
 	else
 	{
+		m_Flower.GetComponent(FlowerScript).m_Owner = gameObject;
 		if(gameObject.Find(m_Flower.name+"/Shield") == null)
 		{
+			var color = NetworkUtils.GetColor(gameObject);
 			m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/Shield"));
 			m_ShieldEffect.name = "Shield";
 			m_ShieldEffect.transform.position = m_Flower.transform.position;
 			m_ShieldEffect.transform.parent = m_Flower.transform;
-			m_ShieldEffect.GetComponent(ParticleSystem).renderer.material.SetColor("_EmisColor", renderer.material.color);
+			m_ShieldEffect.GetComponent(ParticleSystem).renderer.material.SetColor("_TintColor", color);
+			
+			// m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"));
+			// m_ShieldEffect.name = "Shield";
+			// m_ShieldEffect.transform.position = m_Flower.transform.position;
+			// m_ShieldEffect.transform.parent = m_Flower.transform;
+			
+			var m_TeleportEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/LightSpot"));
+			m_TeleportEffect.name = "LightSpot";
+			m_TeleportEffect.transform.position = m_Flower.transform.position + Vector3.up*0.1;
+			m_TeleportEffect.transform.parent = m_Flower.transform;
+			m_TeleportEffect.transform.localScale = Vector3(1.3,1.3,0.0001);
+			m_TeleportEffect.renderer.material.SetColor("_TintColor", color);
+			
+		}
+		
+		if(gameObject.Find(m_Flower.name+"/Shield") == null)
+		{
+			
+			//m_ShieldEffect.GetComponent(ParticleSystem).renderer.material.SetColor("_EmisColor", renderer.material.color);
 		}
 		// m_ShieldEffect.GetComponent(ParticleSystem).startColor = gameObject.renderer.material.color;
 		// // m_PollenParticles = gameObject.Instantiate(Resources.Load("GameObjects/PollenParticles"));

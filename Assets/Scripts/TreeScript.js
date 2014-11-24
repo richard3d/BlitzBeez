@@ -29,11 +29,20 @@ function OnTriggerStay(coll : Collider)
 			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 			{	
 				
-				var txt : GameObject  = gameObject.Find("UseText");
-				txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
-				txt.transform.position.y += 0.04;
-				txt.GetComponent(GUIText).enabled = true;
-				txt.GetComponent(GUIText).text = "Use";
+				// var txt : GameObject  = gameObject.Find("UseText");
+				// txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
+				// txt.transform.position.y += 0.04;
+				// txt.GetComponent(GUIText).enabled = true;
+				// txt.GetComponent(GUIText).text = "Use";
+				var txt : GameObject  = gameObject.Find("GUITexture");	
+				txt.transform.position = Camera.main.WorldToViewportPoint(coll.gameObject.transform.position);
+				txt.transform.position.y += 0.03;
+				if(!txt.GetComponent(GUITexture).enabled)
+				{
+					txt.GetComponent(GUITexture).enabled = true;
+					txt.animation.Play();
+				}
+				
 			}
 			//burn the player if the fire animation is playing
 			if(animation.isPlaying && Network.isServer)
@@ -45,8 +54,8 @@ function OnTriggerStay(coll : Collider)
 		{
 			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 			{
-				txt  = gameObject.Find("UseText");
-				txt.GetComponent(GUIText).enabled = false;
+				txt  = gameObject.Find("GUITexture");	
+				txt.GetComponent(GUITexture).enabled = false;
 			}
 		}
 	}
@@ -59,8 +68,8 @@ function OnTriggerExit(coll : Collider)
 		//code to handle if the player is our controlling player
 		if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 		{
-			var txt : GameObject  = gameObject.Find("UseText");	
-			txt.GetComponent(GUIText).enabled = false;
+			var txt : GameObject  = gameObject.Find("GUITexture");	
+			txt.GetComponent(GUITexture).enabled = false;
 		}
 		coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
 	}
@@ -171,9 +180,8 @@ function OnCollisionExit(coll : Collision)
 		//code to handle if the player is our controlling player
 		if(coll.gameObject == player)
 		{
-			
-			var txt : GameObject  = gameObject.Find("UseText");	
-			txt.GetComponent(GUIText).enabled = false;
+			var txt : GameObject  = gameObject.Find("GUITexture");	
+			txt.GetComponent(GUITexture).enabled = false;
 		}
 		coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
 	}

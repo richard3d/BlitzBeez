@@ -1,103 +1,42 @@
 #pragma strict
 
-public class MenuListener implements GUIEventListener
-{
-	public var m_CurrData :String[];
-	public var  m_nView:NetworkView;
-	function OnItemClick(menu:GUIMenu, itemIndex:int ){
-	
-		if(GUIMenu.m_MenuSelStack.Count > 1)
-		{
-			//get the main category selection (0 index in the stack). This value is the attribute name we pass for MakePurchase
-			var sel:int = GUIMenu.m_MenuSelStack[0].m_SelIndex;
-
-			var subSelIndex : int = 0;
-			if(GUIMenu.m_MenuSelStack.Count > 2)
-				subSelIndex = GUIMenu.m_MenuSelStack[GUIMenu.m_MenuSelStack.Count-2].m_SelIndex;
-			//GUIMenu.m_MenuSelStack.Last().m_Menu[
-			if(m_CurrData != null && m_CurrData.length >= 2)
-				m_nView.RPC("MakePurchase", RPCMode.All, GUIMenu.m_MenuSelStack[0].m_Menu.m_MenuItems[sel].m_Text,itemIndex,subSelIndex,float.Parse(m_CurrData[1]));
-		}
-		
-	}
-	function OnItemMouseEnter(menu:GUIMenu , itemIndex:int){
-	
-		var delimiters:char = ':'[0];
-		m_CurrData = menu.m_MenuItems[itemIndex].m_Data.Split(delimiters);
-	}
-	function OnItemMouseExit(menu:GUIMenu ,  itemIndex:int){
-	}
-}
-
-public class MenuThumbnail
-{
-	var m_Tex2D:Texture2D;
-	var m_Name:String;
-}
-
 var m_GUISkin : GUISkin = null;
 var m_BGTexture : Texture2D = null;
+var m_HexBGTexture : Texture2D = null;
+var m_HexOffset:float = 0; 
+var m_BGOffset:float = 0; 
 var m_bShow : boolean = false;
 private var m_Fade : float = 0;
 
 
-//5811377
- var m_MainSelIndex : int = 0;
- var m_SubSelIndex : int = 0;
- var m_ItemSelIndex : int = -1;
-
-var m_WeaponsMenu : GUIMenu;
-var m_StatsMenu : GUIMenu;
-var m_HiveMenu : GUIMenu;
-var m_MainMenu : GUIMenu;
-
-var m_MenuThumbnails : MenuThumbnail[];
-
-private var m_CurrSelMenu:Array = new Array(); //the main menu or submenu that we have currently selected
-private var m_MenuListener:MenuListener = new MenuListener();
-
-private function FindThumnail(name:String) : Texture2D
+class Selection
 {
-	for (var i = 0; i < m_MenuThumbnails.length;i++)
-	{
-		if(m_MenuThumbnails[i].m_Name.ToLower() == name.ToLower())
-		{
-			return m_MenuThumbnails[i].m_Tex2D;
-		}
-	}
-	return null;
+	var m_StatName:String;
+	var m_DisplayName:String;
+	var m_Description:String;
+	var m_Value : int;
 }
+
+class SelectionArray
+{
+	var m_Selections:Selection[];
+}
+
+var m_LvlUpSelections : SelectionArray[];
+var m_MainSelIndex : int = 0;
+
 
 function Start () {
 	
 	//set appropriate styles
-	 m_StatsMenu.m_Position.y = Screen.height*0.33+50;
-	 m_HiveMenu.m_Position.y = Screen.height*0.66+50;
-	 m_WeaponsMenu.m_Style = m_GUISkin.customStyles[0];
-	 m_StatsMenu.m_Style = m_GUISkin.customStyles[0];
-	 m_HiveMenu.m_Style = m_GUISkin.customStyles[0];
-	 
-	 for(var i = 0; i < m_WeaponsMenu.m_MenuItems.length; i++)
-	 {
-		m_WeaponsMenu.m_MenuItems[i].m_SubMenu.m_Style  = m_GUISkin.customStyles[1];
-	 }
-	 for(i = 0; i < m_StatsMenu.m_MenuItems.length; i++)
-	 {
-		m_StatsMenu.m_MenuItems[i].m_SubMenu.m_Style  = m_GUISkin.customStyles[1];
-	 }
-	 for( i = 0; i < m_HiveMenu.m_MenuItems.length; i++)
-	 {
-		m_HiveMenu.m_MenuItems[i].m_SubMenu.m_Style  = m_GUISkin.customStyles[1];
-	 }
+	
 	 
 	 //register event listeners
-	 m_MenuListener.m_nView = networkView;
-	 m_WeaponsMenu.RegisterEventListener(m_MenuListener);
-	 m_StatsMenu.RegisterEventListener(m_MenuListener);
-	 m_HiveMenu.RegisterEventListener(m_MenuListener);
+	
 }
 
 function Update () {
+	
 	
 	 if(!m_bShow)
 		 return;
@@ -108,15 +47,10 @@ function Update () {
 	}
 	
 	//if the user clicks off the menu( there is no valid sel index );
-	if (Input.GetMouseButtonDown(0) && GUIMenu.m_FocusedItem.m_SelIndex == -1)
+	if (Input.GetMouseButtonDown(0))
 	{
 		//hide the menu
-		for(var i = 0 ; i < m_WeaponsMenu.m_MenuItems.Length; i++)
-			m_WeaponsMenu.m_MenuItems[i].m_SubMenu.Show(false);
-		for(i = 0 ; i < m_HiveMenu.m_MenuItems.Length; i++)
-			m_HiveMenu.m_MenuItems[i].m_SubMenu.Show(false);
-		for(i = 0 ; i < m_StatsMenu.m_MenuItems.Length; i++)
-			m_StatsMenu.m_MenuItems[i].m_SubMenu.Show(false);
+		
 	}
 }
 
@@ -127,6 +61,7 @@ function OnNetworkInput(IN : InputState)
 	{
 		return;
 	}
+	
 	if(IN.GetActionBuffered(IN.USE))
 	{
 		
@@ -137,6 +72,49 @@ function OnNetworkInput(IN : InputState)
 			// networkView.RPC("ExitHive", RPCMode.Server);
 			// networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
 	}
+	
+	if(!m_bShow)
+		return;
+	if(IN.GetActionBuffered(IN.SHOOT))
+	{
+		var m_CurrLevel = GetComponent(BeeScript).m_CurrLevel-1;
+		//GetComponent(BeeControllerScript).m_Stats[m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_StatName] = m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_Value;
+		
+		networkView.RPC("Upgrade", RPCMode.All, m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_StatName,m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_Value);
+		
+		if(Network.isServer && m_Fade >= 1)
+			networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
+	}
+	
+	if(IN.GetAction(IN.MOVE_UP) && IN.GetAction(IN.MOVE_LEFT))
+	{
+		networkView.RPC("SetSelectionIndex",RPCMode.All, 5);
+	}
+	else if(IN.GetAction(IN.MOVE_UP)&& IN.GetAction(IN.MOVE_RIGHT))
+	{
+		networkView.RPC("SetSelectionIndex",RPCMode.All, 1);
+	}
+	else if(IN.GetAction(IN.MOVE_UP))
+	{
+		networkView.RPC("SetSelectionIndex",RPCMode.All, 0);
+	}
+	else if(IN.GetAction(IN.MOVE_BACK) && IN.GetAction(IN.MOVE_LEFT))
+	{
+		networkView.RPC("SetSelectionIndex",RPCMode.All, 4);
+	}
+	else if(IN.GetAction(IN.MOVE_BACK) && IN.GetAction(IN.MOVE_RIGHT))
+	{
+		networkView.RPC("SetSelectionIndex",RPCMode.All, 2);
+	}
+	else if(IN.GetAction(IN.MOVE_BACK))
+	{
+		networkView.RPC("SetSelectionIndex",RPCMode.All, 3);
+	}
+}
+
+@RPC function SetSelectionIndex(index:int)
+{
+	m_MainSelIndex = index;
 }
 
 //this is only executed on the server
@@ -145,29 +123,15 @@ function OnNetworkInput(IN : InputState)
 	//networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
 }
 
-@RPC function MakePurchase(attr:String, itemIndex:int,subSelIndex:int, cost:float)
+@RPC function Upgrade(attr:String, val:int)
 {
 	//if there is a valid sub selection index add 1 to it, to bias it for multiplication with the item index
+	GetComponent(BeeControllerScript).m_Stats[attr] = val;
 	
-	Debug.Log("menu "	+attr+ " Sel " +(itemIndex+subSelIndex*3));
-	var bee: BeeControllerScript = GetComponent(BeeControllerScript);
-	if(GetComponent(BeeScript).m_Money >= cost)
-	{
-		GetComponent(BeeScript).m_Money -= cost;
-		bee.m_Stats[attr] = (itemIndex+subSelIndex*3);
-		
-		if(attr == "Loadout")
-		{
-			GetComponent(BeeControllerScript).m_Stats["Fire Rate"] = -1;
-			GetComponent(BeeControllerScript).m_Stats["Clip Size"] = -1;
-			GetComponent(BeeControllerScript).m_Stats["Reload Speed"] = -1;
-		}
-		else if(attr == "Clip Size")
-		{
-			GetComponent(BeeControllerScript).Reload();
-			GetComponent(BeeControllerScript).QuickReload();
-		}
-	}
+	if(attr == "Max Workers")
+		GetComponent(BeeControllerScript).m_WorkerGenTimer = GetComponent(BeeControllerScript).m_WorkerGenTime;
+	
+	GetComponent(BeeScript).m_NumUpgradesAvailable--;
 }
 
 function Show(bShow : boolean)
@@ -179,6 +143,12 @@ function Show(bShow : boolean)
 		Screen.showCursor = true;
 		Debug.Log("Showing");
 		m_MainSelIndex = 0;
+		animation["BeeGUIOpen"].time = 0;
+		animation["BeeGUIOpen"].speed = 1;
+		animation.Play("BeeGUIOpen");
+		
+		Camera.main.animation["CameraDramaticZoom"].speed = 1;
+		Camera.main.animation.Play("CameraDramaticZoom");
 		//m_CurrSelMenu.Push(m_MainMenu);
 		//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
 	}
@@ -190,15 +160,16 @@ function Show(bShow : boolean)
 		Camera.main.orthographicSize = 100;
 		
 		Debug.Log("Hiding");
+		
 		//hide the menu
-		GUIMenu.m_FocusedItem.m_SelIndex = -1;
-		GUIMenu.m_FocusedItem.m_Menu = null;
-		for(var i = 0 ; i < m_WeaponsMenu.m_MenuItems.Length; i++)
-			m_WeaponsMenu.m_MenuItems[i].m_SubMenu.Show(false);
-		for(i = 0 ; i < m_HiveMenu.m_MenuItems.Length; i++)
-			m_HiveMenu.m_MenuItems[i].m_SubMenu.Show(false);
-		for(i = 0 ; i < m_StatsMenu.m_MenuItems.Length; i++)
-			m_StatsMenu.m_MenuItems[i].m_SubMenu.Show(false);
+		animation["BeeGUIOpen"].speed = -1;
+		animation["BeeGUIOpen"].time = animation["BeeGUIOpen"].length;
+		animation.Play("BeeGUIOpen");
+		
+		Camera.main.animation["CameraDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
+		Camera.main.animation["CameraDramaticZoom"].speed = -1;
+		Camera.main.animation.Play("CameraDramaticZoom");
+		
 	}
 }
 
@@ -211,103 +182,42 @@ function OnGUI()
 			m_Fade += Time.deltaTime * 2;
 			Camera.main.orthographicSize -= Time.deltaTime * 90;
 		}
-		var myDisplay : boolean  = false;
-		if(NetworkUtils.IsControlledGameObject(gameObject)) {
-				myDisplay = true;
+		
+		
+		if(NetworkUtils.IsControlledGameObject(gameObject)) 
+		{
+			//draw background
+			GUI.color = Color(1,1,1,0.5);
+			GUI.DrawTexture(Rect(0,0, Screen.width*m_BGOffset,Screen.height), m_BGTexture);
+			GUI.color = Color.white;
+			//display directions
+			GUI.Label(Rect(0,0, Screen.width,32), "Hold Direction and Press Fire to Make a Selection", m_GUISkin.label);
+			
+			var m_CurrLevel = GetComponent(BeeScript).m_CurrLevel-1;
+			//display info for the current selection
+			if(m_MainSelIndex != -1)
+			{	
+				GUI.Label(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_DisplayName, m_GUISkin.label);
+				GUI.Label(Rect(0,Screen.height-32, Screen.width,32), m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_Description, m_GUISkin.label);
+			}
+			
+			for(var i:int = 0; i < 6; i++)
+			{
+				var offset:Vector3 = Quaternion.AngleAxis(-i*60, Vector3.forward) * Vector3.up;
+				offset *= m_HexOffset;
+				
+				var width:float = 190;
+				if(m_MainSelIndex == i)
+					width  += Mathf.Sin(Time.time*8)*10;
+				
+				GUI.DrawTexture(Rect(Screen.width*0.5+offset.x-width*0.5,Screen.height*0.5-offset.y-width*0.5, width,width), m_HexBGTexture);
+			}
+			
+			width = 256;
+
+			
 		}
 		
-		if(myDisplay  == true)
-		{
-			//first fade in the background
-			
-			//GUI.color = Color.black;
-			GUI.color.a = m_Fade;
-			GUI.DrawTexture(Rect(0,0, Screen.width, Screen.height), m_BGTexture);
-			
-			
-			
-			var btnWidth : float = 200;
-			var btnHeight : float = 25;
-			
-			
-			if(m_Fade >= 1)
-			{
-				GUI.color = Color.white;
-				//draw info text
-				if(m_CurrSelMenu.length > 0)
-				{
-					var menu:GUIMenu = m_CurrSelMenu[m_CurrSelMenu.length-1];
-					if(m_MainSelIndex != -1)
-					{
-					//	var desc = menu.m_MenuItems[m_MainSelIndex].m_Description;
-					//	GUI.Label(Rect(Screen.width * 0.05, Screen.height * 0.04, 600, 54), desc, m_InfoStyle);
-					}
-				}
-				
-				var bgHeight = Screen.height*0.33-8;
-				//else				
-				//	GUI.Label(Rect(Screen.width * 0.05, Screen.height * 0.04, 600, 54), "Select a menu option below", m_InfoStyle);
-				//GUI.color.a = 0.5;
-				//draw the menu titles & draw the menu items
-				//yellow base background
-				GUI.color.a = 0.75;
-				GUI.Label(Rect(815, 0, Screen.width-815, Screen.height),"", m_GUISkin.customStyles[2]);
-				GUI.color.a = 1;
-				//white dialog background
-				GUI.Label(Rect(815, 264, Screen.width-815, 32),"", m_GUISkin.customStyles[5]);
-				//white pricing background
-				GUI.Label(Rect(815, 4, Screen.width-815, 256),"", m_GUISkin.customStyles[5]);
-				if(m_MenuListener.m_CurrData != null)
-				{
-					if(m_MenuListener.m_CurrData.length >= 1 )
-					{
-						GUI.Label(Rect(815, 4, Screen.width-815, 256),m_MenuListener.m_CurrData[0], m_GUISkin.label);
-					}
-					if(m_MenuListener.m_CurrData.length >= 2)
-					{
-						if(GetComponent(BeeControllerScript).m_Stats[m_MenuListener.m_CurrData[0]] != -1)
-						{
-							//GUI.Label(Rect(815, 264, Screen.width-815, 32),"Already Purchased", m_GUISkin.label);
-						}
-						GUI.Label(Rect(815, 264, Screen.width-815, 32),"Money: $"+GetComponent(BeeScript).m_Money+"                  Cost: $"+m_MenuListener.m_CurrData[1], m_GUISkin.label);
-					}
-					if(m_MenuListener.m_CurrData.length == 3)
-					{
-						GUI.Label(Rect(815, 300, Screen.width-815, 128),FindThumnail(m_MenuListener.m_CurrData[2]),m_GUISkin.label);
-					}
-				}
-				
-				GUI.Label(Rect(815, 300, Screen.width-815, 304),"", m_GUISkin.customStyles[5]);
-				var count = 0;
-				for(var prop in GetComponent(BeeControllerScript).m_Stats)
-				{
-						var val:int = prop.Value;
-						GUI.Label(Rect(815, 304+32*count, Screen.width-815, 32),prop.Key+": +" +(val+1),m_GUISkin.label);
-						count++;
-				}
-				
-				//draw the menu titles & draw the menu items
-				GUI.color.a = 0.75;
-				GUI.Label(Rect(0, 0, 800, bgHeight),"", m_GUISkin.customStyles[2]);
-				GUI.color.a = 1;
-				GUI.Label(Rect(0, 50, 800, 30),"", m_GUISkin.customStyles[4]);
-				GUI.Label(Rect(0, 0, 800, 300),"Weapons", m_GUISkin.customStyles[3]);
-				m_WeaponsMenu.DrawMenu();
-				
-				GUI.color.a = 0.75;
-				GUI.Label(Rect(0, Screen.height*0.33+8, 800, bgHeight),"", m_GUISkin.customStyles[2]);
-				GUI.color.a = 1;
-				GUI.Label(Rect(0, Screen.height*0.33+50, 800, 30),"", m_GUISkin.customStyles[4]);
-				GUI.Label(Rect(0, Screen.height*0.33, 800, 300),"Stats", m_GUISkin.customStyles[3]);
-				m_StatsMenu.DrawMenu();	
-				
-				GUI.color.a = 0.75;
-				GUI.Label(Rect(0, Screen.height*0.66+16, 800, bgHeight),"", m_GUISkin.customStyles[2]);
-				GUI.color.a = 1;
-				GUI.Label(Rect(0, Screen.height*0.66+50, 800, 30),"", m_GUISkin.customStyles[4]);
-				GUI.Label(Rect(0, Screen.height*0.66, 800, Screen.height*0.3),"Hive", m_GUISkin.customStyles[3]);
-				m_HiveMenu.DrawMenu();					
-			}
-		}
+		
 	}
 }

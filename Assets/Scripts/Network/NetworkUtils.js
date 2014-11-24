@@ -21,7 +21,22 @@ public class NetworkUtils
 			
 	}
 	
-	public static function GetClientObject(index:int) : GameObject 
+	public static function GetColor(go:GameObject):Color
+	{
+		var clientID:int = GetClientFromGameObject(go);
+		if(Network.isServer)
+		{
+			return GameObject.Find("GameServer").GetComponent(ServerScript).GetClient(clientID).m_Color;
+		}
+		else if(Network.isClient )
+		{
+			return GameObject.Find("GameClient").GetComponent(ClientScript).GetClient(clientID).m_Color;
+		}
+		
+		return Color.white;
+	}
+	
+	public static function GetGameObjectFromClient(index:int) : GameObject 
 	{
 		if(Network.isServer )
 			return	GameObject.Find("GameServer").GetComponent(ServerScript).GetClient(index).m_GameObject;
@@ -33,7 +48,7 @@ public class NetworkUtils
 	{
 		for(var i:int = 0; i < GetNumClients(); i++)
 		{
-			if(go == GetClientObject(i))
+			if(go == GetGameObjectFromClient(i))
 				return i;
 		}
 		return -1;

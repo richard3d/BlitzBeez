@@ -5,7 +5,7 @@ var m_Owner:GameObject;
 var m_DestPoint:Vector3;
 private var m_SpawnFlightTime:float = 0.2; //time to fly to flower from spawn location
 private var m_SpawnFlightTimer:float = 0; //time to fly to flower from spawn location
-
+private var m_Dead:boolean = false;
 function Start () {
 	
 	gameObject.name = "WorkerBee"+ ++m_InstanceID;
@@ -15,7 +15,7 @@ function Start () {
 
 function PickPoint()
 {
-	while(true)
+	while(true && !m_Dead)
 	{
 		if(transform.parent != null)
 		{
@@ -41,8 +41,24 @@ function Update () {
 		{
 			GetComponent(TrailRenderer).time = 0.5;
 			transform.position += (m_DestPoint-transform.position) * Time.deltaTime * 5;
-			transform.LookAt(transform.parent.position + Vector3.up*12);
+			if(m_Dead)
+			{
+				transform.LookAt(m_DestPoint);
+				if((transform.position - m_DestPoint).magnitude < 2)
+					Destroy(gameObject);
+			}
+			else
+			{
+				transform.LookAt(transform.parent.position + Vector3.up*12);
+			}
 		}
 	}
+}
 
+function Kill()
+{
+	m_Dead = true;
+	var dir:Vector3 = Random.onUnitSphere;
+	dir.y = 1;
+	m_DestPoint = transform.parent.position + Vector3.up*12+ dir*48;
 }

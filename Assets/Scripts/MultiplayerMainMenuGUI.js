@@ -5,6 +5,7 @@ var ServerInstance : GameObject;
 var ClientInstance : GameObject;
 var m_Skin:GUISkin = null;
 var m_ColorPicker:Texture2D = null;
+var m_MenuSound:AudioClip = null;
 private var m_ShowOptions:boolean = false;
 private var m_ShowMainMenu:boolean = true;
 public var m_MenuPos :Vector2;
@@ -46,6 +47,7 @@ function OnGUI()
 		
 		if (GUILayout.Button ("Create Game", Style)) 
 		{
+			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			GetComponent(Animation).Play("CameraIntro");
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_WorldPos = Vector3(0,20,0);
@@ -56,6 +58,7 @@ function OnGUI()
 		}
 		if(GUILayout.Button ("Join Game", Style))
 		{
+			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			GetComponent(Animation).Play("CameraClientIntro");
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_WorldPos = Vector3(0,20,0);
@@ -66,10 +69,12 @@ function OnGUI()
 		}
 		if(GUILayout.Button ("Options", Style))
 		{
+			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			ShowOptions();
 		}
 		if(GUILayout.Button ("Exit Game", Style))
 		{
+			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			Application.Quit();
 		}
 		GUILayout.EndArea();

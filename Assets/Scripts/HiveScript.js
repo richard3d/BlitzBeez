@@ -71,8 +71,8 @@ function OnTriggerStay(other : Collider)
 				var txt : GameObject  = gameObject.Find("UseText");
 				txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
 				txt.transform.position.y += 0.04;
-				txt.GetComponent(GUIText).enabled = true;
-				txt.GetComponent(GUIText).text = "Enter Hive";
+				//txt.GetComponent(GUIText).enabled = true;
+				//txt.GetComponent(GUIText).text = "Enter Hive";
 			}
 		}
 		//call cash in on the bee

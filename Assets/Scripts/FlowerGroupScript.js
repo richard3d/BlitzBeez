@@ -8,11 +8,12 @@ function Start () {
 function CheckForLevelup (flower:GameObject) : int {
 	
 
+	var owner:GameObject = flower.GetComponent(FlowerScript).m_Owner;
 	if(flower.GetComponent(FlowerScript).m_NumBees == 1)
 	{
 		for(var child:Transform in transform)
 		{
-			if(child.GetComponent(FlowerScript).m_NumBees < 1)
+			if(child.GetComponent(FlowerScript).m_NumBees < 1 || child.GetComponent(FlowerScript).m_Owner != owner)
 				return 0;
 		}
 		return 1;
@@ -22,7 +23,7 @@ function CheckForLevelup (flower:GameObject) : int {
 	{
 		for(var child:Transform  in transform)
 		{
-			if(child.GetComponent(FlowerScript).m_NumBees < 2)
+			if(child.GetComponent(FlowerScript).m_NumBees < 2 || child.GetComponent(FlowerScript).m_Owner != owner)
 				return 0;
 		}
 		return 2;
@@ -32,7 +33,7 @@ function CheckForLevelup (flower:GameObject) : int {
 	{
 		for(var child:Transform  in transform)
 		{
-			if(child.GetComponent(FlowerScript).m_NumBees < 3)
+			if(child.GetComponent(FlowerScript).m_NumBees < 3 || child.GetComponent(FlowerScript).m_Owner != owner)
 				return 0;
 		}
 		return 3;
@@ -68,6 +69,28 @@ function Flash()
 		impactEffect.transform.localScale.x = impactEffect.transform.localScale.z = child.transform.localScale.x;
 		impactEffect.transform.localScale.y = 50;
 	}
+}
+
+function CalcScoreForBee(bee:GameObject)
+{
+	var score:int = 0;
+	for(var child:Transform in transform)
+	{
+		if(child.GetComponent(FlowerScript).m_Owner != null)
+		{	
+			if(bee == child.GetComponent(FlowerScript).m_Owner)
+			{
+				score++;
+			}
+			
+		}
+	}
+	//flowers are owned by the bee
+	if(score == transform.childCount)
+	{
+		score = ( (GetCurrentLevel()+1) * score);
+	}
+	return score;
 }
 
 function CalcScore()

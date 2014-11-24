@@ -1,5 +1,6 @@
 #pragma strict
 
+var m_DestroySound:AudioClip = null;
 var m_RespawnTime : float = 10;
 var m_PoofParticles : GameObject = null;
 var m_Bounce : boolean = true;
@@ -127,6 +128,7 @@ function OpenEffect()
 	m_RespawnTimer = m_RespawnTime;
 	m_Bounce = false;
 	animation.Play("ItemBoxOpen");
+	AudioSource.PlayClipAtPoint(m_DestroySound, Camera.main.transform.position);
 	//renderer.material.shader = Shader.Find("Particles/Additive");
 }
 

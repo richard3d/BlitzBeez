@@ -17,8 +17,8 @@ var m_Lifetime : float = -1;
 //can let the network know once by comparing the prev parent
 private var m_PrevParent : Transform = null;
 private var m_UpdateCount:int = 0;
-private var m_MsgCount:int = 0;
-private var m_Msgs:Array = new Array();
+private var m_UpdateMsgCount:int = 0;
+private var m_UpdateMsgs:UpdatePacket[] = null;
 
 class UpdatePacket
 {
@@ -116,8 +116,18 @@ function Update () {
 		// update.accel = m_Accel;
 		// update.deltaTime = delta;
 		// update.seq = m_UpdateCount;
-		// m_Msgs.Push(update);
-		// Debug.Log("Updating "+m_UpdateCount);
+		
+		// if(m_UpdateMsgs == null)
+		// {
+			// m_UpdateMsgs = new UpdatePacket[1];
+			// m_UpdateMsgs[0] = update;
+		// }
+		// else
+		// {
+			// var arr:Array = new Array(m_UpdateMsgs);
+			// arr.Push(update);
+			// m_UpdateMsgs = arr.ToBuiltin(UpdatePacket);
+		// }
 	// }
 }
 
@@ -161,6 +171,8 @@ function RecalcUpdate (pos:Vector3, ang:Quaternion, vel:Vector3, accel:Vector3, 
 	if(GetComponent(CharacterController) != null && GetComponent(CharacterController).enabled)
 	{
 		GetComponent(CharacterController).Move(vel*delta);
+		//if(NetworkUtils.IsControlledGameObject(gameObject))
+		//	Debug.Log("Where I lerp to: "+transform.position);
 	}
 	else
 		transform.position += vel * delta;
@@ -181,16 +193,19 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 	    stream.Serialize(m_Accel);
         stream.Serialize(m_Vel);
 		stream.Serialize(m_MaxSpeed);
-	//	stream.Serialize(m_MsgCount);
+	//	stream.Serialize(m_UpdateMsgCount);
 		
 		
     } 
 	else 
 	{
 		stream.Serialize(vPos);
-	
+		//if(NetworkUtils.IsControlledGameObject(gameObject))
+			//Debug.Log("Where I think I am: "+transform.position);
 		//Debug.Log(gameObject.name + " Serializing");
-		transform.position = Vector3.Lerp(transform.position,vPos, 0.5f);
+		
+		//	if(NetworkUtils.IsControlledGameObject(gameObject))
+			//	Debug.Log("Where I really am: "+transform.position);
 		if(m_NetUpdateRotation)
 		{
 			stream.Serialize(vAng);
@@ -202,26 +217,34 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 		
 		// if(NetworkUtils.IsControlledGameObject(gameObject))
 		// {
-		// var seq:int = m_MsgCount++;
-		// Debug.Log("Streamin "+m_MsgCount);
+			// var seq:int = m_UpdateMsgCount++;
+			// //Debug.Log("Streamin "+m_UpdateMsgCount);
 		
-		// while(m_Msgs.length > 1)
-		// {
-			// var msg:UpdatePacket = m_Msgs[0] as UpdatePacket;
-			// if(msg.seq <= m_MsgCount)
-				// m_Msgs.Shift();
-			// else
-				// break;
-		// }
+			// var arr:Array = new Array(m_UpdateMsgs);
+			// while(arr.length >= 1)
+			// {
+				// var msg:UpdatePacket = arr[0] as UpdatePacket;
+				// if(msg.seq <= m_UpdateMsgCount)
+				// {
+					// Debug.Log(" Shifting "+msg.seq+" "+m_UpdateMsgCount);
+					// arr.Shift();
+				// }
+				// else
+					// break;
+			// }
+			// m_UpdateMsgs = arr.ToBuiltin(UpdatePacket);
+			
+			// for(var i = 0; i < m_UpdateMsgs.length; i++)
+			// {
+				// //Debug.Log(m_UpdateMsgCount +" "+m_UpdateMsgCount);
+				// msg = m_UpdateMsgs[i] as UpdatePacket;
+				// RecalcUpdate(msg.pos,msg.ang, msg.vel, msg.accel, msg.deltaTime);
+			// }
+			// Debug.Log("Update Length "+m_UpdateMsgs.length);
+			
 		
-		// for(var i = 0; i < m_Msgs.length; i++)
-		// {
-			// //Debug.Log(m_MsgCount +" "+m_MsgCount);
-			// msg = m_Msgs[i] as UpdatePacket;
-			// RecalcUpdate(msg.pos,msg.ang, msg.vel, msg.accel, msg.deltaTime);
 		// }
-		
-		// }
+		transform.position = vPos;
 		
     }    
 }

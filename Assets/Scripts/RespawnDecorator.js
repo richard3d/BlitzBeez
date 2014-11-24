@@ -31,6 +31,7 @@ function Update () {
 			//find respawn position;
 			//start animating
 			renderer.enabled = true;
+			AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_RespawnSound, Camera.main.transform.position);
 		}
 	}
 	

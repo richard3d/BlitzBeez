@@ -17,7 +17,7 @@ function Start()
 {
 	m_CurrState =-1;
 	m_WinningPlayer = -1;
-	m_PointsToWin = 400;
+	m_PointsToWin = 2;
 }
 
 function Update()
@@ -31,7 +31,7 @@ static function CheckForWin()
 	{
 		if(player.GetComponent(BeeScript).m_Honey >= m_PointsToWin)
 		{
-			ServerRPC.Buffer(GameObject.Find("GameServer").networkView, "EndMatch", RPCMode.All,  NetworkUtils.GetClientFromGameObject(player));
+			ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView, "EndMatch", RPCMode.All,  NetworkUtils.GetClientFromGameObject(player));
 			return;
 		}
 	}

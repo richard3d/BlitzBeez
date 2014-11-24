@@ -26,9 +26,15 @@ var m_Money : int = 0;
 var m_PollenCount:int = 0;
 var m_Honey:int = 0;
 var m_HoneyInterpolator:float = 0;
-// var m_CurrXP : int = 0;
-// var m_CurrLevel : int = 0;
-// var m_XPToLevel : int[];
+var m_HurtSound:AudioClip = null;
+var m_CurrXP : int = 0;
+var m_CurrLevel : int = 0;
+var m_NumUpgradesAvailable:int = 0; //does the bee have a level upgrade available?
+var m_XPToLevel : float[];
+ 
+ 
+var m_XPMeterFlashTimer:float = 0;
+var m_LifeMeterFlashTimer:float = 0;
 
 // var m_CurrSwmXP : float = 0;
 // var m_CurrSwmLevel : int = 0;
@@ -39,8 +45,9 @@ var XPText : GameObject = null;
 var BarBGTexture : Texture2D = null;
 var m_LifeTextureContainer : Texture2D = null;
 var m_LifeTexture : Texture2D = null;
-var LifeBarTexture : Texture2D = null;
-var LifeBarBGTexture : Texture2D = null;
+var MeterBarTexture : Texture2D = null;
+var MeterBarBGTexture : Texture2D = null;
+var CoinTexture : Texture2D = null;
 var HiveBarTexture : Texture2D = null;
 var HiveBarBGTexture : Texture2D = null;
 var InventoryBoxTexture : Texture2D = null;
@@ -49,8 +56,11 @@ var AmmoIconTexture : Texture2D = null;
 var PollenMeterTexture : Texture2D = null;
 var CrownTexture : Texture2D = null;
 var BeeTexture : Texture2D = null;
+var BeeWingsTexture : Texture2D = null;
+var ClockBGTexture : Texture2D = null;
+var ClockHandTexture : Texture2D = null;
 var HiveTexture:Texture2D = null;
-var NodeTexture:Texture2D = null;
+var FlowerTexture:Texture2D = null;
 var CaptureRingTexture:Texture2D = null;
 var NodeLineTexture:Texture2D = null;
 
@@ -58,8 +68,13 @@ var m_FocusedGroupNum:int = -1;
 var m_FocusedObject:GameObject = null;
 var m_DraggedFocusObject:GameObject = null;
 var FontStyle : GUIStyle = null;
+var SmallFontStyle : GUIStyle = null;
 
 var m_Inventory : Inventory[];
+
+
+var m_LevelUpSound:AudioClip = null;
+var m_RespawnSound:AudioClip = null;
 
 var m_ViewMap:boolean = false;
 
@@ -72,12 +87,26 @@ function Awake()
 
 function Start () {
 	m_Money = 0;
+	m_CurrXP = 0;
+}
+
+function GetCurrentLevel() : int
+{
+	for(var i = 0; i < m_XPToLevel.length; i++)
+	{
+		if(m_CurrXP < m_XPToLevel[i])
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 function Update () {
 	rigidbody.velocity = Vector3(0,0,0);
 	var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
 	var coll= Terr.m_TerrainInfo.collider;
+	
 	if(!GetComponent(CharacterController).isGrounded)
 	{	
 		//Debug.Log("in air");
@@ -160,7 +189,7 @@ function Update () {
 		m_ViewMap = false;
 		Camera.main.GetComponent(Camera).orthographic = false;
 	
-		GetComponent(BeeControllerScript).m_ControlEnabled = true;
+		//GetComponent(BeeControllerScript).m_ControlEnabled = true;
 		GetComponent(BeeControllerScript).m_LookEnabled = true;
 	}
 	
@@ -349,10 +378,10 @@ function DrawGUI()
 					// || m_FocusedGroupNum == flower.GetComponent(PollenNetworkScript).m_Group))
 					// {
 						
-						// GUI.DrawTexture(Rect(screenPos.x-24,Screen.height - screenPos.y-24, 48, 48), NodeTexture);
+						// GUI.DrawTexture(Rect(screenPos.x-24,Screen.height - screenPos.y-24, 48, 48), FlowerTexture);
 					// }
 					// else
-						// GUI.DrawTexture(Rect(screenPos.x-16,Screen.height - screenPos.y-16, 32, 32), NodeTexture);
+						// GUI.DrawTexture(Rect(screenPos.x-16,Screen.height - screenPos.y-16, 32, 32), FlowerTexture);
 				// }
 			// }
 			// else
@@ -367,11 +396,11 @@ function DrawGUI()
 				
 				if(m_FocusedObject!= null && (m_FocusedGroupNum == flower.GetComponent(PollenNetworkScript).m_Group))
 				{
-					GUI.DrawTexture(Rect(screenPos.x-iconBigSize*0.5,Screen.height - screenPos.y-iconBigSize*0.5, iconBigSize, iconBigSize), NodeTexture);
+					GUI.DrawTexture(Rect(screenPos.x-iconBigSize*0.5,Screen.height - screenPos.y-iconBigSize*0.5, iconBigSize, iconBigSize), FlowerTexture);
 				}
 				else
 				{
-					GUI.DrawTexture(Rect(screenPos.x-iconSize*0.5,Screen.height - screenPos.y-iconSize*0.5, iconSize, iconSize), NodeTexture);
+					GUI.DrawTexture(Rect(screenPos.x-iconSize*0.5,Screen.height - screenPos.y-iconSize*0.5, iconSize, iconSize), FlowerTexture);
 				}
 				
 				if(flower.GetComponent(PollenNetworkScript).m_Owner == gameObject)
@@ -452,57 +481,159 @@ function DrawGUI()
 	}	
 	else
 	{
-		//draw LifeBar
-		// GUI.DrawTexture(Rect(30,Screen.height - 80, 253, 41), BarBGTexture, ScaleMode.ScaleToFit, true);
-		// GUI.DrawTexture(Rect(83,Screen.height - 68, 180, 16), LifeBarTexture, ScaleMode.StretchToFill, true);
-		// GUI.DrawTexture(Rect(30,Screen.height -80, 256, 32), LifeBarBGTexture, ScaleMode.ScaleToFit, true);
-		//fXP = m_CurrXP;
-		var health:int =GetComponent(BeeControllerScript).m_Stats["Health"];
-		 for(var i = 0; i < 3+(health+1); i++)
-		 {
-			 GUI.DrawTexture(Rect(83+i*44, 68, 44, 32), m_LifeTextureContainer, ScaleMode.StretchToFill, true);
-		 }
-		for( i = 0; i < m_HP; i++)
+		//draw XPBar
+		var relPos:Vector2 = Vector2(83, 16);
+		if(m_XPMeterFlashTimer > 0)
 		{
-			GUI.DrawTexture(Rect(83+i*44, 68, 44, 32), m_LifeTexture, ScaleMode.StretchToFill, true);
+			m_XPMeterFlashTimer -= Time.deltaTime;
 		}
+		GUI.DrawTexture(Rect(relPos.x,relPos.y, 128, 32), MeterBarBGTexture, ScaleMode.StretchToFill, true);
+		GUI.color = Color(0.2+m_XPMeterFlashTimer,0.2+m_XPMeterFlashTimer,0.2+m_XPMeterFlashTimer,0.75+m_XPMeterFlashTimer);
+		GUI.DrawTexture(Rect(relPos.x,relPos.y, 128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
+		var fPerc :float = Mathf.Min(m_CurrXP / m_XPToLevel[m_CurrLevel], 1);
+		GUI.color = Color(0.9+m_XPMeterFlashTimer,0.8+m_XPMeterFlashTimer,m_XPMeterFlashTimer);
+		GUI.DrawTexture(Rect(relPos.x,relPos.y, fPerc*128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
+		GUI.color = Color.white;
+		GUI.DrawTexture(Rect(relPos.x-45, relPos.y, 32, 32), CoinTexture, ScaleMode.StretchToFill, true);
+		GUI.color = Color(1-m_XPMeterFlashTimer*3,1-m_XPMeterFlashTimer*3,1-m_XPMeterFlashTimer*3);
+		GUI.Label(Rect(relPos.x+8,relPos.y+3, 128, 34), "Lv "+(m_CurrLevel+1),SmallFontStyle);
+		GUI.color = Color.white;
+		
+		if(m_NumUpgradesAvailable > 0)
+		{
+			GUI.color = Color(1,1,0.5,Mathf.Sin(Time.time * 24) > 0 ? 1:0 );
+			GUI.Label(Rect(relPos.x+132,relPos.y+3, 256, 34), "UPGRADE",SmallFontStyle);
+			GUI.color = Color.white;
+		}
+		
+		//draw HealthBar
+		relPos = Vector2(83, 54);
+		if(m_LifeMeterFlashTimer > 0)
+		{
+			m_LifeMeterFlashTimer -= Time.deltaTime;
+		}
+		GUI.DrawTexture(Rect(83,relPos.y, 128, 32), MeterBarBGTexture, ScaleMode.StretchToFill, true);
+		GUI.color = Color(0.2+m_LifeMeterFlashTimer,0.2+m_LifeMeterFlashTimer,0.2+m_LifeMeterFlashTimer,0.75+m_LifeMeterFlashTimer);
+		GUI.DrawTexture(Rect(83,relPos.y, 128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
+		var health:int =GetComponent(BeeControllerScript).m_Stats["Health"];
+		fPerc = Mathf.Min(m_HP/(3.0 + (health+1)), 1);
+		GUI.color = Color(0.9+m_LifeMeterFlashTimer,m_LifeMeterFlashTimer,m_LifeMeterFlashTimer);
+		GUI.DrawTexture(Rect(83,relPos.y, fPerc*128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
+		GUI.color = Color.white;
+		GUI.DrawTexture(Rect(relPos.x-51, relPos.y, 44, 32), m_LifeTexture, ScaleMode.StretchToFill, true);
+		GUI.Label(Rect(91,relPos.y+3, 128, 34), m_HP.ToString(),SmallFontStyle);
+		// var health:int =GetComponent(BeeControllerScript).m_Stats["Health"];
+		 // for(var i = 0; i < 3+(health+1); i++)
+		 // {
+			 // GUI.DrawTexture(Rect(83+i*44, 68, 44, 32), m_LifeTextureContainer, ScaleMode.StretchToFill, true);
+		 // }
+		// for( i = 0; i < m_HP; i++)
+		// {
+			// GUI.DrawTexture(Rect(83+i*44, 68, 44, 32), m_LifeTexture, ScaleMode.StretchToFill, true);
+		// }
 
 		
-		//draw hive bar
-		GUI.DrawTexture(Rect(90 ,118, 32, 32), BeeTexture, ScaleMode.StretchToFill, true);
-		GUI.Label(Rect(135,118,256,48), m_WorkerBees+"/"+m_MaxWorkerBees,FontStyle);
+		//draw worker bee ratio
+		var color = NetworkUtils.GetColor(gameObject);
+		GUI.color = color;
+		GUI.DrawTexture(Rect(relPos.x - 45 ,92, 32, 32), BeeTexture, ScaleMode.StretchToFill, true);
+		GUI.color = Color.white;
+		GUI.DrawTexture(Rect(relPos.x - 45 ,92, 32, 32), BeeWingsTexture, ScaleMode.StretchToFill, true);
+		var maxWorkers:int =GetComponent(BeeControllerScript).m_Stats["Max Workers"];
+		maxWorkers+=1;
+		GUI.Label(Rect(relPos.x,95,256,48), m_WorkerBees+" / "+(m_MaxWorkerBees+maxWorkers),SmallFontStyle);
+		
+		var workerGenTimer:float  = GetComponent(BeeControllerScript).m_WorkerGenTimer;
+		var workerGenTime:float  = GetComponent(BeeControllerScript).m_WorkerGenTime;
+		var workerTimeRatio:float  = Mathf.Min(workerGenTimer/workerGenTime,1);
+		if(workerTimeRatio <= 1 && m_WorkerBees < m_MaxWorkerBees+maxWorkers)
+		{
+			//only draw the regen timer if there is time on the clock and we are not trying to use a flower
+			var pos:Vector2 = Vector2(relPos.x - 29, 118);
+			var width:float = 32;
+			GUI.DrawTexture(Rect(pos.x- width*0.5,pos.y- width*0.5 , width, width),ClockBGTexture);
+			GUIUtility.RotateAroundPivot (-workerTimeRatio*359,  Vector2(pos.x, pos.y)); 
+			GUI.DrawTexture(Rect(pos.x- width*0.5 ,pos.y - width*0.5, width, width), ClockHandTexture);
+			GUIUtility.RotateAroundPivot (workerTimeRatio*359,  Vector2(pos.x, pos.y)); 
+			
+			if(!HasHive())
+			{
+				GUI.color = Color(1,1,0.5,Mathf.Sin(Time.time * 24) > 0 ? 1:0 );
+				GUI.Label(Rect(relPos.x+70,95,256,256), "HIVE NEEDED",SmallFontStyle);
+				GUI.color = Color.white;
+			}
+		}	
+		
 		
 			
 		//draw the actual honey meter that shows the race for the crown
-		for(i = 0; i < NetworkUtils.GetNumClients(); i++)
+		GUI.BeginGroup(Rect(Screen.width-330,16, 512, 512));
+		GUI.DrawTexture(Rect(210, 32, 48, 48), CrownTexture, ScaleMode.ScaleToFit, true);
+		for(var i:int = 0; i < NetworkUtils.GetNumClients(); i++)
 		{
-			if(NetworkUtils.GetClientObject(i) == null)
+			var player:GameObject = NetworkUtils.GetGameObjectFromClient(i);
+			if(player == null)
 				continue;
-			var honeyPerc :float = NetworkUtils.GetClientObject(i).GetComponent(BeeScript).m_Honey;
+			var honeyPerc :float = NetworkUtils.GetGameObjectFromClient(i).GetComponent(BeeScript).m_Honey;
 			var fD:float = GameStateManager.m_PointsToWin;
 			honeyPerc/= fD;
 			honeyPerc = Mathf.Min(honeyPerc, 1);
 			
 
 			
-			if(NetworkUtils.IsControlledGameObject(NetworkUtils.GetClientObject(i)))
+			if(NetworkUtils.IsControlledGameObject(player))
 			{
 				m_HoneyInterpolator = Mathf.Lerp(m_HoneyInterpolator, honeyPerc, Time.deltaTime);
 				//Debug.Log(NetworkUtils.GetClientObject(i).m_Name);
-				GUI.DrawTexture(Rect(Screen.width - 306, 95, m_HoneyInterpolator*206, 24), HiveBarTexture, ScaleMode.StretchToFill, true);
-				GUI.DrawTexture(Rect(Screen.width - 356,90, 256, 32), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
-				GUI.DrawTexture(Rect(Screen.width - 318+m_HoneyInterpolator*200, 70, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
+				GUI.DrawTexture(Rect(12,46, 200, 32), MeterBarBGTexture, ScaleMode.StretchToFill, true);
+				GUI.color = Color(0.2,0.2,0.2,0.75);
+				GUI.DrawTexture(Rect(12,46, 200, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
+				GUI.color  = Color.white;
+				GUI.DrawTexture(Rect(12, 46, m_HoneyInterpolator*200, 32), HiveBarTexture, ScaleMode.StretchToFill, true);
+				//GUI.DrawTexture(Rect(Screen.width - 356,90, 256, 32), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
+				GUI.color = color;
+				GUI.DrawTexture(Rect(m_HoneyInterpolator*200, 24, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
+				GUI.color = Color.white;
+				GUI.DrawTexture(Rect(m_HoneyInterpolator*200, 24, 24, 24), BeeWingsTexture, ScaleMode.ScaleToFit, true);
+				var place = CalculateRank();
+				var strPlace:String = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
+				GUI.Label(Rect(m_HoneyInterpolator*200, 0, 128, 128), place+strPlace, SmallFontStyle);
 			}
 			else
 			{
-				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(Screen.width - 318+honeyPerc*200, 70, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
+				GUI.color = NetworkUtils.GetColor(player);
+				GUI.color.a = 0.8;
+				GUI.DrawTexture(Rect(honeyPerc*200, 24, 24, 24), BeeTexture, ScaleMode.ScaleToFit, true);
+				GUI.color = Color.white;
+				GUI.color.a = 0.8;
+				GUI.DrawTexture(Rect(honeyPerc*200, 24, 24, 24), BeeWingsTexture, ScaleMode.ScaleToFit, true);
 				GUI.color = Color.white;
 			}
 		}
+		GUI.EndGroup();
 		
-		GUI.DrawTexture(Rect(Screen.width - 95, 78, 48, 48), CrownTexture, ScaleMode.ScaleToFit, true);
-
+		
+		//draw flower counter 
+		GUI.BeginGroup(Rect(Screen.width-324, 102, 512, 512));
+		GUI.Label(Rect(42, 0, 256, 48), GetNumFlowers()+" / 20", SmallFontStyle);
+		place = CalculateFlowerRank();
+		strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
+		GUI.Label(Rect(42, 24, 256, 48), place+strPlace, SmallFontStyle);
+		
+		GUI.color = Color(1,0.9,0.3);
+		GUI.DrawTexture(Rect(0, 0, 32, 32), FlowerTexture, ScaleMode.ScaleToFit, true);
+		GUI.color = Color.white;
+		
+		
+		//draw production rate counter
+		place = GetHoneyRateRank();
+		strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
+		GUI.DrawTexture(Rect(122,0, 32, 32), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
+		GUI.Label(Rect(166, 0, 256, 48), "p: "+GetHoneyRate(), SmallFontStyle);
+		GUI.Label(Rect(166, 24, 256, 48), place+strPlace, SmallFontStyle);
+		GUI.EndGroup();
+		
+		
 		//draw Inventory boxes
 		GUI.DrawTexture(Rect(Screen.width - 100,Screen.height - 90, 86, 86), InventoryBoxTexture, ScaleMode.ScaleToFit, true);
 		GUI.DrawTexture(Rect(Screen.width - 180,Screen.height - 90, 86, 86), InventoryBoxTexture, ScaleMode.ScaleToFit, true);
@@ -623,9 +754,7 @@ function OnCollisionEnter(coll : Collision) {
 				}
 				if(m_HP - 3 <= 0)
 				{
-					ServerRPC.Buffer(networkView,"KillBee", RPCMode.All, true);
-					var pos:Vector3 = FindRespawnLocation();
-					networkView.RPC("Respawn", RPCMode.All,pos);
+					KillAndRespawn(true);
 				}
 				else
 					networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
@@ -643,9 +772,7 @@ function OnCollisionEnter(coll : Collision) {
 					
 					if(m_HP - 1 <= 0)
 					{
-						ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, true);
-						pos = FindRespawnLocation();
-						networkView.RPC("Respawn", RPCMode.All,pos);
+						KillAndRespawn(true);
 					}
 					else
 						networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
@@ -712,14 +839,18 @@ function OnTriggerEnter(other:Collider)
 			transform.position += point.normalized *10;
 			GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 			GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
-			networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+		
+			if(m_HP - 1 == 0)
+			{
+				KillAndRespawn(true);
+			}
+			else
+				networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
 		}
 		
-		else if(other.gameObject.tag == "Explosion" )
+		else if(other.gameObject.tag == "Explosion" && other.gameObject.GetComponent(BombExplosionScript).m_Owner != gameObject)
 		{
-			networkView.RPC("KillBee", RPCMode.All, true);
-			var pos:Vector3 = FindRespawnLocation();
-			networkView.RPC("Respawn", RPCMode.All,pos);
+			KillAndRespawn(true);
 		}
 	}
 }
@@ -743,6 +874,77 @@ function KillAndRespawn(splat:boolean)
 	ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, splat);
 	var pos:Vector3 = FindRespawnLocation();
 	ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);
+}
+
+function HasHive():boolean
+{
+	var hives:GameObject[] = GameObject.FindGameObjectsWithTag("Hives");
+	for( var i : int = 0; i < hives.length; i++)
+	{
+		if(hives[i].GetComponent(HiveScript).m_Owner == gameObject)
+			return true;
+	}
+	return false;
+}
+
+function GetNumFlowers() : int
+{
+	var flowers:GameObject[] = GameObject.FindGameObjectsWithTag("Flowers");
+	var num:int = 0;
+	for( var i : int = 0; i < flowers.length; i++)
+	{
+		if(flowers[i].GetComponent(FlowerScript).m_Owner == gameObject)
+			num++;
+	}
+	return num;
+}
+
+function GetHoneyRate() : int
+{
+	var honeyRate = 0;
+	var flowerGroups : GameObject[] = GameObject.FindGameObjectsWithTag("FlowerGroup"); 
+	for(var group:GameObject in flowerGroups)
+	{
+		honeyRate+=group.GetComponent(FlowerGroupScript).CalcScoreForBee(gameObject);
+	}
+	return honeyRate;
+}
+
+function GetHoneyRateRank() : int
+{
+	var bees:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+	var place:int = bees.length;
+	for( var i : int = 0; i < bees.length; i++)
+	{
+		if(bees[i].GetComponent(BeeScript).GetHoneyRate() < GetHoneyRate())
+			place--;
+	}
+	return place;
+}
+
+function CalculateFlowerRank() : int
+{
+
+	var bees:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+	var place:int = bees.length;
+	for( var i : int = 0; i < bees.length; i++)
+	{
+		if(bees[i].GetComponent(BeeScript).GetNumFlowers() < GetNumFlowers())
+			place--;
+	}
+	return place;
+}
+
+function CalculateRank() : int
+{
+	var bees:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+	var place:int = bees.length;
+	for( var i : int = 0; i < bees.length; i++)
+	{
+		if(bees[i].GetComponent(BeeScript).m_Honey < m_Honey)
+			place--;
+	}
+	return place;
 }
 
 @RPC function KillBee(splat:boolean)
@@ -783,6 +985,13 @@ function KillAndRespawn(splat:boolean)
 		GetComponent(ItemDecorator).ThrowItem();
 	}
 	
+	//kill any left over powershot stuff if the player died while charging one
+	GetComponent(BeeControllerScript).m_ShootButtonTimeHeld = 0;
+	GetComponent(BeeControllerScript).m_ShootButtonHeld = false;
+	var powershotEffect : Transform = transform.Find("PowerShotEffect");
+	if(powershotEffect != null)
+		Destroy(powershotEffect.gameObject);
+	
 	var comps:Component[] = gameObject.GetComponents(Component);
 	for (var comp:Component in comps)
 	{
@@ -806,6 +1015,7 @@ function KillAndRespawn(splat:boolean)
 @RPC function Respawn(pos:Vector3)
 {
 	m_Money = 0;
+	m_CurrXP = 0;
 	Debug.Log("Respawning");
 	// var gb : GameObject = gameObject.Instantiate(m_HitEffect);
 	// gb.transform.position = transform.position;
@@ -851,14 +1061,27 @@ function KillAndRespawn(splat:boolean)
 
 @RPC function SetHP(hp:int)
 {
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+		m_LifeMeterFlashTimer = 0.25;
+	
 	//we are still alive
 	if(hp < m_HP && hp > 0)
 	{
 		//add invincibility decorator
 		gameObject.AddComponent(InvincibilityDecorator);
 		gameObject.GetComponent(InvincibilityDecorator).m_Blink = false;
-		//gameObject.AddComponent(FlasherDecorator);
-		//gameObject.GetComponent(FlasherDecorator).m_Color = Color.red;
+		GetComponent(InvincibilityDecorator).SetLifetime(0.1);
+		if(GetComponent(FlasherDecorator) == null)
+		{
+			gameObject.AddComponent(FlasherDecorator);
+			GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
+			GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+		}
+		
+		if(NetworkUtils.IsControlledGameObject(gameObject))
+		{
+			AudioSource.PlayClipAtPoint(m_HurtSound, Camera.main.transform.position);
+		}
 	}
 	
 	if(hp <= 0)
@@ -902,18 +1125,50 @@ function KillAndRespawn(splat:boolean)
 	var maxBees:int = GetComponent(BeeControllerScript).m_Stats["Max Workers"];
 	maxBees = m_MaxWorkerBees + maxBees+1;
 	if(maxBees > m_WorkerBees)
+	{
 		m_WorkerBees++;
+		if(maxBees > m_WorkerBees)
+			GetComponent(BeeControllerScript).m_WorkerGenTimer = GetComponent(BeeControllerScript).m_WorkerGenTime;
+	}
+	
 }
 
 @RPC function AddWorkerBee(tgt : String,  offset : Vector3)
 {
+
+	var go : GameObject = gameObject.Instantiate(m_WorkerBeeInstance);
+	go.GetComponent(WorkerBeeScript).m_Owner = gameObject;
+	var color = NetworkUtils.GetColor(gameObject);
+	go.renderer.material.color= color;
+	//Debug.Log("adding swarm to "+tgt);
+	if(tgt != "")
+	{
+		var Target : GameObject = gameObject.Find(tgt);
+		go.name = go.name+Target.name;
+		go.transform.position = Target.transform.position + offset;
+		go.transform.parent = Target.transform;
+		
+	}
+	else
+	{
+		go.transform.position = transform.position + offset;
+		go.transform.parent = transform;
+		go.name = go.name+gameObject.name;
+	}
+	
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		Camera.main.GetComponent(CameraScript).Shake(0.25, 0.5);
+	}
+	
 	var flowerDec :FlowerDecorator = GetComponent(FlowerDecorator);
 	if(flowerDec != null)
 	{
 		m_WorkerBees--;
 		flowerDec.m_FlashTimer = 1;
 		flowerDec.Reset();
-		
+		flowerDec.m_SwarmCreated = true;
+		GetComponent(BeeControllerScript).m_WorkerGenTimer = GetComponent(BeeControllerScript).m_WorkerGenTime;
 		
 		
 		var flowerComp:FlowerScript = gameObject.Find(tgt).GetComponent(FlowerScript);
@@ -950,7 +1205,7 @@ function KillAndRespawn(splat:boolean)
 		
 			if(level == 0)
 			{
-	
+				//nothing
 	
 			}
 			else
@@ -959,7 +1214,7 @@ function KillAndRespawn(splat:boolean)
 				if(NetworkUtils.IsControlledGameObject(gameObject))
 				{
 					var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
-					txt.GetComponent(GUIText).text = "Group Bonus!";
+					txt.GetComponent(GUIText).text = "+ "+level+" Group Honey Production";
 				}
 				group.Flash();
 			}
@@ -968,7 +1223,7 @@ function KillAndRespawn(splat:boolean)
 				if(NetworkUtils.IsControlledGameObject(gameObject))
 				{	
 					txt  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
-					txt.GetComponent(GUIText).text = "+ "+level+" Group Production";
+					txt.GetComponent(GUIText).text = "+ "+level+" Group Honey Production";
 				}
 				group.Flash();
 			}
@@ -980,29 +1235,7 @@ function KillAndRespawn(splat:boolean)
 		AudioSource.PlayClipAtPoint(flowerComp.m_BuildComplete, transform.position);
 	}
 	
-	var go : GameObject = gameObject.Instantiate(m_WorkerBeeInstance);
-	go.GetComponent(WorkerBeeScript).m_Owner = gameObject;
-	go.renderer.material.color= renderer.material.color;
-	//Debug.Log("adding swarm to "+tgt);
-	if(tgt != "")
-	{
-		var Target : GameObject = gameObject.Find(tgt);
-		go.name = go.name+Target.name;
-		go.transform.position = Target.transform.position + offset;
-		go.transform.parent = Target.transform;
-		
-	}
-	else
-	{
-		go.transform.position = transform.position + offset;
-		go.transform.parent = transform;
-		go.name = go.name+gameObject.name;
-	}
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
-	{
-		Camera.main.GetComponent(CameraScript).Shake(0.25, 0.5);
-	}
 } 
 
 
@@ -1011,7 +1244,8 @@ function KillAndRespawn(splat:boolean)
 	var go : GameObject = gameObject.Instantiate(m_SwarmInstance);
 	
 	go.GetComponent(BeeParticleScript).m_Owner = gameObject;
-	go.renderer.material.color= renderer.material.color;
+	var color = NetworkUtils.GetColor(gameObject);
+	go.renderer.material.color= color;
 	//Debug.Log("adding swarm to "+tgt);
 	if(tgt != "")
 	{

@@ -5,11 +5,8 @@ var m_BombExplosion : GameObject = null;
 var m_ImpactExplosion : GameObject = null;
 var m_Owner : GameObject = null;
 var m_Lifetime : float = 3;
-
-var m_ExplosionSound : AudioClip = null;
-var m_BounceSound : AudioClip = null;
 var m_ActivateSound : AudioClip = null;
-var m_FuseSound : AudioClip = null;
+
 
 private var m_InitiaPos : Vector3;
 private static var m_InstanceID : int = 0;
@@ -56,7 +53,7 @@ function OnCollisionEnter(coll : Collision)
 		go.AddComponent(LightningDecorator);
 		go.GetComponent(LightningDecorator).SetLifetime(0.25);
 		
-		//AudioSource.PlayClipAtPoint(m_FuseSound, Camera.main.transform.position);
+		AudioSource.PlayClipAtPoint(m_ActivateSound, Camera.main.transform.position);
 	}
 }
 

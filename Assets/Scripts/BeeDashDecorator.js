@@ -82,7 +82,7 @@ function OnDestroy()
 	GetComponent(TrailRenderer).enabled = false;
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
-		Camera.main.fov = 45;
+		//Camera.main.fov = 45;
 	}
 	
 	//GetComponent(UpdateScript).m_Vel = GetComponent(UpdateScript).m_Vel.normalized * m_PrevSpeed;

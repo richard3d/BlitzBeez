@@ -2,9 +2,10 @@
 var m_ItemToGive : GameObject = null;
 var m_PickupEffect : GameObject = null;
 var m_PickupSound : AudioClip = null;
-
+var m_CollisionSound : AudioClip = null;
 var m_Lifetime : float = 10;
 private var m_BlinkTimer : float = 0;
+
 
 function Start () {
 
@@ -25,40 +26,52 @@ function Update () {
 	//Comp.m_Accel.y = -289.8;
 	
 	if(Network.isServer)
-{	
-	var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
-	if(Terr != null)
-	{
-		if(Terr.m_OverTerrain)
+	{	
+		var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
+		if(Terr != null)
 		{
-			
-			if(gameObject.tag == "Coins")
+			if(Terr.m_OverTerrain)
 			{
-				if(transform.position.y  + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
-				{
-					transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
-					Comp.m_Vel.y *= -0.75;
-				}	
-			}
 				
-			else
-			{
-				var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
-				if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+				if(gameObject.tag == "Coins")
 				{
-					transform.position.y = size+Terr.m_TerrainInfo.point.y;
-					Comp.m_Vel.y *= -0.75;
-				}	
+					if(transform.position.y  + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+					{
+						transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
+						Comp.m_Vel.y *= -0.75;
+						if(Mathf.Abs(Comp.m_Vel.y) > 25)
+							networkView.RPC("ItemCollision", RPCMode.All);
+						//Debug.Log(Comp.m_Vel.y+ " "+Comp.m_Accel.magnitude*Time.deltaTime);
+						if(Mathf.Abs(Comp.m_Vel.y) > 10)
+						{
+							//Debug.Log("Setting zero");
+							//Comp.m_Vel = Vector3(0,0,0);
+							//Comp.m_Accel = Vector3(0,0,0);
+						}
+					}	
+				}
+					
+				else
+				{
+					var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
+					if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
+					{
+						transform.position.y = size+Terr.m_TerrainInfo.point.y;
+						Comp.m_Vel.y *= -0.75;
+						if(Mathf.Abs(Comp.m_Vel.y) > 25)
+							networkView.RPC("ItemCollision", RPCMode.All);
+						if(Comp.m_Vel.magnitude < 0.1)
+						{
+							//Debug.Log("Setting zero");
+							Comp.m_Vel = Vector3(0,0,0);
+							Comp.m_Accel = Vector3(0,0,0);
+						}
+					}	
+				}
 			}
-		}
-		
-		if(Comp.m_Vel.magnitude < 0.01)
-		{
-			Comp.m_Vel = Vector3(0,0,0);
-			Comp.m_Accel = Vector3(0,0,0);
-		}
-	}	
-	
+			
+			
+		}	
 	}
 	
 	
@@ -137,7 +150,17 @@ function OnCollisionStay(coll : Collision)
 		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 	}
 }
-
+@RPC function ItemCollision()
+{
+	AudioSource.PlayClipAtPoint(m_CollisionSound, Camera.main.transform.position);
+	if(gameObject.tag == "Coins")
+	{
+		gameObject.AddComponent(FlasherDecorator);
+		GetComponent(FlasherDecorator).m_Color = Color.gray;
+		GetComponent(FlasherDecorator).m_FlashDuration = 0.25;
+		GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+	}
+}
 
 @RPC function AddItemToPlayerInvetory(name : String)
 {

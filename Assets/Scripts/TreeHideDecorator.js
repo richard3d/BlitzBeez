@@ -7,9 +7,16 @@ private var m_OrigPosition : Vector3; //original position of the character befor
 
 function Start () {
 
-m_OrigPosition = transform.position;
+	m_OrigPosition = transform.position;
 
-GetComponent(BeeControllerScript).m_ControlEnabled = false;
+	GetComponent(BeeControllerScript).m_ControlEnabled = false;
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+	
+		//m_Flower.audio.Play();
+		Camera.main.animation["CameraLessDramaticZoom"].speed = 1;
+		Camera.main.animation.Play("CameraLessDramaticZoom");
+	}
 }
 
 function Update () {
@@ -102,6 +109,12 @@ function Hide(tree : GameObject)
 
 function OnDestroy()
 {
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		Camera.main.animation["CameraLessDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
+		Camera.main.animation["CameraLessDramaticZoom"].speed = -1;
+		Camera.main.animation.Play("CameraLessDramaticZoom");
+	}
 	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, Camera.main.transform.position);
 
 	

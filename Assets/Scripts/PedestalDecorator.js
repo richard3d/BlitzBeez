@@ -6,7 +6,7 @@ private var m_FirstInput : boolean = true;
 public var m_HiveCreated : boolean = false;
 private var m_SpeedAddBees : boolean = false;
 private var m_ShieldEffect : GameObject = null;
-
+var m_ProgressEffect : GameObject = null;
 
 
 function Awake()
@@ -18,7 +18,7 @@ function Start () {
 
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
 	GetComponent(BeeControllerScript).m_LookEnabled = false;
-	GetComponent(BeeControllerScript).m_AttackEnabled = false;
+	//GetComponent(BeeControllerScript).m_AttackEnabled = false;
 	
 	var trgt : Transform = transform.Find("PowerShotParticleSystem(Clone)");
 	if(trgt != null)
@@ -26,12 +26,25 @@ function Start () {
 	
 	m_HiveTimer = 3;
 	
+	
+	m_ProgressEffect = GameObject.Instantiate(m_Pedestal.GetComponent(HivePedestalScript).m_ProgressEffectInstance);
+	m_ProgressEffect.transform.position = m_Pedestal.transform.position + Vector3.up * 6;
+	m_ProgressEffect.transform.localScale = Vector3(25,0,25);
+	m_ProgressEffect.renderer.material.SetColor("_Emission", NetworkUtils.GetColor(gameObject));
+	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
 		m_Pedestal.audio.Play();
 		Camera.main.animation["CameraLessDramaticZoom"].speed = 1;
 		Camera.main.animation.Play("CameraLessDramaticZoom");
 	}
+	
+	var color = NetworkUtils.GetColor(gameObject);
+	m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Pedestal.transform.position + Vector3.up * 6,Quaternion.identity);
+	m_ShieldEffect.name = "FlowerShield";
+	m_ShieldEffect.transform.localEulerAngles = Vector3(0,180,0);
+	m_ShieldEffect.GetComponent(ParticleSystem).startColor= color;
+	m_ShieldEffect.GetComponent(FlowerShieldScript).m_Owner = gameObject;
 }
 
 function OnNetworkInput(IN : InputState)
@@ -62,23 +75,25 @@ function OnNetworkInput(IN : InputState)
 
 function OnGUI()
 {
-	var width : float = 100;
-	var perc : float = Mathf.Min(1, 1 - m_HiveTimer/3);
-	perc *= width;
-	var pos : Vector3 = Camera.main.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.z*6);
+	// var width : float = 100;
+	// var perc : float = Mathf.Min(1, 1 - m_HiveTimer/3);
+	// perc *= width;
+	// var pos : Vector3 = Camera.main.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.z*6);
 	
-		if(NetworkUtils.IsControlledGameObject(gameObject))
-		{		
-			if(!m_HiveCreated)
-			{
-				//GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y, width, 10), m_Pedestal.GetComponent(HivePedestalScript).BaseTexture);
-				//GUI.DrawTexture(Rect(pos.x- width* 0.5,Screen.height-pos.y,perc,10), m_Pedestal.GetComponent(HivePedestalScript).LifeTexture);
+		 if(NetworkUtils.IsControlledGameObject(gameObject))
+		 {		
+			 if(!m_HiveCreated)
+			 {
+				var pos : Vector3 = Camera.main.WorldToScreenPoint(m_Pedestal.transform.position + Vector3.up * transform.localScale.z*6);
+				GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +50, 200, 55), m_Pedestal.GetComponent(HivePedestalScript).m_BuildingTexture);
+				// //GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y, width, 10), m_Pedestal.GetComponent(HivePedestalScript).BaseTexture);
+				// //GUI.DrawTexture(Rect(pos.x- width* 0.5,Screen.height-pos.y,perc,10), m_Pedestal.GetComponent(HivePedestalScript).LifeTexture);
 				
-				width  = 32;
-				GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y - width/2, width, width), m_Pedestal.GetComponent(HivePedestalScript).ClockTexture);
-				GUIUtility.RotateAroundPivot (Mathf.Min(1, 1 - m_HiveTimer/3)*359,  Vector2(pos.x, Screen.height-pos.y)); 
-				GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y- width/2, width, width), m_Pedestal.GetComponent(HivePedestalScript).ClockHandTexture);
-			}
+				// width  = 32;
+				// GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y - width/2, width, width), m_Pedestal.GetComponent(HivePedestalScript).ClockTexture);
+				// GUIUtility.RotateAroundPivot (Mathf.Min(1, 1 - m_HiveTimer/3)*359,  Vector2(pos.x, Screen.height-pos.y)); 
+				// GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y- width/2, width, width), m_Pedestal.GetComponent(HivePedestalScript).ClockHandTexture);
+			 }
 		}
 		
 	
@@ -89,6 +104,14 @@ function Update () {
 
 	if(!m_Pedestal)
 		return;
+		
+	if(m_ShieldEffect != null)
+	{
+		m_ShieldEffect.transform.rotation = transform.rotation;
+		m_ShieldEffect.transform.localEulerAngles.y += 180;
+		m_ShieldEffect.GetComponent(ParticleSystem).startRotation = Mathf.Deg2Rad*(transform.localEulerAngles.y+45);
+	}	
+		
 	GetComponent(UpdateScript).m_Vel = Vector3.zero;
 	transform.position +=   (m_Pedestal.transform.position + Vector3(0,12,0) - transform.position) * Time.deltaTime * 20;
 	transform.position. y = m_Pedestal.transform.position.y + 12;
@@ -99,17 +122,19 @@ function Update () {
 	
 	if(m_HiveTimer > 0)
 	{
+		if(m_ProgressEffect != null)
+			m_ProgressEffect.renderer.material.SetFloat("_Cutoff", Mathf.Min(m_HiveTimer/3,1));
 		m_HiveTimer -= Time.deltaTime;
-		if((Network.isServer && gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject) ||
-			Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
-		{
-			var txt : GameObject = gameObject.Find("SwarmCountText");
-			txt.transform.position = Camera.main.WorldToViewportPoint(transform.position+ Vector3.up * transform.localScale.z*5);
-			txt.transform.position.y += 0.04;
-			txt.GetComponent(GUIText).enabled = true;
-			//var count : int = m_Flower.GetComponentInChildren(ParticleEmitter).particleCount;
-			txt.GetComponent(GUIText).text = "Building  Hive";
-		}
+		// if((Network.isServer && gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject) ||
+			// Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
+		// {
+			// var txt : GameObject = gameObject.Find("SwarmCountText");
+			// txt.transform.position = Camera.main.WorldToViewportPoint(transform.position+ Vector3.up * transform.localScale.z*5);
+			// txt.transform.position.y += 0.04;
+			// txt.GetComponent(GUIText).enabled = true;
+			// //var count : int = m_Flower.GetComponentInChildren(ParticleEmitter).particleCount;
+			// txt.GetComponent(GUIText).text = "Building  Hive";
+		// }
 	}
 	else
 	{
@@ -128,8 +153,7 @@ function Update () {
 
 function OnDestroy()
 {
-	Debug.Log("Bye Pedestal Dec");
-	gameObject.Destroy(m_ShieldEffect);
+	Destroy(m_ShieldEffect);
 	m_Pedestal.audio.Stop();
 	GetComponent(BeeControllerScript).m_MoveEnabled = true;
 	GetComponent(BeeControllerScript).m_LookEnabled = true;
@@ -153,20 +177,12 @@ function OnDestroy()
 		Camera.main.animation["CameraLessDramaticZoom"].speed = -1;
 		Camera.main.animation.Play("CameraLessDramaticZoom");
 	}
+	Destroy(m_ProgressEffect);
 }
 
 function SetPedestal(ped : GameObject)
 {
 	m_Pedestal = ped;
-	if(m_Pedestal.transform.Find("Shield") == null)
-	{
-		m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/Shield"));
-		m_ShieldEffect.name = "Shield";
-		m_ShieldEffect.transform.position = m_Pedestal.transform.position;
-		m_ShieldEffect.transform.parent = m_Pedestal.transform;
-		m_ShieldEffect.GetComponent(ParticleSystem).renderer.material.SetColor("_EmisColor", renderer.material.color);
-		m_ShieldEffect.GetComponent(ParticleSystem).startColor = gameObject.renderer.material.color;
-	}
 }
 
 function GetPedestal() : GameObject

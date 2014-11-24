@@ -12,8 +12,8 @@
 
 private var m_MovementKeyPressed : boolean = false;
 private var m_MovementSpeed : float = 240;
-private var m_ShootButtonHeld : boolean = false;
-private var m_ShootButtonTimeHeld : float = 0.0;
+var m_ShootButtonHeld : boolean = false;
+var m_ShootButtonTimeHeld : float = 0.0;
 private var m_DashButtonHeld : boolean = false;
 private var m_DashButtonTimeHeld : float = 0.0;
 private static var m_RTBRequiredHoldTime = 0.5;	//return to base required time
@@ -29,7 +29,7 @@ var m_ThrowSound : AudioClip  = null;
 var m_HideSound : AudioClip = null;
 var m_PowerShotEffectSound : AudioClip = null;
 var m_PowerShotSound : AudioClip = null;
-
+var m_DenialSound : AudioClip = null;
 
 var m_ControlEnabled : boolean = true;
 var m_MoveEnabled : boolean = true;
@@ -54,7 +54,7 @@ var m_DashTimer : float = 0;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1, "Max Workers":-1, "Worker Generation":-1 };
+var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : 99, "Max Workers":-1, "Worker Generation":-1 };
 
 
 
@@ -89,18 +89,27 @@ function Update()
 		{
 			m_ReloadJam = false;
 			GetComponentInChildren(ParticleRenderer).enabled = true;
+			// GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].time = GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].length;
+			// GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].speed = -1;
+			// GetComponentInChildren(ParticleRenderer).animation.Play("BeeSwarmReload");
+			//GetComponentInChildren(ParticleRenderer).animation.Play();
 			var clip:int = m_Stats["Clip Size"];
 			GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 		}
 	}
 	
-	if(m_WorkerGenTimer > 0 && (GetComponent(BeeScript).m_WorkerBees < GetComponent(BeeScript).m_MaxWorkerBees))
+	var maxWorkers:int = m_Stats["Max Workers"];
+	maxWorkers+=1;
+	if(GetComponent(BeeScript).HasHive() &&
+		m_WorkerGenTimer > 0 && 
+		GetComponent(BeeScript).m_WorkerBees < GetComponent(BeeScript).m_MaxWorkerBees+maxWorkers && 
+	    GetComponent(FlowerDecorator) == null)
 	{
 		m_WorkerGenTimer -= Time.deltaTime;
 		if(m_WorkerGenTimer <= 0)
 		{
-			m_WorkerGenTimer = m_WorkerGenTime;
-			networkView.RPC("GenerateWorkerBee", RPCMode.All);
+			if(Network.isServer)
+				networkView.RPC("GenerateWorkerBee", RPCMode.All);
 		}
 	}
 	
@@ -215,7 +224,7 @@ function OnNetworkInput(IN : InputState)
 	//handle shooting actions
 	if(IN.GetAction(IN.SHOOT) && m_AttackEnabled)
 	{
-		if(m_ReloadTimer <= 0 && GetComponent(FlowerDecorator) == null)
+		if(m_ReloadTimer <= 0 && GetComponent(FlowerDecorator) == null && GetComponent(PedestalDecorator) == null)
 		{
 			m_ShootButtonHeld = true;
 			if(GetComponentInChildren(BeeParticleScript) != null &&
@@ -295,13 +304,21 @@ function OnNetworkInput(IN : InputState)
 			if(m_NearestObject.tag == "Flowers")
 			{
 				
-				if(GetComponent(ItemDecorator) == null && GetComponent(BeeScript).m_WorkerBees > 0)
+				if(GetComponent(ItemDecorator) == null && GetComponent(BeeScript).m_WorkerBees > 0 &&
+					m_NearestObject.GetComponent(FlowerScript).m_Occupied == false)
 				{						
 					//if(m_NearestObject.GetComponentInChildren(BeeParticleScript) == null)
 					//{
+					if(m_NearestObject.GetComponent(FlowerScript).m_Owner != null && 
+					   m_NearestObject.GetComponent(FlowerScript).m_Owner != gameObject)
+						return;
+						
 						ServerRPC.Buffer(networkView, "UseFlower", RPCMode.All, m_NearestObject.name);
 					//}
-					
+				}
+				else
+				{
+					networkView.RPC("DenyFlower", RPCMode.All);
 				}
 				
 			}
@@ -318,7 +335,7 @@ function OnNetworkInput(IN : InputState)
 			//handle hives
 			if(m_NearestObject.tag == "Hives")
 			{
-				   if(GetComponent(ItemDecorator) == null && m_NearestObject.GetComponent(HiveScript).m_Owner == gameObject)
+				   if(GetComponent(ItemDecorator) == null && m_NearestObject.GetComponent(HiveScript).m_Owner == gameObject && GetComponent(BeeScript).m_NumUpgradesAvailable > 0)
 				   {
 						networkView.RPC("ShowHiveGUI", RPCMode.All, 1, m_NearestObject.name);
 				   }
@@ -382,6 +399,7 @@ function OnNetworkInput(IN : InputState)
 
 function HandleShotLogic()
 {	
+	var random =Random.Range(-2,2);
 	for(var i : int = 0; i < m_LoadOut.m_Pylons.length; i++)
 	{
 		if(m_LoadOut.m_Pylons[i].PosOffset != Vector3(0,0,0))
@@ -389,6 +407,8 @@ function HandleShotLogic()
 			var bulletPos : Vector3 = transform.right * m_LoadOut.m_Pylons[i].PosOffset.x + transform.up * m_LoadOut.m_Pylons[i].PosOffset.y + transform.forward * m_LoadOut.m_Pylons[i].PosOffset.z + transform.position;
 			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset, Vector3.up);
 			var bulletVel : Vector3 =  rot * transform.forward;// - (transform.right * halfSpread) + (i * 4) * transform.right;
+			var temp:Vector3 = bulletVel;
+			bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
 			bulletVel.Normalize();
 			bulletPos.y = transform.position.y;
 			
@@ -415,7 +435,7 @@ function HandleShotLogic()
 	go.GetComponent(BulletScript).m_Owner = gameObject;
 	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
-		Camera.main.GetComponent(CameraScript).Shake(0.35,0.5);
+		Camera.main.GetComponent(CameraScript).Shake(0.35,1);
 	go.GetComponent(BulletScript).m_PowerShot = false;
 	go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
 	//make it so we dont collide with our own bullets
@@ -432,16 +452,20 @@ function HandleShotLogic()
 	//go.transform.localScale.x = 0.3;
 	//go.transform.localScale.z = 0.3;
 	go.GetComponent(TrailRenderer).startWidth = go.transform.localScale.x;
-	go.GetComponent(TrailRenderer).material.color = renderer.material.color;
-	go.GetComponent(TrailRenderer).material.SetColor("_Emission", renderer.material.color);
+	var color = NetworkUtils.GetColor(gameObject);
+	go.GetComponent(TrailRenderer).material.color = color;
+	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
 	if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
 	{
 		m_ReloadTimer = m_Stats["Reload Speed"];
 		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	}
 	GetComponentInChildren(BeeParticleScript).RemoveParticle();
-    go.renderer.material.color = renderer.material.color;
-	go.renderer.material.SetColor("_Emission", renderer.material.color);
+  //  go.renderer.material.color = color;
+	go.renderer.material.SetColor("_Emission", color);
+	
+	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
+	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
 }
 
 function OnPlayerLookAt(at : Vector3)
@@ -481,9 +505,10 @@ function OnPlayerLookAt(at : Vector3)
 	m_ReloadTimer = m_Stats["Reload Speed"];
 	m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
-	if((Network.isServer && gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject) ||
-		Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
+	//GetComponentInChildren(ParticleRenderer).animation.Play();
+	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
+		
 		AudioSource.PlayClipAtPoint(m_StartReloadSound, transform.position);
 	}
 }
@@ -494,6 +519,7 @@ function OnPlayerLookAt(at : Vector3)
 @RPC function AddPowerShotEffect()
 {
 	var powerShot : GameObject = gameObject.Instantiate(m_PowerShotParticlesInstance);
+	powerShot.name = "PowerShotEffect";
 	powerShot.transform.position = transform.position;
 	powerShot.transform.parent = transform;
 	
@@ -504,6 +530,7 @@ function OnPlayerLookAt(at : Vector3)
 
 @RPC function PowerShot(bulletName : String)
 {
+	var color = NetworkUtils.GetColor(gameObject);
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 		Camera.main.GetComponent(CameraScript).Shake(0.25,3);
 	AudioSource.PlayClipAtPoint(m_PowerShotSound, Camera.main.transform.position);
@@ -511,6 +538,12 @@ function OnPlayerLookAt(at : Vector3)
 	go.GetComponent(BulletScript).m_Owner = gameObject;
 	go.GetComponent(BulletScript).m_PowerShot = true;
 	go.GetComponent(BulletScript).m_PowerShotType = m_Stats["Powershot"];
+	
+	// var m_LightEffect:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/LaserBeam"), transform.position, transform.rotation);
+	// m_LightEffect.transform.localEulerAngles.x = 90;
+	// m_LightEffect.renderer.material.SetColor("_TintColor", color);
+	
+	
 	//make it so we dont collide with our own bullets
 	Physics.IgnoreCollision(go.collider, collider);
 	
@@ -520,12 +553,13 @@ function OnPlayerLookAt(at : Vector3)
 	go.transform.localScale.z = 15;
 	go.transform.position = transform.position+transform.forward*15;
 	
-	go.GetComponent(TrailRenderer).material.SetColor("_Emission", renderer.material.color);
+
+	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
 	go.GetComponent(TrailRenderer).startWidth = 0.6* 10;
 	go.GetComponent(TrailRenderer).time *= 2;
 	go.GetComponent(UpdateScript).m_Vel = transform.forward * go.GetComponent(UpdateScript).m_MaxSpeed;
 	
-	var trgt : Transform = transform.Find("PowerShotParticleSystem(Clone)");
+	var trgt : Transform = transform.Find("PowerShotEffect");
 	if(trgt != null)
 		Destroy(trgt.gameObject);
 	gameObject.AddComponent(ControlDisablerDecorator);
@@ -546,8 +580,8 @@ function OnPlayerLookAt(at : Vector3)
 		
 	}
 	
-	go.renderer.material.SetColor("_TintColor", renderer.material.color);
-	go.GetComponent(TrailRenderer).material.SetColor("_TintColor", renderer.material.color);
+	go.renderer.material.SetColor("_TintColor", color);
+	go.GetComponent(TrailRenderer).material.SetColor("_TintColor", color);
 }
 
 @RPC function ReturnToBase()
@@ -603,10 +637,16 @@ function OnPlayerLookAt(at : Vector3)
 		var flower:GameObject = gameObject.Find(name);
 		if(flower != null)
 		{
-			flower.GetComponent(FlowerScript).m_Owner = gameObject;
+			flower.GetComponent(FlowerScript).m_Occupied = true;
 			GetComponent(FlowerDecorator).SetFlower(flower);
 		}
 	}
+}
+
+@RPC function DenyFlower()
+{
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+		AudioSource.PlayClipAtPoint(m_DenialSound, Camera.main.transform.position);
 }
 
 @RPC function UsePedestal(name : String)
@@ -657,7 +697,7 @@ function OnPlayerLookAt(at : Vector3)
 	
 	var m_TeleportEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/TeleporterParticles"),transform.position, Quaternion.identity);
 	m_TeleportEffect.transform.eulerAngles = Vector3(270,0,0);
-	
+	AudioSource.PlayClipAtPoint(GameObject.Find(teleporter).GetComponent(TeleporterScript).m_TeleportSound, Camera.main.transform.position);
 	//m_TeleportEffect = GameObject.Instantiate(Resources.Load("GameObjects/StrobeParticles"),GameObject.Find(teleporter).transform.position+Vector3.up*GameObject.Find(teleporter).transform.localScale.y*2,Quaternion.identity);
 	//m_TeleportEffect.GetComponent(ParticleSystem).startSpeed = 90;
 	//m_TeleportEffect.transform.position = GameObject.Find(teleporter).transform;
@@ -672,33 +712,38 @@ function OnPlayerLookAt(at : Vector3)
 	var parts : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashParticles"));
 	parts.GetComponent(ParticleSystem).renderer.material.color = Color.white;
 	parts.transform.position = transform.position;
-	if(bShow == 1)
-	{
-		GetComponent(BeehiveGUI).Show(true);
-		renderer.enabled = false;
-		for(var i = 0; i <transform.childCount; i++)
-		{
-			transform.GetChild(i).gameObject.active = false;
-		}
-		
-		GetComponent(SphereCollider).enabled = false;
-		//GetComponent(NetworkInputScript).enabled = false;
-		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
-		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-		transform.position = gameObject.Find(hiveName).transform.position;
-	}
-	else
-	{
-		GetComponent(BeehiveGUI).Show(false);
-		renderer.enabled = true;
-		for(i = 0; i <transform.childCount; i++)
-		{
-			transform.GetChild(i).gameObject.active = true;
-		}
-		GetComponent(SphereCollider).enabled = true;
-		GetComponent(NetworkInputScript).enabled = true;
-	}
 	
+	if(GetComponent(BeeScript).m_CurrLevel > 0)
+	{
+		if(bShow == 1)
+		{
+			GetComponent(BeehiveGUI).Show(true);
+			gameObject.AddComponent(ControlDisablerDecorator);
+			renderer.enabled = false;
+			for(var i = 0; i <transform.childCount; i++)
+			{
+				transform.GetChild(i).gameObject.active = false;
+			}
+			
+			GetComponent(SphereCollider).enabled = false;
+			//GetComponent(NetworkInputScript).enabled = false;
+			GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
+			GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+			transform.position = gameObject.Find(hiveName).transform.position;
+		}
+		else
+		{
+			GetComponent(BeehiveGUI).Show(false);
+			renderer.enabled = true;
+			for(i = 0; i <transform.childCount; i++)
+			{
+				transform.GetChild(i).gameObject.active = true;
+			}
+			GetComponent(SphereCollider).enabled = true;
+			GetComponent(NetworkInputScript).enabled = true;
+			Destroy(gameObject.GetComponent(ControlDisablerDecorator));
+		}
+	}	
 	
 }
 

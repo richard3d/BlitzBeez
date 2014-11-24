@@ -53,32 +53,79 @@ function GetCoin(name : String)
 {
 	var bee:GameObject = gameObject.Find(name);
 	bee.GetComponent(BeeScript).m_Money+= 10;
-	if(bee.GetComponent(BeeDashDecorator) != null)
-	{
-		bee.GetComponent(BeeDashDecorator).Disable();
-		Destroy(bee.GetComponent(BeeDashDecorator));
-		
-		var closestCoin : GameObject = null;
-		var dist = 99999;
-		var coins :GameObject [] = GameObject.FindGameObjectsWithTag("Coins");
-		for(var coin:GameObject in coins)
-		{
-			if((bee.transform.position - coin.transform.position).magnitude < dist && coin != gameObject && !coin.animation.IsPlaying("GetCoin"))
-			{
-				dist = (bee.transform.position - coin.transform.position).magnitude;
-				closestCoin = coin;
-			}
-		}
-		
-		if(closestCoin != null)
-		{
-			bee.GetComponent(UpdateScript).m_Vel = (closestCoin.transform.position - bee.transform.position).normalized * bee.GetComponent(UpdateScript).m_MaxSpeed;
-			bee.AddComponent(BeeDashDecorator);
-		}
 	
+	var currLevel:int = bee.GetComponent(BeeScript).m_CurrLevel;
+	bee.GetComponent(BeeScript).m_CurrXP +=1;
+	
+	if(NetworkUtils.IsControlledGameObject(bee) && bee.GetComponent(BeeScript).m_XPMeterFlashTimer <= 0)
+			bee.GetComponent(BeeScript).m_XPMeterFlashTimer = 0.25;
+	
+	if(bee.GetComponent(BeeScript).m_CurrXP >= bee.GetComponent(BeeScript).m_XPToLevel[currLevel])
+	{
+		//notify of level up
+		bee.GetComponent(BeeScript).m_CurrXP = 0;
+		bee.GetComponent(BeeScript).m_CurrLevel++;
+		bee.GetComponent(BeeScript).m_NumUpgradesAvailable++;
+		bee.AddComponent("LevelUpDecorator");
+		AudioSource.PlayClipAtPoint(bee.GetComponent(BeeScript).m_LevelUpSound, Camera.main.transform.position);
+		
+		if(NetworkUtils.IsControlledGameObject(bee))
+		{
+			var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
+			txt.GetComponent(GUIText).text = "Upgrade Unlocked!";
+			
+			var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
+			kudosText.GetComponent(GUIText).material.color = Color.yellow;
+			kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+			kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
+			kudosText.GetComponent(GUIText).text = "Level Up!";
+			kudosText.animation.Stop();
+			kudosText.animation.Play();
+		}
 	}
 	
+	//we dashed into our first coin
+	if(bee.GetComponent(BeeDashDecorator) != null && bee.GetComponent(CoinDashDecorator) == null)
+	{
+		bee.AddComponent(CoinDashDecorator);
+	}
+	else if(bee.GetComponent(CoinDashDecorator) != null)
+	{
+		bee.GetComponent(CoinDashDecorator).FindCoin(gameObject);
+	}
+	
+	if(bee.GetComponent(FlasherDecorator) == null)
+	{
+		bee.AddComponent(FlasherDecorator);
+		bee.GetComponent(FlasherDecorator).m_Color = Color.white;
+		bee.GetComponent(FlasherDecorator).m_FlashDuration = 0.08;
+		bee.GetComponent(FlasherDecorator).m_NumberOfFlashes = 7;
+	}
+	var effect : GameObject = gameObject.Instantiate(GetComponent(ItemScript).m_PickupEffect);
+	effect.transform.position = bee.transform.position;
 	AudioSource.PlayClipAtPoint(m_PickupSound, Camera.main.transform.position);
+	
+	if(NetworkUtils.IsControlledGameObject(bee) && bee.GetComponent(CoinDashDecorator) == null)
+	{
+		
+		if(gameObject.Find("XPKudos") != null)
+		{
+			kudosText = gameObject.Find("XPKudos");
+		}
+		else
+		{
+			kudosText = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
+		}
+		 kudosText.name = "XPKudos";
+		 kudosText.animation.Stop();
+		 kudosText.animation["KudosText"].time = 0;
+		 kudosText.animation.Play("KudosText");
+		 kudosText.GetComponent(GUIText).material.color = Color.yellow;
+		 kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+		 kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
+		 kudosText.GetComponent(GUIText).text = "+1 XP";
+		 kudosText.GetComponent(GUIText).fontSize = 32;
+	}
 }
 
 function KillCoin()

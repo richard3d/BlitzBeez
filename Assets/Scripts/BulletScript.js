@@ -42,7 +42,7 @@ function Start () {
 		systems = go.GetComponentsInChildren(ParticleSystem);
 		for (var system:ParticleSystem in systems)
 		{
-			system.startSize *= 0.5;
+			system.startSize *= 0.75;
 			size = system.startSize;
 		}
 	}
@@ -86,11 +86,11 @@ function Update () {
 	{
 		
 		var gos : GameObject[];
-		gos = gameObject.FindGameObjectsWithTag("Player");
+		gos = gameObject.FindGameObjectsWithTag("Rocks");
 		for(var go : GameObject in gos)
 		{
-			if(go == m_Owner)
-				continue;
+			//if(go == m_Owner)
+			//	continue;
 			var diff : Vector3 = go.transform.position - transform.position;
 			var strength : float = Vector3.Dot(diff.normalized, up.m_Vel.normalized);
 			 if(strength > 0.5)
@@ -147,15 +147,12 @@ function OnCollisionEnter(other : Collision)
 		
 	if(other.gameObject.tag != "Bullets" && other.gameObject != m_Owner)
 	{
-		
-		
-		
 		//GetComponent(UpdateScript).m_Vel = refVel;
-		if(other.gameObject.tag == "Terrain")
-		{	
+		if(other.gameObject.tag == "Terrain")	
 			return;
-			
-		}
+		
+		if(other.gameObject.name == "FlowerShield" && other.gameObject.GetComponent(FlowerShieldScript).m_Owner == m_Owner)
+			return;
 		
 		Debug.Log("Bullet Standard Collision");
 		
@@ -357,11 +354,11 @@ function OnTriggerEnter(other : Collider)
 		return;
 	if(other.gameObject.tag == "Flowers")
 	{
-		if(other.GetComponentInChildren(BeeParticleScript) != null)
+		if(GameObject.Find(other.name+"/Shield")!= null)
 		{
 			//make sure we arent shooting our own bees
-			if(other.GetComponentInChildren(BeeParticleScript).m_Owner != GetComponent(BulletScript).m_Owner)
-			{
+		//	if(other.GetComponentInChildren(BeeParticleScript).m_Owner != GetComponent(BulletScript).m_Owner)
+		//	{
 				//Handle power shot
 				if(m_PowerShot)
 				{
@@ -378,7 +375,7 @@ function OnTriggerEnter(other : Collider)
 				
 				RemoveBullet(transform.position+transform.forward * transform.localScale.x);
 				
-			}
+		//	}
 		}
 		
 	}
@@ -464,6 +461,15 @@ function DamageHive(hiveName:String, dmgAmt:int)
 {
 	var hive:GameObject = gameObject.Find(hiveName);
 	hive.GetComponent(HiveScript).m_HP -= dmgAmt;
+	
+	
+	if(hive.GetComponent(FlasherDecorator) == null)
+	{
+		hive.AddComponent(FlasherDecorator);
+		hive.GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
+		hive.GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+	}
+	
 	if(hive.GetComponent(HiveScript).m_HP <= 0)
 	{
 		//destroy the hive

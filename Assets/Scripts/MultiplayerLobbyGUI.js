@@ -10,6 +10,7 @@ class LevelPrev
 var Style : GUIStyle;
 var m_GUISkin : GUISkin;
 var m_LevelPreviews : LevelPrev[];
+var m_MenuSound:AudioClip = null;
 private var m_LevelIndex : int = 0;
 
 static var m_HostListTimeout : float = 10;
@@ -99,12 +100,14 @@ function OnGUI()
 					
 					if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
 					{
+						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 						gameObject.Destroy(gameObject.Find("GameServer"));
 						Application.LoadLevel(0);
 					}
 					if(GUILayout.Button("Start Match", m_GUISkin.button))
 					{
 						// //Tell the clients which level to load
+						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					   GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
 					   GetComponent(ServerScript).LoadLevel("Scene2");
 					}

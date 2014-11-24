@@ -111,6 +111,7 @@ function Update () {
 			//start animating
 			renderer.enabled = true;
 			
+			
 		}
 	}
 	
@@ -141,7 +142,9 @@ function Update () {
 		{
 			if(Network.isServer)
 			{
+				AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_RespawnSound, Camera.main.transform.position);
 				ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "TeleportDecorator");
+				
 			}
 		}
 		

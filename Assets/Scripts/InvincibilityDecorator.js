@@ -4,7 +4,12 @@ private var m_BlinkFreq:float = 0.10f;
 private var m_BlinkTimer:float = 0.10f;
 private var m_Lifetime:float =0.5;
 function Start () {
-m_Lifetime = 0.5;
+
+}
+
+function SetLifetime(f:float)
+{
+	m_Lifetime = f;
 }
 
 function Update () {

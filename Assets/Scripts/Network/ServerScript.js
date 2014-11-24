@@ -48,7 +48,7 @@ function OnGUI()
 	{
 		//if(GetNumClients() > 1)
 		var skin :GUISkin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
-		GUILayout.BeginArea(Rect(0,256, Screen.width,512), skin.customStyles[0]);
+		GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
 		GUILayout.Label("Match starting in "+(mgr.m_MatchTick)+"...", skin.label);
 		GUILayout.EndArea();
 	
@@ -57,7 +57,7 @@ function OnGUI()
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
 		skin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
-		GUILayout.BeginArea(Rect(0,256, Screen.width,512), skin.customStyles[0]);
+		GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
 		GUILayout.Label("All Hail "+m_Clients[GameStateManager.m_WinningPlayer].m_Name+".\n The new QUEEN (OR KING) BEE!", skin.label);
 		GUILayout.EndArea();
 	}
@@ -81,6 +81,7 @@ function OnStateChange(state:int)
 			if(m_Clients[i].m_GameObject != null && m_Clients[i].m_LevelLoaded)
 			{			
 				m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled = true;
+				Debug.Log("enabling input for "+i);
 			}
 		}
 	}
@@ -185,6 +186,7 @@ function Update () {
 			//make sure the client doesnt already own a gameobject and make sure the level is loaded for them first too
 			if(m_Clients[i].m_GameObject != null && m_Clients[i].m_LevelLoaded)
 			{			
+				Debug.Log("killing input for "+i);
 				m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled = false;
 			}
 		}
@@ -200,10 +202,11 @@ function Update () {
 					numClientsExited++;
 			}
 		}
-		Debug.Log(numClientsExited+" "+GetNumClients());
+		
 		if(numClientsExited == GetNumClients()-1)
 		{
 			Debug.Log("Exiting match from server");
+			ServerRPC.ClearBuffer();
 			GetComponent(GameStateManager).ExitMatch();
 		}
 	}
@@ -479,16 +482,19 @@ function GetGameObject() : GameObject
 	
 	Debug.Log("Instantiating gameobject for player " +clientID);
 	var viewID : NetworkViewID= Network.AllocateViewID();
+	Debug.Log("ViewID "+viewID);
 	var go : GameObject = NetworkInstantiate(m_PlayerPrefab.name,"", Vector3.up, Quaternion.identity, viewID ,  0);
 	go.transform.position = go.GetComponent(BeeScript).FindRespawnLocation();
 	go.transform.position.y = 7;
+	//go.AddComponent(ControlDisablerDecorator);
 	ServerRPC.Buffer(m_SyncMsgsView, "NetworkInstantiate", RPCMode.Others, m_PlayerPrefab.name,"", go.transform.position, Quaternion.identity, viewID, 0);
 	go.name = "Bee" + clientID; 
 	SetClientGameObject(clientID,go.name);
 	ServerRPC.Buffer(m_SyncMsgsView, "SetClientGameObject", RPCMode.Others, clientID, go.name);
 	ServerRPC.Buffer(go.networkView, "AddSwarm", RPCMode.All, "", Vector3(0,0,0), go.GetComponent(BeeControllerScript).m_LoadOut.m_BaseClipSize);
-	ServerRPC.Buffer(go.networkView, "Reload", RPCMode.All);
-	ServerRPC.Buffer(go.networkView, "QuickReload", RPCMode.All);
+	Debug.Log(go.GetComponent(BeeControllerScript).m_ControlEnabled);
+	//ServerRPC.Buffer(go.networkView, "Reload", RPCMode.All);
+	//ServerRPC.Buffer(go.networkView, "QuickReload", RPCMode.All);
 }
 
 //This RPC is calld from clients on the server and then the server publishes the same RPC to clients

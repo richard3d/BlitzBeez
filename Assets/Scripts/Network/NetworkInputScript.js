@@ -47,17 +47,27 @@ class InputState
 
 	function GetActionBuffered(action : int) : boolean
 	{
+		
 		var Input : boolean = ((this.m_CurrentActions & action) == action) && 
 							   (this.m_PrevActions & action) != action ;
+		
 		return Input;
 	}
 	
 	function GetActionUpBuffered(action : int) : boolean
 	{
-		//Debug.Log("currAction "+this.m_CurrentActions+ " prevAction "+m_PrevActions+ " desiredAction "+action);
-		
 		var Input : boolean = ((this.m_CurrentActions & action) != action) && 
 							   (this.m_PrevActions & action) == action ;
+		// if(action  == SHOOT)
+		// {
+		// Debug.Log("shoot req");
+		// if(Input )
+		// {
+			// Debug.Log("shoot authorized");
+			// Debug.Log("Curr: "+m_CurrentActions);
+			// Debug.Log("Prev: "+m_PrevActions);
+		// }
+		// }
 		return Input;
 	}
 } 
@@ -87,8 +97,8 @@ function OnGUI()
 function Update () {
 	
 	
-	//if(Network.isClient && !m_ControlEnabled)
-	//	return;
+	if(!NetworkUtils.IsControlledGameObject(gameObject))
+		return;
 	
 	if(Network.isServer)
 	{
@@ -351,7 +361,6 @@ function Update () {
 	{
 		return;
 	}
-	
 	
 	//this must be called before update input
 	var input : InputState = new InputState();

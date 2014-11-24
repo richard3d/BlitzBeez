@@ -4,6 +4,7 @@ var m_Cohesion : float = 1;
 var m_Separation : float = 1;
 var m_SeparationDist : float = 1;
 var m_MaxSpeed : float = 1;
+var m_MaxDist :float = 40;
 var m_SwarmOffset : Vector3;
 var m_Owner : GameObject = null;
 var m_LargestSize : int = 0; //this variable is used to keep track of how many bees were on the swarm before it got destroyed, this is added to the killing bee's XP total
@@ -33,6 +34,7 @@ function Start () {
 
 function Update () {
 
+	var fDelta = Time.deltaTime;
 	//handle flower logic if we are not attached to a bee
 	if(transform.parent != null && transform.parent.tag == "Flowers")
 	{
@@ -42,7 +44,7 @@ function Update () {
 			m_Owner.GetComponent(FlowerDecorator).GetFlower() != flower)
 		{
 			var numBees : float = particleEmitter.particles.length;
-			var harvestSpeed : float =  (Time.deltaTime * (numBees / flower.GetComponent(FlowerScript).m_MaxBees));
+			var harvestSpeed : float =  (fDelta* (numBees / flower.GetComponent(FlowerScript).m_MaxBees));
 			var beeScript : BeeScript = m_Owner.GetComponent(BeeScript);
 		}
 	}
@@ -61,7 +63,7 @@ function Update () {
 				continue;
 			if(diff.magnitude < m_SeparationDist)
 			{
-				parts[i].velocity = parts[i].velocity.normalized - diff.normalized*m_Separation* Time.deltaTime;
+				parts[i].velocity = parts[i].velocity.normalized - diff.normalized*m_Separation* fDelta;
 			}
 			
 			
@@ -72,17 +74,17 @@ function Update () {
 		m_AvgPos *= 0.5;
 	
 		var posDiff = m_AvgPos - parts[i].position;
-		parts[i].velocity += posDiff.normalized * m_Cohesion * Time.deltaTime;
+		parts[i].velocity += posDiff.normalized * m_Cohesion * fDelta;
 		
 		parts[i].velocity = parts[i].velocity.normalized * m_MaxSpeed;
 		if(transform.parent != null && transform.parent.tag == "Player")
-			parts[i].position += (parts[i].velocity+transform.parent.GetComponent(UpdateScript).m_Vel * 0.75) * Time.deltaTime;
+			parts[i].position += (parts[i].velocity+transform.parent.GetComponent(UpdateScript).m_Vel * 0.75) * fDelta;
 		else
-			parts[i].position += parts[i].velocity * Time.deltaTime;
+			parts[i].position += parts[i].velocity * fDelta;
 		
 		//HAXE
-		if((parts[i].position-transform.position).magnitude > 40)
-				parts[i].position = transform.position+(transform.position-parts[i].position).normalized*40;
+		if((parts[i].position-transform.position).magnitude > m_MaxDist)
+				parts[i].position = transform.position+(transform.position-parts[i].position).normalized*m_MaxDist;
 		
 		parts[i].size = 1.0;
 	

@@ -42,7 +42,7 @@ function OnGUI()
 	{
 		//if(GetNumClients() > 1)
 		var skin :GUISkin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
-		GUILayout.BeginArea(Rect(0,256, Screen.width,512), skin.customStyles[0]);
+		GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
 		GUILayout.Label("Match starting in "+(mgr.m_MatchTick)+"...", skin.label);
 		GUILayout.EndArea();
 	}
@@ -50,7 +50,7 @@ function OnGUI()
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
 		skin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
-		GUILayout.BeginArea(Rect(0,256, Screen.width,512), skin.customStyles[0]);
+		GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
 		GUILayout.Label("All Hail "+m_Clients[GameStateManager.m_WinningPlayer].m_Name+".\n The new QUEEN (OR KING) BEE!", skin.label);
 		GUILayout.EndArea();
 	}
@@ -78,7 +78,8 @@ function OnStateChange(state:int)
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
 		Screen.showCursor = true;
-		GetGameObject().GetComponent(NetworkInputScript).enabled = false;
+		if(GetGameObject() != null)
+			GetGameObject().GetComponent(NetworkInputScript).enabled = false;
 	}
 	else if(mgr.m_CurrState == GameStateManager.MATCH_LOBBY)
 	{

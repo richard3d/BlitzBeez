@@ -103,7 +103,7 @@ function OnCollisionEnter(coll : Collision)
 		 var go : GameObject;// = gameObject.Instantiate(m_ImpactEffect);
 		// go.transform.position = m_Owner.transform.position + m_Owner.transform.forward * 40;
 		// go.transform.position.y = 0;
-		Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
+		Camera.main.GetComponent(CameraScript).Shake(0.25,1.5);
 		
 	}
 	else if(other.gameObject != m_Owner)
