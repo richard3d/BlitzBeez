@@ -46,6 +46,7 @@ function Start () {
 			size = system.startSize;
 		}
 	}
+	
 	if(m_Owner)
 	{
 		go.transform.position =  m_Owner.transform.position+ m_Owner.transform.forward *size;
@@ -62,6 +63,29 @@ function Start () {
 			}
 		}
 	}
+	
+	if(m_BulletType == 2)
+	{
+		var accuracy:float = 0;
+		if(Network.isServer)
+		{
+			var gos : GameObject[];
+			gos = gameObject.FindGameObjectsWithTag("ItemBoxes");
+			
+			for(go in gos)
+			{
+				if(go == m_Owner)
+					continue;
+				var diff : Vector3 = go.transform.position - transform.position;
+				if(Vector3.Dot(diff.normalized, up.m_Vel.normalized) > accuracy)
+				{
+					accuracy = Vector3.Dot(diff.normalized, up.m_Vel.normalized);
+					m_Tgt = go;
+				}
+			}
+		}
+	}
+	
 
 }
 
@@ -79,24 +103,35 @@ function Update () {
 		{
 			OnTerrainCollision(hit.point, hit.normal);	
 		}
-	}
-	
-	//homing round
-	if(m_BulletType == 2)
-	{
-		
-		var gos : GameObject[];
-		gos = gameObject.FindGameObjectsWithTag("Rocks");
-		for(var go : GameObject in gos)
+		//homing round
+		if(m_BulletType == 2)
 		{
-			//if(go == m_Owner)
-			//	continue;
-			var diff : Vector3 = go.transform.position - transform.position;
-			var strength : float = Vector3.Dot(diff.normalized, up.m_Vel.normalized);
-			 if(strength > 0.5)
-				 up.m_Vel += diff.normalized * Time.deltaTime * 9 * (3500/diff.magnitude);
+			if(m_Tgt != null)
+			{
+				if(Physics.Linecast(transform.position,m_Tgt.transform.position,hit))
+				{
+					if(hit.collider.gameObject == gameObject || hit.collider.gameObject == m_Tgt)
+					{
+						
+						var diff : Vector3 = m_Tgt.transform.position - transform.position;
+						var homing :float = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.1;
+						
+						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+						//up.m_Vel += diff.normalized * homing ;
+					}
+				}
+				else
+				{
+						diff = m_Tgt.transform.position - transform.position;
+						homing = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.1;
+						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+						//up.m_Vel += diff.normalized * homing ;
+				}
+			}
 		}
 	}
+	
+	
 	
 	
 	if(m_PowerShot)
@@ -357,8 +392,8 @@ function OnTriggerEnter(other : Collider)
 		if(GameObject.Find(other.name+"/Shield")!= null)
 		{
 			//make sure we arent shooting our own bees
-		//	if(other.GetComponentInChildren(BeeParticleScript).m_Owner != GetComponent(BulletScript).m_Owner)
-		//	{
+			if(other.GetComponent(FlowerScript).m_Owner != m_Owner)
+			{
 				//Handle power shot
 				if(m_PowerShot)
 				{
@@ -375,7 +410,7 @@ function OnTriggerEnter(other : Collider)
 				
 				RemoveBullet(transform.position+transform.forward * transform.localScale.x);
 				
-		//	}
+			}
 		}
 		
 	}

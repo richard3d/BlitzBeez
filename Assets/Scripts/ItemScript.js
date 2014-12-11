@@ -168,7 +168,13 @@ function OnCollisionStay(coll : Collision)
 	var go : GameObject = gameObject.Find(name);
 	effect.transform.position = go.transform.position;
 	AudioSource.PlayClipAtPoint(m_PickupSound, Camera.main.transform.position);
-	
+	var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
+	kudosText.GetComponent(GUIText).material.color = Color.yellow;
+	kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+	kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
+	kudosText.GetComponent(GUIText).fontSize = 32;
+	kudosText.GetComponent(GUIText).text = "Got "+m_ItemToGive.name+"!";
+
 	if(m_ItemToGive != null)
 	{
 		if(go.GetComponent(BeeScript).m_Inventory[0].m_Item == null)

@@ -61,20 +61,20 @@ function OnNetworkInput(IN : InputState)
 	//handle use action
 	if(IN.GetActionUpBuffered(IN.USE))
 	{
-		if(m_FirstInput)
+		//this prevents item objects from throwing as soon as they are brought out
+		if(m_FirstInput && m_Item.tag != "Rocks")
 		{
-			 m_FirstInput = false;
+			m_FirstInput = false;
 			return;
 		}
-		Debug.Log("throwing");
-		if(m_Item != null)
+		// Debug.Log("throwing");
+		
+		if(Network.isServer)
 		{
-			if(Network.isServer)
-			{
-				ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
-				ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "ItemDecorator");
-			}
+			ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+			ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "ItemDecorator");
 		}
+		
 	}
 	
 	if(IN.GetAction(IN.USE))
@@ -96,7 +96,8 @@ function OnNetworkInput(IN : InputState)
 		m_Item.GetComponent(UpdateScript).MakeNetLive();
 	
 	//let the entity move normal again
-	GetComponent(UpdateScript).m_MaxSpeed = m_PrevMaxSpeed;
+	Debug.Log("max "+GetComponent(UpdateScript).m_MaxSpeed+" prev "+m_PrevMaxSpeed);
+	GetComponent(UpdateScript).m_MaxSpeed = GetComponent(UpdateScript).m_DefaultMaxSpeed;
 	
 	//unchain ourselves from the parent and dissable collision with the owner entity
 	m_Item.transform.parent = null;
@@ -111,8 +112,11 @@ function OnNetworkInput(IN : InputState)
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
 		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8;
 		m_Item.GetComponent(TrailRenderer).enabled = true;
-		gameObject.AddComponent(ControlDisablerDecorator);
-		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);	
+		if(gameObject.GetComponent(ControlDisablerDecorator) == null)
+		{
+			gameObject.AddComponent(ControlDisablerDecorator);
+			GetComponent(ControlDisablerDecorator).SetLifetime(0.5);	
+		}
 	}
 	else if(m_Item.tag == "Bombs")
 	{
@@ -121,8 +125,11 @@ function OnNetworkInput(IN : InputState)
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward + Vector3.up*m_ThrowVelocityScalar).normalized  * m_Item.GetComponent(UpdateScript).m_DefaultMaxSpeed ;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
 		m_Item.GetComponent(UpdateScript).m_Accel.y = -350;
-		gameObject.AddComponent(ControlDisablerDecorator);
-		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);
+		if(gameObject.GetComponent(ControlDisablerDecorator) == null)
+		{
+			gameObject.AddComponent(ControlDisablerDecorator);
+			GetComponent(ControlDisablerDecorator).SetLifetime(0.5);	
+		}
 	}
 	else if(m_Item.tag == "Mines")
 	{
@@ -131,10 +138,13 @@ function OnNetworkInput(IN : InputState)
 		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 10;
 		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8;
-		gameObject.AddComponent(ControlDisablerDecorator);
-		GetComponent(ControlDisablerDecorator).SetLifetime(0.5);
+		if(gameObject.GetComponent(ControlDisablerDecorator) == null)
+		{
+			gameObject.AddComponent(ControlDisablerDecorator);
+			GetComponent(ControlDisablerDecorator).SetLifetime(0.5);	
+		}
 	}
-	
+	m_Item = null;
 	
 	
 	
@@ -173,7 +183,6 @@ function SetItem (go : GameObject, itemPosOffset : Vector3, itemOrientation : Ve
 	
 	if(go.tag == "Rocks")
 	{
-		Debug.Log("why do i not change?");
 		m_Item.GetComponent(RockScript).m_Owner = gameObject;
 		GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);

@@ -31,7 +31,7 @@ function Update () {
 	{
 		if(m_Lifetime <= 0 || m_Owner.GetComponent(RespawnDecorator) != null)
 		{
-			ServerRPC.Buffer(networkView, "KillHammerDecorator", RPCMode.All);
+			ServerRPC.Buffer(m_Owner.networkView, "RemoveComponent", RPCMode.All, "HammerDecorator");
 		}
 		else
 			m_Lifetime -= Time.deltaTime;
@@ -41,12 +41,12 @@ function Update () {
 
 @RPC function KillHammerDecorator()
 {
-	Destroy(m_Owner.GetComponent(HammerDecorator));
-	if(m_Owner.GetComponent(BeeControllerScript) != null)
-	{
-		m_Owner.GetComponent(BeeControllerScript).m_ControlEnabled = true;
-		m_Owner.GetComponent(BeeControllerScript).m_LookEnabled = true;
-	}
+	// Destroy(m_Owner.GetComponent(HammerDecorator));
+	// if(m_Owner.GetComponent(BeeControllerScript) != null)
+	// {
+		// m_Owner.GetComponent(BeeControllerScript).m_ControlEnabled = true;
+		// m_Owner.GetComponent(BeeControllerScript).m_LookEnabled = true;
+	// }
 	Destroy(gameObject);
 	
 }
@@ -58,7 +58,7 @@ function Update () {
 	if(go != null)
 	{
 		m_Owner = go;
-		go.AddComponent(HammerDecorator);
+		go.AddComponent(HammerDecorator).m_Hammer = gameObject;
 		Debug.Log(go.renderer.material.color);
 		GetComponent(ParticleSystemRenderer).material.SetColor("_TintColor", go.renderer.material.color);
 	}

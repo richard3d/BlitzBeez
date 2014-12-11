@@ -187,7 +187,7 @@ function OnGUI()
 		if(NetworkUtils.IsControlledGameObject(gameObject)) 
 		{
 			//draw background
-			GUI.color = Color(1,1,1,0.5);
+			GUI.color = Color(1,1,1,1);
 			GUI.DrawTexture(Rect(0,0, Screen.width*m_BGOffset,Screen.height), m_BGTexture);
 			GUI.color = Color.white;
 			//display directions

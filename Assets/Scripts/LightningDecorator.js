@@ -55,8 +55,12 @@ function Start () {
 		m_StrikePos = transform.position;
 		}
 	m_StrikePos.y = 350;
-	Camera.main.gameObject.AddComponent(CameraZoomDecorator);
-	Camera.main.GetComponent(CameraZoomDecorator).m_fLifetime = m_Lifetime+m_AnimTime;
+	
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		Camera.main.gameObject.AddComponent(CameraZoomDecorator);
+		Camera.main.GetComponent(CameraZoomDecorator).m_fLifetime = m_Lifetime+m_AnimTime;
+	}
 }
 
 function Update () {

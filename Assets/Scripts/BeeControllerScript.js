@@ -54,7 +54,7 @@ var m_DashTimer : float = 0;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : 99, "Max Workers":-1, "Worker Generation":-1 };
+var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1, "Max Workers":-1, "Worker Generation":-1 };
 
 
 
@@ -226,6 +226,7 @@ function OnNetworkInput(IN : InputState)
 	{
 		if(m_ReloadTimer <= 0 && GetComponent(FlowerDecorator) == null && GetComponent(PedestalDecorator) == null)
 		{
+		
 			m_ShootButtonHeld = true;
 			if(GetComponentInChildren(BeeParticleScript) != null &&
 			   m_ShootButtonTimeHeld < m_PowerShotRequiredHoldTime && 
@@ -717,7 +718,10 @@ function OnPlayerLookAt(at : Vector3)
 	{
 		if(bShow == 1)
 		{
-			GetComponent(BeehiveGUI).Show(true);
+			if(NetworkUtils.IsControlledGameObject(gameObject))
+				GetComponent(BeehiveGUI).Show(true);
+			
+			
 			gameObject.AddComponent(ControlDisablerDecorator);
 			renderer.enabled = false;
 			for(var i = 0; i <transform.childCount; i++)
@@ -733,7 +737,8 @@ function OnPlayerLookAt(at : Vector3)
 		}
 		else
 		{
-			GetComponent(BeehiveGUI).Show(false);
+			if(NetworkUtils.IsControlledGameObject(gameObject))
+				GetComponent(BeehiveGUI).Show(false);
 			renderer.enabled = true;
 			for(i = 0; i <transform.childCount; i++)
 			{

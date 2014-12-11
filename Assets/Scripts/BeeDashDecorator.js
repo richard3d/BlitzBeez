@@ -15,8 +15,9 @@ function Awake()
 function Start () {
 	m_PrevSpeed = GetComponent(UpdateScript).m_MaxSpeed;
 	m_MaxSpeed = m_PrevSpeed * 4.0;
+	GetComponent(UpdateScript).m_MaxSpeed = m_MaxSpeed;
 	GetComponent(TrailRenderer).enabled = true;
-	
+	Debug.Log(m_MaxSpeed);
 	m_TracerParticles = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashTracerParticles"),transform.position, Quaternion.identity);
 	m_TracerParticles.transform.parent = transform;
 	m_TracerParticles.GetComponent(ParticleSystem).startRotation = Mathf.Acos(Vector3.Dot(transform.forward,Vector3.forward));
@@ -78,7 +79,8 @@ function Disable()
 function OnDestroy()
 {
 
-	GetComponent(UpdateScript).m_MaxSpeed = m_PrevSpeed;
+	//if(GetComponent(UpdateScript).m_MaxSpeed != GetComponent(UpdateScript).m_DefaultMaxSpeed || m_MaxSpeed == GetComponent(UpdateScript).m_DefaultMaxSpeed)
+	GetComponent(UpdateScript).m_MaxSpeed = GetComponent(UpdateScript).m_DefaultMaxSpeed;
 	GetComponent(TrailRenderer).enabled = false;
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{

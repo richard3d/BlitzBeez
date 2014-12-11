@@ -5,11 +5,12 @@ private var m_LifeTimer : float = 0;
 private var m_Flower : GameObject = null;
 private var m_BeeAdditionTimer : float = 0.1;
 private var m_FirstInput : boolean = true;
+private var m_NumWorkersAdded:int = 0;
 var m_SwarmCreated : boolean = false;
 var m_ShieldEffect : GameObject = null;
 var m_FlowerShieldEffect : GameObject = null;
 private var m_PollenParticles : GameObject = null;
- var m_ProgressEffect : GameObject = null;
+var m_ProgressEffect : GameObject = null;
 var m_FlashTimer : float = -1;
 function Start () {
 
@@ -153,6 +154,7 @@ GetComponent(UpdateScript).m_Vel = Vector3.zero;
 				{
 					offset  = Vector3(0,200,0);
 					ServerRPC.Buffer(networkView,"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
+					m_NumWorkersAdded++;
 					if(Network.isServer)
 					{
 						//Since the rock is destroying there is no reason to keep its messages in the buffer up to this point
@@ -161,26 +163,7 @@ GetComponent(UpdateScript).m_Vel = Vector3.zero;
 						var InstType : GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Coin"));
 						if(InstType != null)
 						{
-							var count : int =1;
-							
-							//perform a damage roll to see how many coins we should spawn
-							var sum : int = Dice.RollDice(2,6);
-							
-							if(sum >= 4 && sum <= 6)
-							{
-								count = 3;
-							}
-							else if(sum >= 0 && sum <= 3)
-							{
-								count = 3;
-							}
-							else if(sum >= 7 && sum <= 12)
-							{
-								count = 3;
-							}
-							
-							
-							Debug.Log("Coin Count" +count);
+							var count : int = m_NumWorkersAdded * 3;
 							for(var i : int = 0; i < count; i++)
 							{
 								var Quat = Quaternion.AngleAxis(360.0/count * i, Vector3.up);
@@ -194,16 +177,10 @@ GetComponent(UpdateScript).m_Vel = Vector3.zero;
 								go1.GetComponent(UpdateScript).MakeNetLive(); 	
 							}
 						}
-						
 					}
 				}
-	
 			}
 		}
-		
-		
-		
-		
 	}
 	
 	//m_BeeAdditionTimer -= Time.deltaTime;	
@@ -317,13 +294,12 @@ function OnDestroy()
 			// m_ShieldEffect.transform.position = m_Flower.transform.position;
 			// m_ShieldEffect.transform.parent = m_Flower.transform;
 			
-			var m_TeleportEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/LightSpot"));
-			m_TeleportEffect.name = "LightSpot";
-			m_TeleportEffect.transform.position = m_Flower.transform.position + Vector3.up*0.1;
-			m_TeleportEffect.transform.parent = m_Flower.transform;
-			m_TeleportEffect.transform.localScale = Vector3(1.3,1.3,0.0001);
-			m_TeleportEffect.renderer.material.SetColor("_TintColor", color);
-			
+			var LightspotEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/LightSpot"));
+			LightspotEffect.name = "LightSpot";
+			LightspotEffect.transform.position = m_Flower.transform.position + Vector3.up*0.1;
+			LightspotEffect.transform.parent = m_Flower.transform;
+			LightspotEffect.transform.localScale = Vector3(1.3,1.3,0.0001);
+			LightspotEffect.renderer.material.SetColor("_TintColor", color);
 		}
 		
 		if(gameObject.Find(m_Flower.name+"/Shield") == null)

@@ -68,7 +68,7 @@ function GetCoin(name : String)
 		bee.GetComponent(BeeScript).m_NumUpgradesAvailable++;
 		bee.AddComponent("LevelUpDecorator");
 		AudioSource.PlayClipAtPoint(bee.GetComponent(BeeScript).m_LevelUpSound, Camera.main.transform.position);
-		
+		GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(bee).m_Name+ " leveled up");
 		if(NetworkUtils.IsControlledGameObject(bee))
 		{
 			var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));

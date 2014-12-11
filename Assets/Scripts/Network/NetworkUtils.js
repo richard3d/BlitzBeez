@@ -1,5 +1,5 @@
 #pragma strict
-
+import ClientNetworkInfo;
 public class NetworkUtils
 {
 	public static function IsControlledGameObject(go:GameObject ):boolean 
@@ -52,5 +52,19 @@ public class NetworkUtils
 				return i;
 		}
 		return -1;
+	}
+	
+	public static function GetClientObjectFromGameObject(go:GameObject):ClientNetworkInfo
+	{
+		var clientID:int = GetClientFromGameObject(go);
+		if(Network.isServer)
+		{
+			return GameObject.Find("GameServer").GetComponent(ServerScript).GetClient(clientID);
+		}
+		else if(Network.isClient )
+		{
+			return GameObject.Find("GameClient").GetComponent(ClientScript).GetClient(clientID);
+		}
+		return null;
 	}
 }

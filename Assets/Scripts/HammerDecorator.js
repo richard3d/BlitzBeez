@@ -6,7 +6,7 @@ private var m_Forward:Vector3;
 private var m_Right:Vector3;
 private var m_OrigCamOffset:Vector3;
 var m_MovementEnabled : boolean = true;
-
+var m_Hammer:GameObject;
 function Start () {
 	
 	var zDot = Vector3.Dot(transform.forward, Vector3.forward);
@@ -130,4 +130,9 @@ function OnDestroy()
 		// Camera.main.GetComponent(CameraScript).m_Offset = Vector3.forward *200;
 		// Camera.main.transform.eulerAngles.z = 0;
 	}	
+	
+	GetComponent(BeeControllerScript).m_ControlEnabled = true;
+	GetComponent(BeeControllerScript).m_LookEnabled = true;
+	Destroy(m_Hammer);
+	
 }

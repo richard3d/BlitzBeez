@@ -189,9 +189,10 @@ function Update () {
 		
 		//ORIGINAL
 		var LookDiff :Vector3 = transform.forward;
-		LookDiff =  Quaternion.AngleAxis(Input.GetAxis("Look Left/Right")*10, Vector3.up)*LookDiff;
 		m_CursorDist += Input.GetAxis("Look Up/Down")*15;
 		m_CursorDist = Mathf.Max(10,Mathf.Min(m_CursorDist, 200));
+		LookDiff =  Quaternion.AngleAxis(Input.GetAxis("Look Left/Right")*(200.0/m_CursorDist)*10, Vector3.up)*LookDiff;
+		
 		// var vPos : Vector3 = Camera.main.GetComponent(CameraScript).m_Target.transform.position;
 		// var LookDiff = Input.mousePosition-Camera.main.WorldToScreenPoint(vPos);
 		// if(LookDiff.y < 0)
@@ -287,8 +288,8 @@ function Update () {
 	//m_InputStateBuffer.Push(m_CurrInputState);
 	
 	//only send the RPC if there is new data
-	if( m_CurrentActions != m_PrevActions || m_PrevActions != m_BuffActions )
-	{
+	//if( m_CurrentActions != m_PrevActions || m_PrevActions != m_BuffActions )
+	//{
 		m_CurrInputState.m_Sequence = m_SeqCounter;
 		//m_InputStateBuffer.Push(m_CurrInputState);
 		
@@ -302,7 +303,7 @@ function Update () {
 			PlayerInputEvent(0, m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions);
 		}
 		m_SeqCounter++;
-	}
+	//}
 	
 }
 

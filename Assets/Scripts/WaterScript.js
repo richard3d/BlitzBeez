@@ -49,7 +49,11 @@ function OnTriggerEnter(coll : Collider)
 function OnSwitchActivated()
 {
 	if(m_Rising == false)
+	{
+		if(Mathf.Abs(m_Height - m_MaxHeight) < 1)
+			m_MaxHeight = m_OrigPosition.y;
 		m_Rising = true;
+	}
 	else
 		m_Rising = false;
 }

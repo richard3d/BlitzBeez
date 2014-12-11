@@ -51,8 +51,10 @@ function OnDestroy()
 	
 	for( var i:int = 0; i < renderer.materials.length; i++)
 	{
-			
-		 renderer.materials[i].shader= m_OrigMaterials[i];
-		  renderer.materials[i].color = m_OrigColors[i];
+		if(	renderer.materials[i] != null && m_OrigMaterials != null)
+		{
+			renderer.materials[i].shader= m_OrigMaterials[i];
+			renderer.materials[i].color = m_OrigColors[i];
+		}
 	}
 }

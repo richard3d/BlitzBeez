@@ -40,12 +40,25 @@ function Update () {
 	}
 }
 
+function OnCollisionEnter (coll : Collision)
+{
+	if(Network.isServer)
+	{
+		
+		if(coll.gameObject.tag == "Bullets")
+		{
+			networkView.RPC("KillItem", RPCMode.All);
+		}
+	}
+}
+
 function OnTriggerEnter (coll : Collider)
 {
 	if(Network.isServer)
 	{
 		if(coll.gameObject.tag == "Player")
 		{
+		
 			//determine the item to give to the player
 			//remove this gameobject
 			//GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView.RPC("Hide", RPCMode.All);

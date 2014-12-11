@@ -156,23 +156,23 @@ function Update () {
 	}
 	if(Input.GetKeyDown(KeyCode.LeftControl))
 	{
-		m_ViewMap = !m_ViewMap;
-		if(m_ViewMap)
-		{
-			GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
-			GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-			Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
+		// m_ViewMap = !m_ViewMap;
+		// if(m_ViewMap)
+		// {
+			// GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
+			// GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+			// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
 			
-			Camera.main.orthographicSize = 400;
-			Screen.showCursor = true;
+			// Camera.main.orthographicSize = 400;
+			// Screen.showCursor = true;
 			
-			Camera.main.transform.position.x = gameObject.transform.position.x;
-			Camera.main.transform.position.z = gameObject.transform.position.z;
-		}
-		else
-		{
-			Screen.showCursor = false;
-		}
+			// Camera.main.transform.position.x = gameObject.transform.position.x;
+			// Camera.main.transform.position.z = gameObject.transform.position.z;
+		// }
+		// else
+		// {
+			// Screen.showCursor = false;
+		// }
 	}
 	
 	if(m_ViewMap)
@@ -191,6 +191,13 @@ function Update () {
 	
 		//GetComponent(BeeControllerScript).m_ControlEnabled = true;
 		GetComponent(BeeControllerScript).m_LookEnabled = true;
+	}
+	
+	
+	
+	if(NetworkUtils.IsControlledGameObject(gameObject))
+	{
+		GameEventMessenger.ProcessMesages();
 	}
 	
 	if(m_ViewMap)
@@ -565,6 +572,18 @@ function DrawGUI()
 		}	
 		
 		
+		//draw the game event messages
+		var max = Mathf.Min(GameEventMessenger.m_MaxDisplayedMsgs,GameEventMessenger.m_Msgs.length);
+		for(var k = 0; k < max; k++)
+		{
+			var msg : GameEventMsg = GameEventMessenger.m_Msgs[k] as GameEventMsg;
+			GUI.color = Color(1,1,1,0.8*Mathf.Min(1,msg.m_Lifetime));
+			GUI.Label(Rect(relPos.x-32,(Screen.height - 48)-(max-k)*24,512,48), msg.m_Msg,SmallFontStyle);
+		}
+		GUI.color = Color.white;
+		
+		
+		
 			
 		//draw the actual honey meter that shows the race for the crown
 		GUI.BeginGroup(Rect(Screen.width-330,16, 512, 512));
@@ -729,6 +748,7 @@ function OnControllerColliderHit (hit : ControllerColliderHit) {
 		// }
 }
 
+
 function OnCollisionEnter(coll : Collision) {
 
 	//if we dash and hit an object we should shake the camera
@@ -754,6 +774,7 @@ function OnCollisionEnter(coll : Collision) {
 				}
 				if(m_HP - 3 <= 0)
 				{
+					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 					KillAndRespawn(true);
 				}
 				else
@@ -772,6 +793,7 @@ function OnCollisionEnter(coll : Collision) {
 					
 					if(m_HP - 1 <= 0)
 					{
+						networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 						KillAndRespawn(true);
 					}
 					else
@@ -802,6 +824,7 @@ function OnCollisionEnter(coll : Collision) {
 		}
 		else if(coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != gameObject)
 		{
+			networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(HammerScript).m_Owner).m_Name+" pounded "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 			networkView.RPC("SetHP", RPCMode.All, 0);
 		}
 	}
@@ -957,11 +980,13 @@ function CalculateRank() : int
 		gb.transform.position = transform.position;
 		gb.transform.localScale = Vector3(10.1, 10.1, 10.1);
 		var ps : ParticleSystem = gb.GetComponent(ParticleSystem) as ParticleSystem;
-		gb.renderer.material.SetColor("_TintColor", renderer.material.color);
+		
+		var color = NetworkUtils.GetColor(gameObject);
+		gb.renderer.material.SetColor("_TintColor", color);
 		ps.startSize = 16;
 
 		ps = gb.transform.Find("GrenadeInnerExplosion").GetComponent(ParticleSystem) as ParticleSystem;
-		ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
+		ps.gameObject.renderer.material.SetColor("_TintColor", color);
 		ps.startSize = 10;
 		ps = gb.transform.Find("GrenadeRing").GetComponent(ParticleSystem) as ParticleSystem;
 		//ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
@@ -969,12 +994,12 @@ function CalculateRank() : int
 		
 		var go : GameObject = gameObject.Instantiate(m_DeathEffect);
 		go.transform.position = transform.position;
-		go.renderer.material.color = renderer.material.color;
+		go.renderer.material.color = color;
 		
 		var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
 		splatter.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*01;
 		splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
-		splatter.renderer.material.color = renderer.material.color;
+		splatter.renderer.material.color = color;
 		
 		Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 	}
@@ -995,10 +1020,11 @@ function CalculateRank() : int
 	var comps:Component[] = gameObject.GetComponents(Component);
 	for (var comp:Component in comps)
 	{
-		Debug.Log(comp.ToString());
+		//Debug.Log(comp.ToString());
 		if(comp.ToString().Contains("decorator") || comp.ToString().Contains("Decorator"))
 		{
-			DestroyImmediate(comp);
+			//DestroyImmediate(comp);
+			Destroy(comp);
 		}
 	}
 	
@@ -1040,17 +1066,17 @@ function CalculateRank() : int
 	// splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
 	// splatter.renderer.material.color = renderer.material.color;
 	
-	if(GetComponent(InvincibilityDecorator) != null)
-		gameObject.DestroyImmediate(gameObject.GetComponent(InvincibilityDecorator));
-	if(GetComponent(DizzyDecorator) != null)
-		gameObject.Destroy(gameObject.GetComponent(DizzyDecorator));
+	// if(GetComponent(InvincibilityDecorator) != null)
+		// gameObject.DestroyImmediate(gameObject.GetComponent(InvincibilityDecorator));
+	// if(GetComponent(DizzyDecorator) != null)
+		// gameObject.Destroy(gameObject.GetComponent(DizzyDecorator));
 	
-	if(GetComponent(ItemDecorator) != null)
-	{
-		//gameObject.Destroy(GetComponent(ItemDecorator).GetItem());
-		GetComponent(ItemDecorator).ThrowItem();
-		Destroy(GetComponent(ItemDecorator));
-	}
+	// if(GetComponent(ItemDecorator) != null)
+	// {
+		// //gameObject.Destroy(GetComponent(ItemDecorator).GetItem());
+		// GetComponent(ItemDecorator).ThrowItem();
+		// Destroy(GetComponent(ItemDecorator));
+	// }
 	
 	
 	
@@ -1194,8 +1220,8 @@ function CalculateRank() : int
 			else
 				kudosText.GetComponent(GUIText).text = "Captured!";
 		}
-		
-		
+		if(flowerComp.m_NumBees == 1)
+			GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+ " captured a flower");
 				
 		//see if flower is part of a group
 		if(flowerDec.GetFlower().transform.parent != null)
@@ -1346,13 +1372,14 @@ function CalculateRank() : int
 
 @RPC function Drown(offset:Vector3)
 {
+	GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" went for a swim");
 	gameObject.AddComponent(DrowningDecorator);		
 	transform.position -= offset;
 }
 
 @RPC function CreateHive(pos:Vector3)
 {
-	Debug.Log("Hive created");
+	GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" built a hive");
 	var go : GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Hive"));
 	go.name = go.name+gameObject.name;
 	go.renderer.material.color = renderer.material.color;
@@ -1369,4 +1396,9 @@ function CalculateRank() : int
 	{
 		//AudioSource.PlayClipAtPoint(m_Pedestal.GetComponent(HivePedestalScript).m_StopwatchDing, transform.position);
 	}
+}
+
+@RPC function SendGameEventMessage(msg : String)
+{
+	GameEventMessenger.QueueMessage(msg);
 }

@@ -145,9 +145,10 @@ function Update () {
 		if(m_ScoreTimer <= 0)
 		{
 			
-			if(Network.isServer)
+			if(Network.isServer && GameStateManager.m_CurrState == GameStateManager.MATCH_PLAYING)
 			{
 				CalcScore();
+				Debug.Log("Checking for win");
 				GameStateManager.CheckForWin();
 			}
 			m_ScoreTimer = 5;

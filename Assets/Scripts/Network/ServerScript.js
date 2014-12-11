@@ -90,11 +90,12 @@ function OnStateChange(state:int)
 	{
 		for(i = 0; i < GetNumClients(); i++)
 		{
-			m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_ControlEnabled = false;	
+			m_Clients[i].m_GameObject.GetComponent(UpdateScript).m_Vel = Vector3.zero;
+			m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).enabled = false;	
 		}
 		//after some time tell clients we are bumping out
 		Screen.showCursor = true;
-		yield InitiateMatchShutdown();
+		InitiateMatchShutdown();
 		
 		
 	}
@@ -110,6 +111,7 @@ function InitiateMatchShutdown()
 	
 	yield WaitForSeconds(10);
 	GetComponent(GameStateManager).SetState(GameStateManager.MATCH_EXITING);
+	Debug.Log("Initiate match shutdown called");
 	//stop sending gameplay updates
 	Network.SetSendingEnabled(0, false); 
 	//tell everyone else to shutdown
@@ -202,11 +204,11 @@ function Update () {
 					numClientsExited++;
 			}
 		}
-		
+		Debug.Log(numClientsExited+" "+GetNumClients());
 		if(numClientsExited == GetNumClients()-1)
 		{
 			Debug.Log("Exiting match from server");
-			ServerRPC.ClearBuffer();
+			//ServerRPC.ClearBuffer();
 			GetComponent(GameStateManager).ExitMatch();
 		}
 	}
