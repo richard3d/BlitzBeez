@@ -165,6 +165,31 @@ function OnTriggerEnter(other : Collider)
 	}
 }
 
+function OnBulletCollision(coll:BulletCollision)
+{
+	if(Network.isServer)
+	{
+		if(GameObject.Find(gameObject.name+"/Shield")!= null)
+		{
+			//make sure we arent shooting our own bees
+			var bs:BulletScript =coll.bullet.GetComponent(BulletScript);
+			if(bs.m_Owner != m_Owner)
+			{
+				//Handle power shot
+				if(bs.m_PowerShot)
+				{
+					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-5);
+				}
+				//handle regular shot
+				else
+				{
+					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-1);					
+				}
+			}
+		}
+	}
+}
+
 function OnTriggerStay(coll : Collider)
 {
 	var player:GameObject = null;
@@ -173,7 +198,8 @@ function OnTriggerStay(coll : Collider)
 	{	
 		
 		//handle player specific logic if the player is us
-		if(coll.gameObject.GetComponent(ItemDecorator) == null && coll.gameObject.GetComponent(FlowerDecorator) == null)
+		if(coll.gameObject.GetComponent(ItemDecorator) == null && coll.gameObject.GetComponent(FlowerDecorator) == null 
+		   && coll.gameObject.GetComponent(BeeScript).m_WorkerBees > 0)
 		{
 			
 			var txt : GameObject  = gameObject.Find("GUITexture");	

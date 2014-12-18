@@ -1,7 +1,7 @@
 #pragma strict
 
 private var m_MovementKeyPressed : boolean = false;
-private var m_MovementSpeed : float = 240;
+private var m_MovementSpeed : float = 50;
 private var m_Forward:Vector3;
 private var m_Right:Vector3;
 private var m_OrigCamOffset:Vector3;
@@ -32,13 +32,14 @@ function Start () {
 		 Camera.main.GetComponent(CameraScript).m_Fixed = true;
 		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
 		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - dir *200;
-		m_OrigCamOffset = Camera.main.GetComponent(CameraScript).m_Offset;
+		m_OrigCamOffset = Camera.main.GetComponent(CameraScript).m_DefaultOffset;
 		Camera.main.GetComponent(CameraScript).m_Offset = m_Forward *200 - Vector3.up *200;
 		// Camera.main.transform.eulerAngles.z = 0;
 		// Camera.main.transform.eulerAngles.y = transform.eulerAngles.y;
 	}	
 	GetComponent(BeeControllerScript).m_ControlEnabled = false;
 	GetComponent(BeeControllerScript).m_LookEnabled = false;
+	m_MovementSpeed = GetComponent(UpdateScript).m_MaxSpeed = 75;
 	
 }
 

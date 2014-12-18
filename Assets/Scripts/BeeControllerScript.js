@@ -54,7 +54,7 @@ var m_DashTimer : float = 0;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1, "Max Workers":-1, "Worker Generation":-1 };
+var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":2, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1, "Max Workers":-1, "Worker Generation":-1 };
 
 
 
@@ -406,10 +406,10 @@ function HandleShotLogic()
 		if(m_LoadOut.m_Pylons[i].PosOffset != Vector3(0,0,0))
 		{
 			var bulletPos : Vector3 = transform.right * m_LoadOut.m_Pylons[i].PosOffset.x + transform.up * m_LoadOut.m_Pylons[i].PosOffset.y + transform.forward * m_LoadOut.m_Pylons[i].PosOffset.z + transform.position;
-			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset, Vector3.up);
+			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset+random, Vector3.up);
 			var bulletVel : Vector3 =  rot * transform.forward;// - (transform.right * halfSpread) + (i * 4) * transform.right;
 			var temp:Vector3 = bulletVel;
-			bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
+			//bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
 			bulletVel.Normalize();
 			bulletPos.y = transform.position.y;
 			
@@ -418,7 +418,8 @@ function HandleShotLogic()
 			//var go : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(m_BulletInstance.name,"", transform.position, Quaternion.identity, viewID ,  0);
 			//ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, m_BulletInstance.name,go.name, transform.position, Quaternion.identity, viewID, 0);
 			var go : GameObject  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
-			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed);
+			go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
+			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
 		}
 	}
 }
@@ -429,7 +430,7 @@ function HandleShotLogic()
 	
 }
 
-@RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3)
+@RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3, decrementAmmo:boolean)
 {
 	AudioSource.PlayClipAtPoint(m_ShootSound, Camera.main.transform.position);
 	var go : GameObject = gameObject.Find(bulletName);
@@ -438,7 +439,7 @@ function HandleShotLogic()
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 		Camera.main.GetComponent(CameraScript).Shake(0.35,1);
 	go.GetComponent(BulletScript).m_PowerShot = false;
-	go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
+	//go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
 	//make it so we dont collide with our own bullets
 	if(go.collider.enabled && collider.enabled)
 		Physics.IgnoreCollision(go.collider, collider);
@@ -456,12 +457,16 @@ function HandleShotLogic()
 	var color = NetworkUtils.GetColor(gameObject);
 	go.GetComponent(TrailRenderer).material.color = color;
 	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
-	if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
+	
+	if(decrementAmmo)
 	{
-		m_ReloadTimer = m_Stats["Reload Speed"];
-		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+		if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
+		{
+			m_ReloadTimer = m_Stats["Reload Speed"];
+			m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+		}
+		GetComponentInChildren(BeeParticleScript).RemoveParticle();
 	}
-	GetComponentInChildren(BeeParticleScript).RemoveParticle();
   //  go.renderer.material.color = color;
 	go.renderer.material.SetColor("_Emission", color);
 	
@@ -523,9 +528,6 @@ function OnPlayerLookAt(at : Vector3)
 	powerShot.name = "PowerShotEffect";
 	powerShot.transform.position = transform.position;
 	powerShot.transform.parent = transform;
-	
-	
-	
 	audio.PlayClipAtPoint(m_PowerShotEffectSound, transform.position);
 }
 
@@ -539,14 +541,6 @@ function OnPlayerLookAt(at : Vector3)
 	go.GetComponent(BulletScript).m_Owner = gameObject;
 	go.GetComponent(BulletScript).m_PowerShot = true;
 	go.GetComponent(BulletScript).m_PowerShotType = m_Stats["Powershot"];
-	
-	// var m_LightEffect:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/LaserBeam"), transform.position, transform.rotation);
-	// m_LightEffect.transform.localEulerAngles.x = 90;
-	// m_LightEffect.renderer.material.SetColor("_TintColor", color);
-	
-	
-	//make it so we dont collide with our own bullets
-	Physics.IgnoreCollision(go.collider, collider);
 	
 	//set the position and velocity of the bullet
 	go.transform.localScale.x = 10;

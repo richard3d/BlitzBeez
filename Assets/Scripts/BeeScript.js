@@ -573,14 +573,15 @@ function DrawGUI()
 		
 		
 		//draw the game event messages
-		var max = Mathf.Min(GameEventMessenger.m_MaxDisplayedMsgs,GameEventMessenger.m_Msgs.length);
-		for(var k = 0; k < max; k++)
-		{
-			var msg : GameEventMsg = GameEventMessenger.m_Msgs[k] as GameEventMsg;
-			GUI.color = Color(1,1,1,0.8*Mathf.Min(1,msg.m_Lifetime));
-			GUI.Label(Rect(relPos.x-32,(Screen.height - 48)-(max-k)*24,512,48), msg.m_Msg,SmallFontStyle);
-		}
-		GUI.color = Color.white;
+		GameEventMessenger.DrawMessages(relPos.x-32,(Screen.height - 48),SmallFontStyle);
+		// var max = Mathf.Min(GameEventMessenger.m_MaxDisplayedMsgs,GameEventMessenger.m_Msgs.length);
+		// for(var k = 0; k < max; k++)
+		// {
+			// var msg : GameEventMsg = GameEventMessenger.m_Msgs[k] as GameEventMsg;
+			// GUI.color = Color(1,1,1,0.8*Mathf.Min(1,msg.m_Lifetime));
+			// GUI.Label(Rect(relPos.x-32,(Screen.height - 48)-(max-k)*24,512,48), msg.m_Msg,SmallFontStyle);
+		// }
+		// GUI.color = Color.white;
 		
 		
 		
@@ -734,9 +735,23 @@ function OnCollisionStay(coll : Collision) {
 function OnControllerColliderHit (hit : ControllerColliderHit) {
 
 	
-	// if(Network.isServer)
-	// {
+	 if(Network.isServer)
+	 {
+		if(GetComponent(BeeDashDecorator) != null &&
+		hit.collider.gameObject.tag == "Trees")
+	{
+		Debug.Log("DASHING");
+		 Destroy(GetComponent(BeeDashDecorator));
+		 Camera.main.GetComponent(CameraScript).Shake(0.25,1.5);
+		 GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+		 var norm:Vector3 = (transform.position - hit.collider.transform.position);
+		 norm.y = 0;
+		 GetComponent(UpdateScript).m_Vel = Vector3.Reflect( GetComponent(UpdateScript).m_Vel, norm.normalized) ;
+		 //gameObject.AddComponent(ControlDisablerDecorator);
+		// GetComponent(ControlDisablerDecorator).SetLifetime(0.25);
 		
+		
+	}
 		// if(hit.gameObject.tag == "Bullets" && gameObject.GetComponent(InvincibilityDecorator) == null)
 		// {	Debug.Log("yowza");
 			// if(GetComponent(BeeDashDecorator) != null)
@@ -745,9 +760,58 @@ function OnControllerColliderHit (hit : ControllerColliderHit) {
 				// networkView.RPC("DeflectBullet", RPCMode.All);
 			// }
 		// }
-		// }
+		 }
 }
 
+function OnBulletCollision(coll:BulletCollision)
+{
+	if(gameObject.GetComponent(InvincibilityDecorator) == null && gameObject.GetComponent(HammerDecorator) == null)
+	{	
+		if(GetComponent(BeeDashDecorator) != null)
+		{
+			coll.bullet.GetComponent(UpdateScript).m_Vel = Vector3.Reflect(coll.bullet.GetComponent(UpdateScript).m_Vel, GetComponent(UpdateScript).m_Vel.normalized);
+			networkView.RPC("DeflectBullet", RPCMode.All);
+		}
+		else
+		if(coll.bullet.GetComponent(BulletScript).m_PowerShot )
+		{
+			//hit by a powershot 
+			//we got hit by a bullet
+			if(GetComponent(ItemDecorator) != null)
+			{
+				//drop item if we have it out
+				ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+			}
+			if(m_HP - 3 <= 0)
+			{
+				networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+				KillAndRespawn(true);
+			}
+			else
+				networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
+		}
+		else
+		{
+			if(coll.bullet.GetComponent(BulletScript).m_Owner != gameObject)
+			{
+				//we got hit by a bullet
+				if(GetComponent(ItemDecorator) != null)
+				{
+					//drop item if we have it out
+					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+				}
+				
+				if(m_HP - 1 <= 0)
+				{
+					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+					KillAndRespawn(true);
+				}
+				else
+					networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+			}
+		}
+	}
+}
 
 function OnCollisionEnter(coll : Collision) {
 
@@ -755,53 +819,54 @@ function OnCollisionEnter(coll : Collision) {
 	if(Network.isServer)
 	{
 	
-		if(coll.gameObject.tag == "Bullets" && gameObject.GetComponent(InvincibilityDecorator) == null)
-		{	
-			if(GetComponent(BeeDashDecorator) != null)
-			{
-				coll.gameObject.GetComponent(UpdateScript).m_Vel = Vector3.Reflect(coll.gameObject.GetComponent(UpdateScript).m_Vel, GetComponent(UpdateScript).m_Vel.normalized);
-				networkView.RPC("DeflectBullet", RPCMode.All);
-			}
-			else
-			if(coll.gameObject.GetComponent(BulletScript).m_PowerShot )
-			{
-				//hit by a powershot 
-				//we got hit by a bullet
-				if(GetComponent(ItemDecorator) != null)
-				{
-					//drop item if we have it out
-					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
-				}
-				if(m_HP - 3 <= 0)
-				{
-					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
-					KillAndRespawn(true);
-				}
-				else
-					networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
-			}
-			else
-			{
-				if(coll.gameObject.GetComponent(BulletScript).m_Owner != gameObject)
-				{
-					//we got hit by a bullet
-					if(GetComponent(ItemDecorator) != null)
-					{
-						//drop item if we have it out
-						ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
-					}
+		// if(coll.gameObject.tag == "Bullets" && gameObject.GetComponent(InvincibilityDecorator) == null)
+		// {	
+			// if(GetComponent(BeeDashDecorator) != null)
+			// {
+				// coll.gameObject.GetComponent(UpdateScript).m_Vel = Vector3.Reflect(coll.gameObject.GetComponent(UpdateScript).m_Vel, GetComponent(UpdateScript).m_Vel.normalized);
+				// networkView.RPC("DeflectBullet", RPCMode.All);
+			// }
+			// else
+			// if(coll.gameObject.GetComponent(BulletScript).m_PowerShot )
+			// {
+				// //hit by a powershot 
+				// //we got hit by a bullet
+				// if(GetComponent(ItemDecorator) != null)
+				// {
+					// //drop item if we have it out
+					// ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+				// }
+				// if(m_HP - 3 <= 0)
+				// {
+					// networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+					// KillAndRespawn(true);
+				// }
+				// else
+					// networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
+			// }
+			// else
+			// {
+				// if(coll.gameObject.GetComponent(BulletScript).m_Owner != gameObject)
+				// {
+					// //we got hit by a bullet
+					// if(GetComponent(ItemDecorator) != null)
+					// {
+						// //drop item if we have it out
+						// ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+					// }
 					
-					if(m_HP - 1 <= 0)
-					{
-						networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
-						KillAndRespawn(true);
-					}
-					else
-						networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
-				}
-			}
-		}
-		else if(coll.gameObject.tag == "Terrain")
+					// if(m_HP - 1 <= 0)
+					// {
+						// networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+						// KillAndRespawn(true);
+					// }
+					// else
+						// networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+				// }
+			// }
+		// }
+		// else 
+		if(coll.gameObject.tag == "Terrain")
 		{
 			for(var contact:ContactPoint in coll.contacts)
 			{
@@ -833,6 +898,7 @@ function OnCollisionEnter(coll : Collision) {
 	if(GetComponent(BeeDashDecorator) != null && (coll.gameObject.tag == "Rocks" ||
 		coll.gameObject.tag == "Trees"))
 	{
+		Debug.Log("DASHING");
 		// Destroy(GetComponent(BeeDashDecorator));
 		// Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 		// GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
@@ -894,6 +960,9 @@ function FindRespawnLocation() : Vector3
 
 function KillAndRespawn(splat:boolean)
 {
+	if(GetComponent(RespawnDecorator) != null)
+		return;
+	Debug.Log("KIll AND RESPAWN");
 	ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, splat);
 	var pos:Vector3 = FindRespawnLocation();
 	ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);

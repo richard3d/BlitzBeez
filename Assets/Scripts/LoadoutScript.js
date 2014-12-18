@@ -113,6 +113,15 @@ class LoadOut
 				m_Pylons[2].PosOffset = Vector3(-4, 0, 0);
 				m_Pylons[3].AngOffset = 180;
 				m_Pylons[3].PosOffset = Vector3(0, 0, -3);
+				
+				m_Pylons[4].AngOffset = -45;
+				m_Pylons[4].PosOffset = Vector3(0, 0, 3);
+				m_Pylons[5].AngOffset = 45;
+				m_Pylons[5].PosOffset = Vector3(4, 0, 0);
+				m_Pylons[6].AngOffset = -135;
+				m_Pylons[6].PosOffset = Vector3(-4, 0, 0);
+				m_Pylons[7].AngOffset = 135;
+				m_Pylons[7].PosOffset = Vector3(0, 0, -3);
 			break;
 			// case 8:
 				// // \||/

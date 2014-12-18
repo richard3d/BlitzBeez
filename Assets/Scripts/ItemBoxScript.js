@@ -4,6 +4,7 @@ var m_DestroySound:AudioClip = null;
 var m_RespawnTime : float = 10;
 var m_PoofParticles : GameObject = null;
 var m_Bounce : boolean = true;
+var m_HP:int = 3;
 private var m_RespawnTimer : float;
 
 private var m_OriginalPos : Vector3;
@@ -40,17 +41,17 @@ function Update () {
 	}
 }
 
-function OnCollisionEnter (coll : Collision)
+function OnBulletCollision(coll:BulletCollision)
 {
 	if(Network.isServer)
 	{
-		
-		if(coll.gameObject.tag == "Bullets")
-		{
-			networkView.RPC("KillItem", RPCMode.All);
-		}
+		if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
+			networkView.RPC("SetHP", RPCMode.All, m_HP-3);
+		else
+			networkView.RPC("SetHP", RPCMode.All, m_HP-1);
 	}
 }
+
 
 function OnTriggerEnter (coll : Collider)
 {
@@ -129,6 +130,25 @@ function OpenEffect()
 	}	
 }
 
+@RPC function SetHP(hp:int)
+{
+	m_HP = hp;
+	if(m_HP == 0)
+	{
+		
+		KillItem();
+	}
+	else
+	{
+		if(GetComponent(FlasherDecorator) == null)
+		{
+			gameObject.AddComponent(FlasherDecorator);
+			GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
+			GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+		}
+	}	
+}
+
 @RPC function KillItem()
 {
 	GetComponent(BoxCollider).enabled = false;
@@ -149,6 +169,7 @@ function OpenEffect()
 {
 	GetComponent(BoxCollider).enabled = true;
 	m_Bounce = true;
+	m_HP = 3;
 	var go : GameObject = gameObject.Instantiate(m_PoofParticles);
 	go.transform.position = transform.position;
 	go.transform.position.y = m_OriginalPos.y ;

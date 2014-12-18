@@ -13,6 +13,13 @@ public class NetworkUtils
 		return false;
 	}
 	
+	public static function GetControlledGameObject():GameObject
+	{
+		if(Network.isServer)
+			return GameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject();
+		return GameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject();
+	}
+	
 	public static function GetNumClients():int
 	{
 		if(Network.isServer)

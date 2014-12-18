@@ -138,6 +138,17 @@ function OnTriggerExit(coll : Collider)
 	}
 }
 
+function OnBulletCollision(coll:BulletCollision)
+{
+	if(Network.isServer)
+	{		
+		if(m_HP == 3)
+			ServerRPC.Buffer(networkView, "CrackRock", RPCMode.All);
+		if(m_HP == 1 || coll.bullet.GetComponent(BulletScript).m_PowerShot)
+			ServerRPC.Buffer(networkView, "KillRock", RPCMode.All);
+		m_HP--;
+	}
+}
 
 function OnCollisionEnter(coll : Collision)
 {
@@ -253,7 +264,11 @@ function OnDestroy()
 	Debug.Log("Killing Rock " + gameObject.name);
 	GetComponent(BoxCollider).enabled = false;
 	GetComponent(TrailRenderer).enabled = false;
-	
+	if(NetworkUtils.GetControlledGameObject().GetComponent(BeeControllerScript).m_NearestObject == gameObject )
+	{
+		var txt:GameObject = gameObject.Find("GUITexture");	
+		txt.GetComponent(GUITexture).enabled = false;
+	}
 	AudioSource.PlayClipAtPoint(m_RockShatterSound, Camera.main.transform.position);
 	
 	if(Network.isServer)

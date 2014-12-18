@@ -28,12 +28,6 @@ function OnTriggerStay(coll : Collider)
 			coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
 			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 			{	
-				
-				// var txt : GameObject  = gameObject.Find("UseText");
-				// txt.transform.position = Camera.main.WorldToViewportPoint(transform.position);
-				// txt.transform.position.y += 0.04;
-				// txt.GetComponent(GUIText).enabled = true;
-				// txt.GetComponent(GUIText).text = "Use";
 				var txt : GameObject  = gameObject.Find("GUITexture");	
 				txt.transform.position = Camera.main.WorldToViewportPoint(coll.gameObject.transform.position);
 				txt.transform.position.y += 0.03;
@@ -42,12 +36,6 @@ function OnTriggerStay(coll : Collider)
 					txt.GetComponent(GUITexture).enabled = true;
 					txt.animation.Play();
 				}
-				
-			}
-			//burn the player if the fire animation is playing
-			if(animation.isPlaying && Network.isServer)
-			{
-				ServerRPC.Buffer(coll.gameObject.networkView, "SetHP", RPCMode.All, coll.gameObject.GetComponent(BeeScript).m_HP-3);
 			}
 		}
 		else
@@ -57,6 +45,30 @@ function OnTriggerStay(coll : Collider)
 				txt  = gameObject.Find("GUITexture");	
 				txt.GetComponent(GUITexture).enabled = false;
 			}
+		}
+	}
+}
+
+function OnBulletCollision(coll:BulletCollision)
+{
+	if(Network.isServer)
+	{
+	
+	}
+}
+
+
+function OnTriggerEnter(coll : Collider)
+{
+	if(coll.gameObject.tag == "Player" )
+	{		
+		//burn the player if the fire animation is playing
+		if(animation.isPlaying && Network.isServer)
+		{
+			if(coll.gameObject.GetComponent(BeeScript).m_HP-3 > 0)
+				ServerRPC.Buffer(coll.gameObject.networkView, "SetHP", RPCMode.All, coll.gameObject.GetComponent(BeeScript).m_HP-3);
+			else
+				coll.gameObject.GetComponent(BeeScript).KillAndRespawn(true);
 		}
 	}
 }

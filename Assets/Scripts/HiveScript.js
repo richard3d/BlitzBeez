@@ -58,6 +58,20 @@ function OnGUI()
 	}
 }
 
+
+function OnBulletCollision(coll:BulletCollision)
+{
+	if(!Network.isServer)
+		return;
+	if(coll.bullet.GetComponent(BulletScript).m_Owner != m_Owner)
+	{
+		if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
+			coll.bullet.networkView.RPC("DamageHive", RPCMode.All,gameObject.name, 5);
+		else
+			coll.bullet.networkView.RPC("DamageHive", RPCMode.All,gameObject.name, 1);
+	}
+}
+
 function OnTriggerStay(other : Collider)
 {
 	if(other.gameObject.tag == "Player" && other.gameObject == m_Owner)

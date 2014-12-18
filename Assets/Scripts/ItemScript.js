@@ -194,6 +194,6 @@ function OnCollisionStay(coll : Collision)
 
 function OnDestroy()
 {
-	Debug.Log("Destroying "+ gameObject.name);
+	//Debug.Log("Destroying "+ gameObject.name);
 }
 

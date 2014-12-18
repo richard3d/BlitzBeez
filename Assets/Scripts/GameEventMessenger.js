@@ -34,6 +34,18 @@ function Start () {
 
 }
 
+static function DrawMessages(posX:int, posY:int, style:GUIStyle)
+{
+	var max = Mathf.Min(m_MaxDisplayedMsgs,m_Msgs.length);
+	for(var k = 0; k < max; k++)
+	{
+		var msg : GameEventMsg = m_Msgs[k] as GameEventMsg;
+		GUI.color = Color(1,1,1,0.8*Mathf.Min(1,msg.m_Lifetime));
+		GUI.Label(Rect(posX,posY-(max-k)*24,512,48), msg.m_Msg,style);
+	}
+	GUI.color = Color.white;
+}
+
 static function ProcessMesages () {
 
 	for(var i = 0; i < m_Msgs.length; i++)

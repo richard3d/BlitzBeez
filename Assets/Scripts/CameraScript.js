@@ -8,6 +8,7 @@ var m_fShakeTime : float = 0;
 var m_CamVel : Vector3;
 var m_CamDrag : float;
 var m_Offset:Vector3 = Vector3(0,0,200);
+var m_DefaultOffset:Vector3 = Vector3(0,-200,200);
 var m_ThirdPerson : boolean = false;
 var m_Fixed : boolean = false;
 var m_Freeze: boolean = false;
