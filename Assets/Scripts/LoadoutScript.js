@@ -62,10 +62,10 @@ class LoadOut
 			case 4:
 				// \|/
 				m_BaseFireRate = 4.0;
-				m_Pylons[0].AngOffset = -5.0;
-				m_Pylons[0].PosOffset = Vector3(-6, 0, 0);
-				m_Pylons[1].AngOffset = 5.0;
-				m_Pylons[1].PosOffset = Vector3(6, 0, 0);
+				m_Pylons[0].AngOffset = -8.0;
+				m_Pylons[0].PosOffset = Vector3(-1, 0, 0);
+				m_Pylons[1].AngOffset = 8.0;
+				m_Pylons[1].PosOffset = Vector3(1, 0, 0);
 				m_Pylons[2].PosOffset = Vector3(0, 0, 1);
 			break;
 			case 5:

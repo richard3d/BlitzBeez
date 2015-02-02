@@ -76,6 +76,11 @@ function Disable()
 	//GetComponent(TrailRenderer).enabled = false;
 }
 
+function Reset()
+{
+	m_Lifetime = 0.25;
+}
+
 function OnDestroy()
 {
 

@@ -47,14 +47,17 @@ var m_FireRate : float = 5;
 var m_FireTimer : float  = 0;
 var m_ReloadTime : float = 1;
 var m_ReloadTimer : float = 0;
+var m_PowershotReloadTimer : float = 0;
 var m_WorkerGenTime : float = 5;	//how often we generate a new worker
 var m_WorkerGenTimer : float = 0;
 var m_DashTimer : float = 0;
+var m_StaminaTimer : float = 0;
+var m_NumDashes : int = 3;
 //var m_ClipSize : int = 30;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip Size":-1, "Special Rounds":-1, "Powershot":2, "Health":-1, "Speed":1, "Stamina":-1, "Reload Speed":-1,  "Fire Rate" : -1, "Max Workers":-1, "Worker Generation":-1 };
+var m_Stats = {"Loadout":-1, "Clip_Size":-1, "Special_Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload_Speed":-1,"Powershot_Reload":-1,  "Fire_Rate" : -1, "Max_Workers":-1, "Worker_Generation":-1 };
 
 
 
@@ -88,17 +91,35 @@ function Update()
 		if(m_ReloadTimer <= 0)
 		{
 			m_ReloadJam = false;
-			GetComponentInChildren(ParticleRenderer).enabled = true;
+			if(GetComponentInChildren(ParticleRenderer) != null)
+				GetComponentInChildren(ParticleRenderer).enabled = true;
 			// GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].time = GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].length;
 			// GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].speed = -1;
 			// GetComponentInChildren(ParticleRenderer).animation.Play("BeeSwarmReload");
 			//GetComponentInChildren(ParticleRenderer).animation.Play();
-			var clip:int = m_Stats["Clip Size"];
+			var clip:int = m_Stats["Clip_Size"];
 			GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 		}
 	}
 	
-	var maxWorkers:int = m_Stats["Max Workers"];
+	if(m_PowershotReloadTimer > 0)
+	{
+		m_PowershotReloadTimer -= Time.deltaTime;
+		if(m_PowershotReloadTimer <= 0)
+		{
+			// m_ReloadJam = false;
+			// if(GetComponentInChildren(ParticleRenderer) != null)
+				// GetComponentInChildren(ParticleRenderer).enabled = true;
+			// // GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].time = GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].length;
+			// // GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].speed = -1;
+			// // GetComponentInChildren(ParticleRenderer).animation.Play("BeeSwarmReload");
+			// //GetComponentInChildren(ParticleRenderer).animation.Play();
+			// var clip:int = m_Stats["Clip_Size"];
+			// GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+		}
+	}
+	
+	var maxWorkers:int = m_Stats["Max_Workers"];
 	maxWorkers+=1;
 	if(GetComponent(BeeScript).HasHive() &&
 		m_WorkerGenTimer > 0 && 
@@ -115,6 +136,20 @@ function Update()
 	
 	if(m_DashTimer > 0)
 		m_DashTimer -= Time.deltaTime;
+	
+	if(m_StaminaTimer > 0)
+	{
+		m_StaminaTimer -= Time.deltaTime;
+		if(m_StaminaTimer <= 0)
+		{
+			if(m_NumDashes < 3)
+			{
+				m_NumDashes++;
+				var stam:float = m_Stats["Stamina"];
+				m_StaminaTimer = 1/(1.0 + (stam+1.0)*0.35);
+			}
+		}
+	}
 }
 
 function OnNetworkInput(IN : InputState)
@@ -189,16 +224,18 @@ function OnNetworkInput(IN : InputState)
 		}
 	}	
 	//handle dash button
-	if(IN.GetAction(IN.DASH) && GetComponent(TreeHideDecorator) == null)
+	if(IN.GetActionBuffered(IN.DASH) && GetComponent(TreeHideDecorator) == null)
 	{
 		if(m_MovementKeyPressed )
 		{	
-			if(!IsDashing && m_DashTimer <= 0)
+			if(!IsDashing && m_DashTimer <= 0 && m_NumDashes > 0)
 			{
 				var stam:float = m_Stats["Stamina"];
-				var dashTime : float = 1.0 + (stam+1.0)*0.35;
+				var dashTime : float = 2;
+				m_StaminaTimer = 1/(1.0 + (stam+1.0)*0.35);
 				m_DashTimer = 1/dashTime;
 				networkView.RPC("Dash", RPCMode.All);
+				
 			}
 		}
 		else
@@ -224,7 +261,7 @@ function OnNetworkInput(IN : InputState)
 	//handle shooting actions
 	if(IN.GetAction(IN.SHOOT) && m_AttackEnabled)
 	{
-		if(m_ReloadTimer <= 0 && GetComponent(FlowerDecorator) == null && GetComponent(PedestalDecorator) == null)
+		if(m_ReloadTimer <= 0 && m_PowershotReloadTimer <= 0 && GetComponent(FlowerDecorator) == null && GetComponent(PedestalDecorator) == null )
 		{
 		
 			m_ShootButtonHeld = true;
@@ -246,13 +283,25 @@ function OnNetworkInput(IN : InputState)
 		if(GetComponentInChildren(BeeParticleScript) != null)
 		{
 			//determine if this is a power shot or regular shot
-			if(m_ShootButtonHeld && m_ShootButtonTimeHeld >= m_PowerShotRequiredHoldTime)
+			if(m_ShootButtonHeld && m_ShootButtonTimeHeld >= m_PowerShotRequiredHoldTime && m_PowershotReloadTimer <= 0)
 			{
 				//powershot
 				if(GetComponentInChildren(ParticleEmitter).particles.length >= 5 && GetComponentInChildren(ParticleRenderer).enabled != false)
 				{
-					var go : GameObject = Network.Instantiate(m_PowerBulletInstance, transform.position, transform.rotation, 0);
-					networkView.RPC("PowerShot", RPCMode.All, go.name);
+					
+					var powerShot = m_Stats["Powershot"];
+					
+				
+					if(powerShot == 4)
+					{
+						networkView.RPC("PowerShot", RPCMode.All, "null");
+					
+					}
+					else
+					{
+						var go : GameObject = Network.Instantiate(m_PowerBulletInstance, transform.position, transform.rotation, 0);
+						networkView.RPC("PowerShot", RPCMode.All, go.name);
+					}
 				}
 			}
 			else
@@ -260,7 +309,7 @@ function OnNetworkInput(IN : InputState)
 				//regular shot
 				if(m_FireTimer <= 0 && m_ReloadTimer <= 0)
 				{	
-					var rate : float = m_Stats["Fire Rate"];
+					var rate : float = m_Stats["Fire_Rate"];
 					var fireRate = m_LoadOut.m_BaseFireRate + (rate+1);
 					m_FireTimer = 1/fireRate;//m_FireRate;
 					HandleShotLogic();
@@ -338,6 +387,14 @@ function OnNetworkInput(IN : InputState)
 			{
 				   if(GetComponent(ItemDecorator) == null && m_NearestObject.GetComponent(HiveScript).m_Owner == gameObject && GetComponent(BeeScript).m_NumUpgradesAvailable > 0)
 				   {
+						var six:Talent[] = new Talent[6];
+						for(var i = 0; i < 6; i++)
+						{
+							//Random.Range(
+							//GetComponent(TalentTree).m_Talents;
+						}
+						
+						networkView.RPC("EnterHive", RPCMode.All, six);
 						networkView.RPC("ShowHiveGUI", RPCMode.All, 1, m_NearestObject.name);
 				   }
 			}
@@ -383,7 +440,7 @@ function OnNetworkInput(IN : InputState)
 			}
 			else if(m_ReloadTimer > 0)
 			{
-				var reload:float = m_Stats["Reload Speed"];
+				var reload:float = m_Stats["Reload_Speed"];
 				reload = m_LoadOut.m_BaseReloadSpeed -  ((reload+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 				if(!m_ReloadJam && 1-m_ReloadTimer/reload >= 0.22 && 1-m_ReloadTimer/reload<= 0.38)
 				{
@@ -411,6 +468,10 @@ function HandleShotLogic()
 			var temp:Vector3 = bulletVel;
 			//bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
 			bulletVel.Normalize();
+			
+			var loadout = m_Stats["Loadout"];
+			if(loadout == 4)
+				bulletVel *= Random.Range(0.75,2);
 			bulletPos.y = transform.position.y;
 			
 			
@@ -418,7 +479,7 @@ function HandleShotLogic()
 			//var go : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(m_BulletInstance.name,"", transform.position, Quaternion.identity, viewID ,  0);
 			//ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, m_BulletInstance.name,go.name, transform.position, Quaternion.identity, viewID, 0);
 			var go : GameObject  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
-			go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
+			go.GetComponent(BulletScript).m_BulletType = m_Stats["Special_Rounds"];
 			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
 		}
 	}
@@ -426,6 +487,7 @@ function HandleShotLogic()
 
 @RPC function Dash()
 {
+	m_NumDashes--;
 	gameObject.AddComponent(BeeDashDecorator);
 	
 }
@@ -439,7 +501,7 @@ function HandleShotLogic()
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 		Camera.main.GetComponent(CameraScript).Shake(0.35,1);
 	go.GetComponent(BulletScript).m_PowerShot = false;
-	//go.GetComponent(BulletScript).m_BulletType = m_Stats["Special Rounds"];
+	//go.GetComponent(BulletScript).m_BulletType = m_Stats["Special_Rounds"];
 	//make it so we dont collide with our own bullets
 	if(go.collider.enabled && collider.enabled)
 		Physics.IgnoreCollision(go.collider, collider);
@@ -462,7 +524,7 @@ function HandleShotLogic()
 	{
 		if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
 		{
-			m_ReloadTimer = m_Stats["Reload Speed"];
+			m_ReloadTimer = m_Stats["Reload_Speed"];
 			m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 		}
 		GetComponentInChildren(BeeParticleScript).RemoveParticle();
@@ -488,7 +550,7 @@ function OnPlayerLookAt(at : Vector3)
 	Debug.Log("Quick Reload Exectured");
 	m_ReloadTimer = 0;
 	GetComponentInChildren(ParticleRenderer).enabled = true;
-	var clip:int = m_Stats["Clip Size"];
+	var clip:int = m_Stats["Clip_Size"];
 	GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
@@ -508,7 +570,7 @@ function OnPlayerLookAt(at : Vector3)
 @RPC function Reload()
 {
 	Debug.Log("Reload Standard");
-	m_ReloadTimer = m_Stats["Reload Speed"];
+	m_ReloadTimer = m_Stats["Reload_Speed"];
 	m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 	//GetComponentInChildren(ParticleRenderer).animation.Play();
@@ -537,23 +599,42 @@ function OnPlayerLookAt(at : Vector3)
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 		Camera.main.GetComponent(CameraScript).Shake(0.25,3);
 	AudioSource.PlayClipAtPoint(m_PowerShotSound, Camera.main.transform.position);
-	var go : GameObject = gameObject.Find(bulletName);
-	go.GetComponent(BulletScript).m_Owner = gameObject;
-	go.GetComponent(BulletScript).m_PowerShot = true;
-	go.GetComponent(BulletScript).m_PowerShotType = m_Stats["Powershot"];
 	
-	//set the position and velocity of the bullet
-	go.transform.localScale.x = 10;
-	go.transform.localScale.y = 10;
-	go.transform.localScale.z = 15;
-	go.transform.position = transform.position+transform.forward*15;
 	
+	if(bulletName != "null")
+	{
+		var go : GameObject = gameObject.Find(bulletName);
+		go.GetComponent(BulletScript).m_Owner = gameObject;
+		go.GetComponent(BulletScript).m_PowerShot = true;
+		go.GetComponent(BulletScript).m_PowerShotType = m_Stats["Powershot"];
+		
+		//set the position and velocity of the bullet
+		go.transform.localScale.x = 10;
+		go.transform.localScale.y = 10;
+		go.transform.localScale.z = 15;
+		go.transform.position = transform.position+transform.forward*15;
+		
 
-	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
-	go.GetComponent(TrailRenderer).startWidth = 0.6* 10;
-	go.GetComponent(TrailRenderer).time *= 2;
-	go.GetComponent(UpdateScript).m_Vel = transform.forward * go.GetComponent(UpdateScript).m_MaxSpeed;
-	
+		go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
+		go.GetComponent(TrailRenderer).startWidth = 0.6* 10;
+		go.GetComponent(TrailRenderer).time *= 2;
+		go.GetComponent(UpdateScript).m_Vel = transform.forward * go.GetComponent(UpdateScript).m_MaxSpeed;
+		go.renderer.material.SetColor("_TintColor", color);
+		go.GetComponent(TrailRenderer).material.SetColor("_TintColor", color);
+	}
+	else
+	{
+		if(Network.isServer)
+		{
+			m_Stats["Loadout"] = 8;
+			m_Stats["Special_Rounds"] = 2;
+			m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
+			HandleShotLogic();
+			m_Stats["Loadout"] = -1;
+			m_Stats["Special_Rounds"] = -1;
+			m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
+		}
+	}
 	var trgt : Transform = transform.Find("PowerShotEffect");
 	if(trgt != null)
 		Destroy(trgt.gameObject);
@@ -564,19 +645,20 @@ function OnPlayerLookAt(at : Vector3)
 	
 	for(var i = 0; i < 5; i++)
 	{
-		GetComponentInChildren(BeeParticleScript).RemoveParticle();
+		//GetComponentInChildren(BeeParticleScript).RemoveParticle();
 	}
 	
 	//time to relaod
 	if(GetComponentInChildren(ParticleRenderer).enabled == false)
 	{
-		m_ReloadTimer = m_Stats["Reload Speed"];
-		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+		
+	//	m_ReloadTimer = m_Stats["Powershot_Reload"];
+		//m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 		
 	}
-	
-	go.renderer.material.SetColor("_TintColor", color);
-	go.GetComponent(TrailRenderer).material.SetColor("_TintColor", color);
+	m_PowershotReloadTimer = m_Stats["Powershot_Reload"];
+	m_PowershotReloadTimer = 1.5 -  ((m_PowershotReloadTimer+1.0) /4.0)*1.5;
+
 }
 
 @RPC function ReturnToBase()
@@ -701,7 +783,13 @@ function OnPlayerLookAt(at : Vector3)
 	
 	
 }
-
+@RPC function EnterHive(pickSix:int[])
+{
+	for (var i = 0; i < pickSix.length; i++)
+	{
+		
+	}
+}
 @RPC function ShowHiveGUI(bShow : int, hiveName : String)
 {	
 	var parts : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashParticles"));
@@ -717,7 +805,7 @@ function OnPlayerLookAt(at : Vector3)
 			
 			
 			gameObject.AddComponent(ControlDisablerDecorator);
-			renderer.enabled = false;
+			GetComponent(BeeScript).Show(false);
 			for(var i = 0; i <transform.childCount; i++)
 			{
 				transform.GetChild(i).gameObject.active = false;
@@ -733,7 +821,7 @@ function OnPlayerLookAt(at : Vector3)
 		{
 			if(NetworkUtils.IsControlledGameObject(gameObject))
 				GetComponent(BeehiveGUI).Show(false);
-			renderer.enabled = true;
+			GetComponent(BeeScript).Show(true);
 			for(i = 0; i <transform.childCount; i++)
 			{
 				transform.GetChild(i).gameObject.active = true;

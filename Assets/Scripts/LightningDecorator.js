@@ -8,7 +8,7 @@ function Awake()
 {
 	gameObject.AddComponent(ControlDisablerDecorator);
 	
-	//renderer.enabled = false;
+
 	collider.enabled = false;
 	//transform.position = m_StrikePos;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
@@ -75,7 +75,7 @@ function Update () {
 		{		
 			//find respawn position;
 			//start animating
-			renderer.enabled = true;
+
 			m_LightningEffect.AddComponent(TrailRenderer);
 			var Trail:TrailRenderer = m_LightningEffect.GetComponent(TrailRenderer);
 			Trail.startWidth = 0;

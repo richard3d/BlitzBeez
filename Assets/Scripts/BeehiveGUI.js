@@ -79,8 +79,8 @@ function OnNetworkInput(IN : InputState)
 	{
 		var m_CurrLevel = GetComponent(BeeScript).m_CurrLevel-1;
 		//GetComponent(BeeControllerScript).m_Stats[m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_StatName] = m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_Value;
-		
-		networkView.RPC("Upgrade", RPCMode.All, m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_StatName,m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_Value);
+		networkView.RPC("Upgrade", RPCMode.All, m_MainSelIndex);
+		//networkView.RPC("Upgrade", RPCMode.All, m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_StatName,m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_Value);
 		
 		if(Network.isServer && m_Fade >= 1)
 			networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
@@ -123,13 +123,19 @@ function OnNetworkInput(IN : InputState)
 	//networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
 }
 
-@RPC function Upgrade(attr:String, val:int)
+@RPC function Upgrade(selIndex:int)
 {
+	var t:Talent = TalentTree.m_Talents[selIndex] as Talent;
+	for(var key:String in t.m_Stats.Keys)
+	{
+		GetComponent(BeeControllerScript).m_Stats[key] = t.m_Stats[key];
+	}
+
 	//if there is a valid sub selection index add 1 to it, to bias it for multiplication with the item index
-	GetComponent(BeeControllerScript).m_Stats[attr] = val;
+	//GetComponent(BeeControllerScript).m_Stats[attr] = val;
 	
-	if(attr == "Max Workers")
-		GetComponent(BeeControllerScript).m_WorkerGenTimer = GetComponent(BeeControllerScript).m_WorkerGenTime;
+	//if(attr == "Max Workers")
+	//	GetComponent(BeeControllerScript).m_WorkerGenTimer = GetComponent(BeeControllerScript).m_WorkerGenTime;
 	
 	GetComponent(BeeScript).m_NumUpgradesAvailable--;
 }
@@ -197,11 +203,12 @@ function OnGUI()
 			//display info for the current selection
 			if(m_MainSelIndex != -1)
 			{	
-				GUI.Label(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_DisplayName, m_GUISkin.label);
-				GUI.Label(Rect(0,Screen.height-32, Screen.width,32), m_LvlUpSelections[m_CurrLevel].m_Selections[m_MainSelIndex].m_Description, m_GUISkin.label);
+				var t:Talent = TalentTree.m_Talents[m_MainSelIndex] as Talent;
+				GUI.Label(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), t.m_Name, m_GUISkin.label);
+				GUI.Label(Rect(0,Screen.height-32, Screen.width,32), t.m_Desc, m_GUISkin.label);
 			}
 			
-			for(var i:int = 0; i < 6; i++)
+			for(var i:int = 0; i < TalentTree.m_Talents.Count; i++)
 			{
 				var offset:Vector3 = Quaternion.AngleAxis(-i*60, Vector3.forward) * Vector3.up;
 				offset *= m_HexOffset;

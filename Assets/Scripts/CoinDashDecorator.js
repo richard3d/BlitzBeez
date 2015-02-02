@@ -48,7 +48,10 @@ function FindCoin(lastCoin:GameObject)
 	var coins :GameObject [] = GameObject.FindGameObjectsWithTag("Coins");
 	for(var coin:GameObject in coins)
 	{
-		if((gameObject.transform.position - coin.transform.position).magnitude < dist && coin != lastCoin && !coin.animation.IsPlaying("GetCoin"))
+		if((gameObject.transform.position - coin.transform.position).magnitude < dist && 
+			coin != lastCoin && 
+			!coin.animation.IsPlaying("GetCoin") && 
+			coin.GetComponent(TerrainCollisionScript).m_OverTerrain)
 		{
 			dist = (gameObject.transform.position - coin.transform.position).magnitude;
 			closestCoin = coin;

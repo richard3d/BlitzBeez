@@ -110,7 +110,7 @@ function OnCollisionEnter(coll : Collision)
 	{
 		if(other.gameObject.tag == "Player" ||
 		/*other.gameObject.tag == "ItemBoxes" ||*/
-		   other.gameObject.tag == "Rocks")
+		   other.gameObject.tag == "Rocks"|| other.gameObject.tag == "Bears")
 		{
 			Debug.Log(other.gameObject .name);
 			m_ImpactTimer = 0.5;

@@ -13,13 +13,14 @@ function Start () {
 		Camera.main.GetComponent(CameraScript).Shake(1.5, 1.5);
 		Camera.main.GetComponent(MotionBlur).enabled = true;
 	}
-	
+	//transform.GetChild(0).GetComponent(MeshFilter).mesh = GetComponent(BeeScript).m_Meshes[1];
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
 	m_LightEffect.animation.Play();
 	//m_LightEffect.transform.localScale = Vector3(12,300,12);
 	GetComponent(BeeControllerScript).m_ControlEnabled = false;
-	gameObject.AddComponent(PauseDecorator);
-	GetComponent(PauseDecorator).m_Lifetime = 99;
+	//gameObject.AddComponent(PauseDecorator);
+	GetComponent(UpdateScript).enabled = false;
+	//GetComponent(PauseDecorator).m_Lifetime = 99;
 	
 	//this one deletes itself the other two (above and below) do not
 	var m_TeleportEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/TeleporterParticles"),transform.position, Quaternion.identity);
@@ -57,7 +58,8 @@ function OnDestroy()
 	//	Destroy(Camera.main.transform.gameObject.GetComponent(MotionBlur));
 	}
 	GetComponent(BeeControllerScript).m_ControlEnabled = true;
-	Destroy(GetComponent(PauseDecorator));
+	//Destroy(GetComponent(PauseDecorator));
+	GetComponent(UpdateScript).enabled = true;
 	Destroy(m_LightEffect);
 	Destroy(m_LightSpot);
 }

@@ -129,22 +129,27 @@ function OnTriggerEnter(other : Collider)
 {
 	if(other.gameObject.tag == "Player")
 	{
+		
 		other.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
 		if(Network.isServer)
 		{
-			//see if there is pollen to give
-			var go = gameObject.Find("/"+gameObject.name+"/Pollen");
-			if(go != null && GetComponentInChildren(BeeParticleScript).m_Owner == other.gameObject)
-			{
-				ServerRPC.Buffer(networkView,"GivePollen", RPCMode.All, other.gameObject.name);
-			}
+			// //see if there is pollen to give
+			// var go = gameObject.Find("/"+gameObject.name+"/Pollen");
+			// if(go != null && GetComponentInChildren(BeeParticleScript).m_Owner == other.gameObject)
+			// {
+				// ServerRPC.Buffer(networkView,"GivePollen", RPCMode.All, other.gameObject.name);
+			// }
 		}
 		
-		if(gameObject.Find(gameObject.name+"/Shield"))
+		if(m_Owner == other.gameObject)
 		{
-			Debug.Log("Here");
-			gameObject.Find(gameObject.name+"/Shield").renderer.enabled = false;
-			gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = false;
+			collider.isTrigger = true;
+			if(gameObject.Find(gameObject.name+"/Shield"))
+			{
+				Debug.Log("Here");
+				gameObject.Find(gameObject.name+"/Shield").renderer.enabled = false;
+				gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = false;
+			}
 		}
 	}
 	else if (other.gameObject.tag == "Explosion" && other.gameObject == m_Owner)
@@ -168,13 +173,14 @@ function OnTriggerEnter(other : Collider)
 function OnBulletCollision(coll:BulletCollision)
 {
 	if(Network.isServer)
-	{
+	{	
 		if(GameObject.Find(gameObject.name+"/Shield")!= null)
 		{
+			
 			//make sure we arent shooting our own bees
 			var bs:BulletScript =coll.bullet.GetComponent(BulletScript);
-			if(bs.m_Owner != m_Owner)
-			{
+			//if(bs.m_Owner != m_Owner)
+			//{
 				//Handle power shot
 				if(bs.m_PowerShot)
 				{
@@ -185,7 +191,7 @@ function OnBulletCollision(coll:BulletCollision)
 				{
 					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-1);					
 				}
-			}
+			//}
 		}
 	}
 }
@@ -226,10 +232,11 @@ function OnTriggerStay(coll : Collider)
 {
 
 	m_HP = hp;
-	if(m_HP <= 0)
+	if(m_HP <= 0 && m_Owner)
 	{
 		//technically we should never be negative, but just in case
 		m_HP = 0;
+		collider.isTrigger = true;
 		AudioSource.PlayClipAtPoint(m_DeathSound, Camera.main.transform.position);
 	
 		//spawn effects
@@ -277,17 +284,20 @@ function OnTriggerStay(coll : Collider)
 	}
 	else
 	{
-		m_LifebarTimer = 2;
-		AudioSource.PlayClipAtPoint(m_HurtSound, Camera.main.transform.position);
-		if(GetComponent(FlasherDecorator) == null)
+		if(gameObject.Find(gameObject.name+"/Shield"))
 		{
-			gameObject.AddComponent(FlasherDecorator);
-			GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
-			GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
-			transform.Find("LightSpot").animation.Stop();
-			transform.Find("LightSpot").animation.Play();
+			m_LifebarTimer = 2;
+			AudioSource.PlayClipAtPoint(m_HurtSound, Camera.main.transform.position);
+			if(GetComponent(FlasherDecorator) == null)
+			{
+				gameObject.AddComponent(FlasherDecorator);
+				GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
+				GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+				transform.Find("LightSpot").animation.Stop();
+				transform.Find("LightSpot").animation.Play();
+			}
+			//GetComponent(FlasherDecorato
 		}
-		//GetComponent(FlasherDecorato
 	}
 	
 }
@@ -296,13 +306,15 @@ function OnTriggerExit(other : Collider)
 {
 	if(other.gameObject.tag == "Player")
 	{
-		
+				
 		other.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
 		if(gameObject.Find(gameObject.name+"/Shield"))
 		{
+			collider.isTrigger = false;
 			gameObject.Find(gameObject.name+"/Shield").renderer.enabled = true;
 			gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
 		}
+		
 		if(NetworkUtils.IsControlledGameObject(other.gameObject))
 		{
 			var txt : GameObject  = gameObject.Find("GUITexture");	

@@ -66,7 +66,8 @@ function OnTriggerEnter(coll : Collider)
 {
 	if(Network.isServer)
 	{
-		if(/*m_Owner != coll.gameObject &&*/ coll.gameObject.tag == "Player" && m_Armed)
+		Debug.Log(coll.gameObject.tag);
+		if(/*m_Owner != coll.gameObject &&*/(coll.gameObject.tag == "Player" || coll.gameObject.tag == "Bears") && m_Armed)
 		{
 			ServerRPC.Buffer(networkView,"TriggerMine", RPCMode.All); 
 			

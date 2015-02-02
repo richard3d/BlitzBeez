@@ -1,0 +1,10 @@
+<!-- Game Conditions -->
+<Talents>
+	<Talent name = "Twin Shot" desc = "Fire Two Stingers at Once" stats = "Loadout:1" />
+	<Talent name = "Lawn Mower" desc = "Increase Fire Rate +1" stats = "Fire_Rate:1" />
+	<Talent name = "HP Up" desc = "Increase Max HP +1" stats = "Health:1" />
+	<Talent name = "Stamina Up" desc = "Increase Stamina +1" stats = "Stamina:1" />
+	<Talent name = "Field Boss" desc = "Increase Max Workers +1" stats = "Max_Workers:1" />
+	<Talent name = "Deep Pockets" desc = "Increase Max Clip Size" stats = "Clip_Size:1" />
+	<Talent name = "Machine Gunner" desc = "Increase Fire Rate +2" stats = "Fire_Rate:2" />
+</Talents>

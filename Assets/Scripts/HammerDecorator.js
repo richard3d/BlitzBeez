@@ -61,7 +61,7 @@ function OnNetworkInput(IN : InputState)
 	}
 	
 	var Updater : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
-		Updater.m_Accel = Vector3(0,0,0);
+		//Updater.m_Accel = Vector3(0,0,0);
 	if(!m_MovementKeyPressed)
 	{
 		
@@ -69,7 +69,7 @@ function OnNetworkInput(IN : InputState)
 		var currSpeed : float = Updater.m_Vel.magnitude;
 		if(currSpeed - 5* Time.deltaTime <= 0)
 		{
-			Updater.m_Vel = Vector3(0,0,0);
+			Updater.m_Vel = Vector3(0,Updater.m_Vel.y,0);
 		}
 		else
 		{
@@ -91,25 +91,25 @@ function OnNetworkInput(IN : InputState)
 	
 	if(IN.GetAction(IN.MOVE_UP))
 	{
-		Updater.m_Vel = m_Forward *m_MovementSpeed;
+		Updater.m_Vel = m_Forward *m_MovementSpeed+Vector3(0,Updater.m_Vel.y,0);
 		m_MovementKeyPressed = true;
 	}
 	else
 	if(IN.GetAction(IN.MOVE_RIGHT))
 	{
-		Updater.m_Vel = m_Right*m_MovementSpeed;
+		Updater.m_Vel = m_Right*m_MovementSpeed+Vector3(0,Updater.m_Vel.y,0);
 		m_MovementKeyPressed = true;
 	}
 	else
 	if(IN.GetAction(IN.MOVE_BACK))
 	{
-		Updater.m_Vel = -m_Forward*m_MovementSpeed;
+		Updater.m_Vel = -m_Forward*m_MovementSpeed+Vector3(0,Updater.m_Vel.y,0);
 		m_MovementKeyPressed = true;
 	}
 	else	
 	if(IN.GetAction(IN.MOVE_LEFT))
 	{
-		Updater.m_Vel = -m_Right*m_MovementSpeed;
+		Updater.m_Vel = -m_Right*m_MovementSpeed+Vector3(0,Updater.m_Vel.y,0);
 		m_MovementKeyPressed = true;
 	}
 	Updater.m_Vel.y = yVel;

@@ -186,7 +186,7 @@ function Update () {
 		for(var i : int = 0; i < GetNumClients(); i++)
 		{
 			//make sure the client doesnt already own a gameobject and make sure the level is loaded for them first too
-			if(m_Clients[i].m_GameObject != null && m_Clients[i].m_LevelLoaded)
+			if(m_Clients[i].m_GameObject != null && m_Clients[i].m_LevelLoaded && m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled )
 			{			
 				Debug.Log("killing input for "+i);
 				m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled = false;

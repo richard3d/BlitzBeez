@@ -58,7 +58,7 @@ function OnCollisionEnter(coll : Collision)
 		{
 			var Comp : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
 			
-			if(coll.gameObject.tag == "Bullets" )
+			if(coll.gameObject.tag == "Bullets" || coll.gameObject.tag == "Explosion")
 			{
 				Explode();
 				return;
@@ -66,8 +66,13 @@ function OnCollisionEnter(coll : Collision)
 			
 			if(Comp.m_Vel.magnitude != 0)
 			{
-				if(coll.gameObject.tag == "Player" && m_Owner != coll.gameObject)
+				if((coll.gameObject.tag == "Player" && m_Owner != coll.gameObject) || 
+					(coll.gameObject.tag == "Flowers" && coll.gameObject.GetComponent(FlowerScript).m_Owner != m_Owner) || 
+					coll.gameObject.tag == "Bears" ||
+					coll.gameObject.tag == "Rocks" || 
+					coll.gameObject.tag == "Trees")
 				{
+					
 					Explode();
 					//coll.gameObject.networkView.RPC("Daze", RPCMode.All, false);
 				}
@@ -82,6 +87,16 @@ function OnCollisionEnter(coll : Collision)
 				}
 			}
 		}
+	}
+}
+
+
+function OnBulletCollision(coll:BulletCollision)
+{
+	if(Network.isServer)
+	{	
+		Explode();
+		return;
 	}
 }
 
@@ -115,6 +130,7 @@ function Explode()
 {
 	if(Network.isServer)
 	{
+	
 		ServerRPC.Buffer(networkView, "KillBomb", RPCMode.All);
 		ServerRPC.DeleteFromBuffer(gameObject);
 	}

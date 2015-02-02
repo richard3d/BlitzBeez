@@ -48,6 +48,20 @@ function Update () {
 				ServerRPC.Buffer(networkView, "RespawnRock", RPCMode.All);
 			}			
 		}
+		
+		if(animation.isPlaying)
+		{
+			var players :GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+			for(var go:GameObject in players)
+			{
+				if(renderer.bounds.Intersects(go.renderer.bounds))
+				{
+					var diff:Vector3 = go.transform.position - transform.position;
+					diff.y = 0;
+					go.transform.position += diff.normalized;
+				}
+			}
+		}
 	}
 }
 

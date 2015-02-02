@@ -4,6 +4,7 @@
 var m_MaxSpeed : float = 1;
 var m_MaxAccel : float = 1;
 var m_PrevPos:Vector3;
+var m_AngVel : Vector3;
 var m_Vel : Vector3;
 var m_Accel : Vector3;
 var m_Drag : float = 0;
@@ -105,7 +106,8 @@ function Update () {
 	else
 		transform.position += m_Vel * delta;
 	
-
+	if(m_AngVel != Vector3.zero)
+		transform.Rotate(m_AngVel * delta);
 	// if(NetworkUtils.IsControlledGameObject(gameObject))
 	// {		
 		// m_UpdateCount++;
@@ -315,4 +317,9 @@ function MakeNetLive(pos : Vector3, rot : Quaternion, vel : Vector3)
 
 	if(GetComponents(NetworkView).length > 1)
 		DestroyImmediate(GetComponents(NetworkView)[1]);
+}
+
+@RPC function RemoveComponent(compName:String)
+{
+	DestroyImmediate(GetComponent(compName));
 }

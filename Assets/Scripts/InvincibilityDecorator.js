@@ -28,6 +28,7 @@ function Update () {
 	m_Lifetime -= Time.deltaTime;
 	if(m_Lifetime < 0)
 	{
+		if(m_Blink)
 			renderer.enabled  = true;
 		
 			Destroy(this);
@@ -38,5 +39,6 @@ function Update () {
 function OnDestroy()
 {
 	Debug.Log("Showing");
-	renderer.enabled  = true;
+	if(m_Blink)
+		renderer.enabled  = true;
 }

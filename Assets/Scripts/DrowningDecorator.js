@@ -8,11 +8,11 @@ function Awake()
 	m_Lifetime = 2.0;
 	
 	
-	renderer.enabled = true;
+	GetComponent(BeeScript).Show(false);
 	collider.enabled = false;
 	
 	//GetComponentInChildren(Projector).enabled = false;
-	GetComponentInChildren(ParticleRenderer).enabled = false;
+	//GetComponentInChildren(ParticleRenderer).enabled = false;
 }
 
 function Start () {
@@ -20,7 +20,7 @@ function Start () {
 	gameObject.AddComponent(ControlDisablerDecorator);
 	 if(GetComponent(ItemDecorator) != null)
 	 {	//GetComponent(ItemDecorator).m_ThrowVelocityScalar = 1;
-		 GetComponent(ItemDecorator).ThrowItem();
+		Destroy(GetComponent(ItemDecorator).GetItem());
 		 Destroy(GetComponent(ItemDecorator));
 	 }
 	 
@@ -29,7 +29,7 @@ function Start () {
 		 Destroy(GetComponent(HammerDecorator));
 	 }
 		
-	var go:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/WaterRippleParticles"));
+	var go:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/SplashParticles"));
 	go.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point;
 	m_WaterHeight = go.transform.position.y;
 	//go.transform.position.y = 1;
@@ -48,9 +48,9 @@ function Update () {
 	{
 		m_Lifetime -= Time.deltaTime;
 		//gameObject.GetComponent(BeeScript).enabled = false;
-		transform.position = Vector3(transform.position.x, Mathf.Lerp(transform.position.y, m_WaterHeight, 1-m_Lifetime/1.5), transform.position.z);
+		//transform.position = Vector3(transform.position.x, Mathf.Lerp(transform.position.y, m_WaterHeight, 1-m_Lifetime/1.5), transform.position.z);
 		if(Mathf.Abs(transform.position.y - m_WaterHeight) < 1)
-			renderer.enabled = false;
+			GetComponent(BeeScript).Show(false);
 		//transform.localScale = Vector3(Mathf.Lerp(transform.localScale.x, 0, 1-m_Lifetime/1.5), Mathf.Lerp(transform.localScale.y, 0, 1-m_Lifetime/1.5), Mathf.Lerp(transform.localScale.z, 0, 1-m_Lifetime/1.5));
 		if(m_Lifetime <= 0.0)
 		{		

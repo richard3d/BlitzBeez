@@ -5,7 +5,7 @@ class Inventory
 	var m_Img : Texture2D = null;
 	var m_Item : GameObject = null;	 
 }
-
+var m_Meshes:Mesh[] = null;
 var m_SwarmInstance : GameObject = null;
 var m_WorkerBeeInstance : GameObject = null;
 var m_DeathEffect : GameObject = null;
@@ -102,7 +102,7 @@ function GetCurrentLevel() : int
 	return -1;
 }
 
-function Update () {
+function Update() {
 	rigidbody.velocity = Vector3(0,0,0);
 	var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
 	var coll= Terr.m_TerrainInfo.collider;
@@ -115,6 +115,7 @@ function Update () {
 	else
 	{
 		//Debug.Log("ground");
+		//this may be an issue setting accel to zero
 		//GetComponent(UpdateScript).m_Accel.y = 0;
 		GetComponent(UpdateScript).m_Vel.y = 0;
 	}
@@ -140,11 +141,11 @@ function Update () {
 			// //m_Bounce = true;
 		// }
 		
-		if(coll != null && coll.gameObject.tag == "Water" && GetComponent(DrowningDecorator) == null)
-		{
-			var offset:Vector3 = Vector3.zero;//(coll.gameObject.transform.position -  transform.position).normalized*coll.gameObject.transform.localScale.magnitude*4 ;
-			ServerRPC.Buffer(gameObject.networkView, "Drown", RPCMode.All,offset);
-		}
+		//if(coll != null && coll.gameObject.tag == "Water" && GetComponent(DrowningDecorator) == null)
+		//{
+			//var offset:Vector3 = Vector3.zero;//(coll.gameObject.transform.position -  transform.position).normalized*coll.gameObject.transform.localScale.magnitude*4 ;
+			//ServerRPC.Buffer(gameObject.networkView, "Drown", RPCMode.All,offset);
+		//}
 		// if(m_Bounce)
 		// {
 			// transform.position.y = m_GroundPosition.y + 6 + (Mathf.Sin(Time.time*26)+2)*0.5;
@@ -546,7 +547,7 @@ function DrawGUI()
 		GUI.DrawTexture(Rect(relPos.x - 45 ,92, 32, 32), BeeTexture, ScaleMode.StretchToFill, true);
 		GUI.color = Color.white;
 		GUI.DrawTexture(Rect(relPos.x - 45 ,92, 32, 32), BeeWingsTexture, ScaleMode.StretchToFill, true);
-		var maxWorkers:int =GetComponent(BeeControllerScript).m_Stats["Max Workers"];
+		var maxWorkers:int =GetComponent(BeeControllerScript).m_Stats["Max_Workers"];
 		maxWorkers+=1;
 		GUI.Label(Rect(relPos.x,95,256,48), m_WorkerBees+" / "+(m_MaxWorkerBees+maxWorkers),SmallFontStyle);
 		
@@ -668,26 +669,89 @@ function DrawGUI()
 		}
 		
 		//draw ammo amount and reload bar
-		GUI.DrawTexture(Rect(Screen.width - 265, Screen.height - 60, 32,32), AmmoIconTexture, ScaleMode.ScaleToFit, true);
+		//ammo icon
+		
 		var ammo : int = 0;
 		if(GetComponentInChildren(ParticleEmitter) != null)
 			ammo  = GetComponentInChildren(ParticleEmitter).particleCount;
 		if(GetComponent(BeeControllerScript) != null && GetComponent(BeeControllerScript).m_ReloadTimer > 0)
+		{
 			ammo = 0;
+			var reloadSpeed :float = GetComponent(BeeControllerScript).m_Stats["Reload_Speed"];
+			var base : float = GetComponent(BeeControllerScript).m_LoadOut.m_BaseReloadSpeed;
+			reloadSpeed = base -  ((reloadSpeed+1.0) /4.0)*base;
+			var ReloadPerc : float = GetComponent(BeeControllerScript).m_ReloadTimer/reloadSpeed;
 			
-		GUI.Label(Rect(Screen.width - 235, Screen.height - 65, 132,132), (ammo < 10 ? "0" +ammo.ToString() : ammo.ToString()), FontStyle);
-		var reloadSpeed :float = GetComponent(BeeControllerScript).m_Stats["Reload Speed"];
-		var base : float = GetComponent(BeeControllerScript).m_LoadOut.m_BaseReloadSpeed;
+			//fast reload bar
+			// GUI.DrawTexture(Rect(Screen.width - 255, Screen.height - 20, 15,12), HiveBarTexture, ScaleMode.StretchToFill, true);
+			// //draw reload bar background
+			// GUI.DrawTexture(Rect(Screen.width - 275, Screen.height - 20, 90,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+			// //current reload percent
+			// GUI.DrawTexture(Rect(Screen.width - 275, Screen.height - 20, 90*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+			pos = Vector2(Screen.width - 255, Screen.height - 73);
+			width = 32;
+			GUI.DrawTexture(Rect(pos.x- width*0.5,pos.y- width*0.5 , width, width),ClockBGTexture);
+			GUIUtility.RotateAroundPivot (-ReloadPerc*359,  Vector2(pos.x, pos.y)); 
+			GUI.DrawTexture(Rect(pos.x- width*0.5 ,pos.y - width*0.5, width, width), ClockHandTexture);
+			GUIUtility.RotateAroundPivot (ReloadPerc*359,  Vector2(pos.x, pos.y));
+		}
+		else
+		GUI.DrawTexture(Rect(Screen.width - 265, Screen.height - 90, 32,32), AmmoIconTexture, ScaleMode.ScaleToFit, true);
+		//ammo count 
+		if(ammo == 0)
+			GUI.Label(Rect(Screen.width - 235, Screen.height - 95, 132,132), "--", FontStyle);
+		else
+			GUI.Label(Rect(Screen.width - 235, Screen.height - 95, 132,132), (ammo < 10 ? "0" +ammo.ToString() : ammo.ToString()), FontStyle);
+		
+		
+		
+		
+		
+		reloadSpeed = GetComponent(BeeControllerScript).m_Stats["Powershot_Reload"];
+		base  = 1.5;
 		reloadSpeed = base -  ((reloadSpeed+1.0) /4.0)*base;
-		var ReloadPerc : float = GetComponent(BeeControllerScript).m_ReloadTimer/reloadSpeed;
+		ReloadPerc = GetComponent(BeeControllerScript).m_PowershotReloadTimer/reloadSpeed;
 		
-		//fast reload bar
-		GUI.DrawTexture(Rect(Screen.width - 255, Screen.height - 20, 15,12), HiveBarTexture, ScaleMode.StretchToFill, true);
-		//draw reload bar background
-		GUI.DrawTexture(Rect(Screen.width - 275, Screen.height - 20, 90,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
-		//current reload percent
-		GUI.DrawTexture(Rect(Screen.width - 275, Screen.height - 20, 90*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+		//powershot icon
 		
+		GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+		if(GameObject.Find(gameObject.name+"/PowerShotEffect"))
+		{
+			GUI.color = Color(1,1,1,Mathf.Sin(Time.time * 48) > 0 ? 1:0 );
+			//powershot meter
+			GUI.Label(Rect(Screen.width - 277, Screen.height - 60, 132,132), "p", SmallFontStyle);
+			GUI.color = Color.white;
+			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			
+		}
+		else
+		{
+			GUI.Label(Rect(Screen.width - 277, Screen.height - 60, 132,132), "p", SmallFontStyle);
+			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			
+		}
+		
+		var numDashes:int = GetComponent(BeeControllerScript).m_NumDashes;
+		//stamina icon
+		GUI.Label(Rect(Screen.width - 277, Screen.height - 38, 132,132), "s", SmallFontStyle);
+		for(i = 0; i < 3; i++)
+		{
+		
+			//stamina meter
+			GUI.DrawTexture(Rect(Screen.width - 257 + i*(25), Screen.height - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+			//stamina meter
+			//GUI.DrawTexture(Rect(Screen.width - 257 + i*(25), Screen.height - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+		}		
+		for(i = 0; i < numDashes; i++)
+		{
+			
+			//stamina meter
+			GUI.DrawTexture(Rect(Screen.width - 257 + i*(25), Screen.height - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+			//stamina meter
+			GUI.DrawTexture(Rect(Screen.width - 257 + i*(25), Screen.height - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+		}		
 		
 		
 		
@@ -699,6 +763,25 @@ function DrawGUI()
 			money += "0";
 		
 		GUI.Label(Rect(Screen.width - 135, Screen.height - 135, 132,132), "$"+money+m_Money, FontStyle);
+	}
+}
+
+function Show(show:boolean)
+{
+	//var renderers:Renderer[] = GetComponentsInChildren(Renderer) as Renderer[];
+	if(!show)
+	{
+		for(var child:Transform in transform)
+		{
+			child.gameObject.renderer.enabled = false;
+		}
+	}
+	else
+	{
+		for(var child:Transform in transform)
+		{
+			child.gameObject.renderer.enabled = true;
+		}
 	}
 }
 
@@ -739,19 +822,31 @@ function OnControllerColliderHit (hit : ControllerColliderHit) {
 	 {
 		if(GetComponent(BeeDashDecorator) != null &&
 		hit.collider.gameObject.tag == "Trees")
-	{
-		Debug.Log("DASHING");
-		 Destroy(GetComponent(BeeDashDecorator));
-		 Camera.main.GetComponent(CameraScript).Shake(0.25,1.5);
-		 GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-		 var norm:Vector3 = (transform.position - hit.collider.transform.position);
-		 norm.y = 0;
-		 GetComponent(UpdateScript).m_Vel = Vector3.Reflect( GetComponent(UpdateScript).m_Vel, norm.normalized) ;
-		 //gameObject.AddComponent(ControlDisablerDecorator);
-		// GetComponent(ControlDisablerDecorator).SetLifetime(0.25);
-		
-		
-	}
+		{
+			var vel:Vector3 =  GetComponent(UpdateScript).m_Vel;
+			var norm:Vector3 = (transform.position - hit.collider.transform.position);
+			norm.y = 0;
+			
+			if(Vector3.Dot(vel.normalized, hit.normal) < -0.7)
+			{			
+			 Destroy(GetComponent(BeeDashDecorator));
+			 Camera.main.GetComponent(CameraScript).Shake(0.25,1.5);
+			 GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+			
+			 GetComponent(UpdateScript).m_Vel = Vector3.Reflect( GetComponent(UpdateScript).m_Vel, norm.normalized) ;
+		//	 gameObject.AddComponent(ControlDisablerDecorator);
+		//	GetComponent(ControlDisablerDecorator).SetLifetime(0.25);
+			}
+			
+		}
+		else if(hit.collider.gameObject.tag == "Bears")
+		{
+				
+		}
+		else if(hit.collider.gameObject.name == "BearAttackParticles(Clone)")
+		{
+				Debug.Log("Thanks");
+		}
 		// if(hit.gameObject.tag == "Bullets" && gameObject.GetComponent(InvincibilityDecorator) == null)
 		// {	Debug.Log("yowza");
 			// if(GetComponent(BeeDashDecorator) != null)
@@ -939,7 +1034,21 @@ function OnTriggerEnter(other:Collider)
 		
 		else if(other.gameObject.tag == "Explosion" && other.gameObject.GetComponent(BombExplosionScript).m_Owner != gameObject)
 		{
+			Debug.Log("Why");
 			KillAndRespawn(true);
+		}
+		else if(other.gameObject.tag == "Bears" && other.gameObject.GetComponentInChildren(BearScript).m_RageTimer > 0)
+		{
+			KillAndRespawn(true);
+		}
+		else if(other.gameObject.name == "BearAttackParticles(Clone)" )
+		{
+			KillAndRespawn(true);
+		}
+		else
+		if(other.gameObject.tag == "Water")
+		{
+			ServerRPC.Buffer(gameObject.networkView, "Drown", RPCMode.All,Vector3.up);	
 		}
 	}
 }
@@ -1112,42 +1221,6 @@ function CalculateRank() : int
 	m_Money = 0;
 	m_CurrXP = 0;
 	Debug.Log("Respawning");
-	// var gb : GameObject = gameObject.Instantiate(m_HitEffect);
-	// gb.transform.position = transform.position;
-	// gb.transform.localScale = Vector3(10.1, 10.1, 10.1);
-	// var ps : ParticleSystem = gb.GetComponent(ParticleSystem) as ParticleSystem;
-	// gb.renderer.material.SetColor("_TintColor", renderer.material.color);
-	// ps.startSize = 16;
-
-	// ps = gb.transform.Find("GrenadeInnerExplosion").GetComponent(ParticleSystem) as ParticleSystem;
-	// ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
-	// ps.startSize = 10;
-	// ps = gb.transform.Find("GrenadeRing").GetComponent(ParticleSystem) as ParticleSystem;
-	// //ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
-	// ps.startSize = 30;
-	
-	// var go : GameObject = gameObject.Instantiate(m_DeathEffect);
-	// go.transform.position = transform.position;
-	// go.renderer.material.color = renderer.material.color;
-	
-	// var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
-	// splatter.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*01;
-	// splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
-	// splatter.renderer.material.color = renderer.material.color;
-	
-	// if(GetComponent(InvincibilityDecorator) != null)
-		// gameObject.DestroyImmediate(gameObject.GetComponent(InvincibilityDecorator));
-	// if(GetComponent(DizzyDecorator) != null)
-		// gameObject.Destroy(gameObject.GetComponent(DizzyDecorator));
-	
-	// if(GetComponent(ItemDecorator) != null)
-	// {
-		// //gameObject.Destroy(GetComponent(ItemDecorator).GetItem());
-		// GetComponent(ItemDecorator).ThrowItem();
-		// Destroy(GetComponent(ItemDecorator));
-	// }
-	
-	
 	
 	gameObject.AddComponent(RespawnDecorator);
 	GetComponent(RespawnDecorator).SetLifetime(3);
@@ -1217,7 +1290,7 @@ function CalculateRank() : int
 
 @RPC function GenerateWorkerBee()
 {
-	var maxBees:int = GetComponent(BeeControllerScript).m_Stats["Max Workers"];
+	var maxBees:int = GetComponent(BeeControllerScript).m_Stats["Max_Workers"];
 	maxBees = m_MaxWorkerBees + maxBees+1;
 	if(maxBees > m_WorkerBees)
 	{
@@ -1356,7 +1429,6 @@ function CalculateRank() : int
 		go.transform.position = transform.position + offset;
 		go.transform.parent = transform;
 		go.name = "Swarm"+gameObject.name;
-		//go.renderer.material.SetColor("_TintColor", renderer.material.color);
 	}
 	go.GetComponent(BeeParticleScript).SetNumParticles(numBees);
 } 
@@ -1388,10 +1460,7 @@ function CalculateRank() : int
 	}
 }
 
-@RPC function RemoveComponent(compName:String)
-{
-	DestroyImmediate(GetComponent(compName));
-}
+
 
 
 
@@ -1443,7 +1512,7 @@ function CalculateRank() : int
 {
 	GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" went for a swim");
 	gameObject.AddComponent(DrowningDecorator);		
-	transform.position -= offset;
+	//transform.position -= offset;
 }
 
 @RPC function CreateHive(pos:Vector3)

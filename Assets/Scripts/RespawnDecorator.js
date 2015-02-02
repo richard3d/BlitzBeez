@@ -6,7 +6,7 @@ function Awake()
 {
 	gameObject.AddComponent(ControlDisablerDecorator);
 	
-	renderer.enabled = false;
+	GetComponent(BeeScript).Show(false);
 	collider.enabled = false;
 	GetComponentInChildren(TrailRenderer).enabled = false;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
@@ -30,7 +30,7 @@ function Update () {
 		{		
 			//find respawn position;
 			//start animating
-			renderer.enabled = true;
+			GetComponent(BeeScript).Show(true);
 			AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_RespawnSound, Camera.main.transform.position);
 		}
 	}
@@ -77,7 +77,7 @@ function OnDestroy()
 	collider.enabled = true;
 	gameObject.transform.localScale = Vector3(2,2,2);
 	//gameObject.animation.Play("SpawnPlayer");
-	renderer.enabled = true;
+	GetComponent(BeeScript).Show(true);
 	Destroy(GetComponent(ControlDisablerDecorator));
 	GetComponent(BeeScript).enabled = true;
 	GetComponent(TrailRenderer).enabled = false;

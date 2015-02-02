@@ -28,7 +28,7 @@ function Start()
 	}	
 	else
 	{
-		renderer.enabled = false;
+		GetComponent(BeeScript).Show(false);
 		m_TeleTime = 0.1;
 	}
 	
@@ -73,10 +73,10 @@ function Update () {
 		{
 			
 			gameObject.AddComponent(ControlDisablerDecorator);
-			renderer.enabled = false;
+			GetComponent(BeeScript).Show(false);
 			collider.enabled = false;
 			GetComponentInChildren(TrailRenderer).enabled = false;
-			GetComponentInChildren(ParticleRenderer).enabled = false;
+			
 			var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/PickupEffect"),transform.position,Quaternion.identity);
 			go.GetComponent(ParticleSystem).startSize = 8;
 			if(NetworkUtils.IsControlledGameObject(gameObject) && m_ReturnToBase)
@@ -109,7 +109,7 @@ function Update () {
 		{		
 			//find respawn position;
 			//start animating
-			renderer.enabled = true;
+			GetComponent(BeeScript).Show(true);
 			
 			
 		}
