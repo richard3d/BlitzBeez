@@ -34,7 +34,7 @@ function Start () {
 	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
-		m_Pedestal.audio.Play();
+		//m_Pedestal.audio.Play();
 		Camera.main.animation["CameraLessDramaticZoom"].speed = 1;
 		Camera.main.animation.Play("CameraLessDramaticZoom");
 	}
@@ -154,7 +154,7 @@ function Update () {
 function OnDestroy()
 {
 	Destroy(m_ShieldEffect);
-	m_Pedestal.audio.Stop();
+//	m_Pedestal.audio.Stop();
 	GetComponent(BeeControllerScript).m_MoveEnabled = true;
 	GetComponent(BeeControllerScript).m_LookEnabled = true;
 	GetComponent(BeeControllerScript).m_AttackEnabled = true;

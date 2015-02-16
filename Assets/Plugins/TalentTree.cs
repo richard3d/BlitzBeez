@@ -48,6 +48,12 @@ public class TalentTree : MonoBehaviour {
 			return;
 		}
 		
+		if(xmlNode.NodeType == XmlNodeType.Comment)
+		{
+			IterateTalents(xmlNode.NextSibling, talents);
+			return;
+		}
+		
 		
 		Talent t = new Talent();
 		

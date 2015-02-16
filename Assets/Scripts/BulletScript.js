@@ -1,13 +1,16 @@
 #pragma strict
 
 private static var m_InstanceID : int = 0;
-private var m_Life : float = 1.25;
+var m_Life : float = 1.25;
 var m_HitEffect : GameObject = null;
 var m_BombExplosion:GameObject = null; 
 var m_HitSoundEffect : AudioClip = null;
 
 var m_MuzzleEffect : GameObject = null;
-var m_LaserEffect : GameObject = null;
+var m_AttachMuzzleEffect:boolean = true;	//determines if the muzzle effect exists in local (to the player) or world space
+var m_PowershotEffect:GameObject = null;
+
+private var m_LaserEffect : GameObject = null;
 var m_PowerShot : boolean = false;
 var m_BulletType : int = -1;
 var m_PowerShotType : int = -1;
@@ -49,6 +52,7 @@ function Start () {
 			size = system.startSize;
 		}
 		
+		//create laser effect if we are a lasershot
 		if(m_PowerShotType == 0)
 		{
 			m_LaserEffect = GameObject.Instantiate(Resources.Load("GameObjects/LaserBeam"), transform.position, transform.rotation);
@@ -74,13 +78,16 @@ function Start () {
 	if(m_Owner)
 	{
 		go.transform.position =  m_Owner.transform.position+ m_Owner.transform.forward *size;
-		go.transform.parent = m_Owner.transform;
+		go.transform.LookAt(m_Owner.transform.position+ m_Owner.transform.forward *size*2);
+		if(m_AttachMuzzleEffect)
+			go.transform.parent = m_Owner.transform;
 		transform.position.y = m_Owner.transform.position.y;
 		
 		
 		if(Network.isServer)
 		{
 			var up : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
+			up.m_PrevPos = transform.position;
 			var radius = (transform.localScale.x * GetComponent(SphereCollider).radius);
 			if(Physics.Linecast(m_Owner.transform.position,transform.position+up.m_Vel.normalized * radius,hit))
 			{
@@ -107,6 +114,8 @@ function Start () {
 		}
 	}
 	
+	
+	//Pick a target for homing bullets
 	if(m_BulletType == 2)
 	{
 		var accuracy:float = -1;
@@ -144,6 +153,10 @@ function Update () {
 	{
 		//(transform.position+up.m_Vel.normalized * renderer.bounds.extents.x - up.m_PrevPos).magnitude
 		var dist = (transform.position - up.m_PrevPos).magnitude;
+		if(dist == 0.0)
+		{
+			dist = up.m_Vel.magnitude*Time.deltaTime;
+		}
 		var radius = transform.localScale.x * GetComponent(SphereCollider).radius;
 		var hits:RaycastHit[];
 		hits = Physics.SphereCastAll(up.m_PrevPos,radius,up.m_Vel.normalized, dist);
@@ -194,7 +207,7 @@ function Update () {
 				break;
 		}
 	
-		//homing round
+		//homing round seeking
 		if(m_BulletType == 2)
 		{
 			if(m_Tgt != null)
@@ -208,6 +221,7 @@ function Update () {
 						var homing :float = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.15;
 						
 						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+						transform.LookAt(transform.position+up.m_Vel);
 						//up.m_Vel += diff.normalized * homing ;
 					}
 				}
@@ -216,6 +230,7 @@ function Update () {
 						diff = m_Tgt.transform.position - transform.position+Vector3(0,10,0);
 						homing = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.15;
 						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+						transform.LookAt(transform.position+up.m_Vel);
 						//up.m_Vel += diff.normalized * homing ;
 				}
 			}
@@ -278,13 +293,20 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 						if(m_LaserEffect != null)
 						{
 							//Debug.Log("SHORTENING");
+							var diff:Vector3 = (coll.hit.point - transform.position);
+							diff = Vector3.Project(diff, GetComponent(UpdateScript).m_Vel.normalized);
 							var length:float = (coll.hit.point - transform.position).magnitude;
 							m_LaserEffect.GetComponent(LaserBeamScript).m_EndScale.y = length*2;
 							m_LaserEffect.GetComponent(LaserBeamScript).m_StartScale.y = length*2;	
 						}
+						var pos = transform.position;
 						transform.position = coll.hit.point;
-						RemoveBullet(coll.hit.point);
+						RemoveBullet(pos+diff);
 						return true;
+				   }
+				   else
+				   {
+						ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, coll.hit.point);
 				   }
 			break;
 			case 2:
@@ -311,7 +333,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 							rot = Quaternion.identity;
 						}
 						refVel = rot*refNorm;
-						var go : GameObject  = Network.Instantiate(m_Owner.GetComponent(BeeControllerScript).m_BulletInstance, transform.position + refVel * 2, Quaternion.LookRotation(refVel, Vector3.up), 0);	
+						var go : GameObject  = Network.Instantiate(Resources.Load("GameObjects/FletchetBullet"), transform.position + refVel * 2, Quaternion.LookRotation(refVel, Vector3.up), 0);	
 						go.GetComponent(BulletScript).m_BulletType = 0;
 						m_Owner.networkView.RPC("Shot", RPCMode.All, go.name, go.transform.position+ refVel * 2, refVel * go.GetComponent(UpdateScript).m_MaxSpeed*Random.Range(0.6,1), false);
 					}
@@ -320,15 +342,30 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 				}
 				return true;
 			break;
+				//bulldozer powerbullet
 				case 3:
-				if( tag == "Player" || tag == "Rocks" || tag == "Terrain" || tag == "Trees" || tag == "ItemBoxes" ||  
-				   (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner)||
-				  (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner != m_Owner))
+				//these are objects we doze (pass through) and trigger a response out of (like destroying a rock)
+				if( tag == "Player" || tag == "Rocks"  || tag == "ItemBoxes")
 				{
-					m_PowerShotType = 0;
-					ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
-					gameObject.AddComponent(PauseDecorator);
-					GetComponent(PauseDecorator).m_Lifetime = 0.12;
+					ServerRPC.Buffer(networkView, "BulletHitOriented", RPCMode.All, transform.position+transform.forward * transform.localScale.x, GetComponent(UpdateScript).m_Vel.normalized);
+					if(GetComponent(PauseDecorator) == null)
+					{
+						gameObject.AddComponent(PauseDecorator);
+						GetComponent(PauseDecorator).m_Lifetime = 0.12;
+					}
+					return false;
+				}
+				//items we pass through but do not trigger any response
+				else if(tag =="Coins" || tag == "Items" 
+						|| (tag == "Flowers" && (other.GetComponent(FlowerScript).m_Owner == null || other.GetComponent(FlowerScript).m_Owner == m_Owner))
+						|| (tag == "Hives" && (other.GetComponent(HiveScript).m_Owner == null || other.GetComponent(HiveScript).m_Owner == m_Owner)))
+				{
+				}
+				//solid items we should not pass through at all
+				else 
+				{
+					RemoveBulletOriented(coll.hit.point, coll.hit.normal);
+					return true;
 				}
 			break;
 			default:
@@ -356,6 +393,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 				m_BulletType = -1;
 				refVel.Normalize();
 				GetComponent(UpdateScript).m_Vel = refVel*GetComponent(UpdateScript).m_MaxSpeed;
+				transform.LookAt(transform.position + GetComponent(UpdateScript).m_Vel);
 				ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
 			break;
 			//penetration
@@ -382,6 +420,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 					return true;
 				}
 			break;
+			
 			default:
 				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||  tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
 				  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
@@ -396,285 +435,19 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 	return false;
 }
 
-function OnCollisionStay(other : Collision)
+
+
+
+@RPC function BulletHitOriented(pos:Vector3, norm:Vector3)
 {
-	if(Network.isClient)
-		return;
-		
-	if(other.gameObject.tag != "Bullets" && other.gameObject != m_Owner)
-	{
-		// Debug.Log(other.gameObject.name);
-		// if(other.gameObject.tag == "Terrain")
-		// {
-			// //if the normal is straight up and there is only one contact (we hit parallel surface to floor which we dont care about)
-			// //OR
-			// if((Vector3.Dot(other.contacts[0].normal, Vector3.up) > 0.98 && other.contacts.length == 1) || Mathf.Abs(other.contacts[0].point.y - transform.position.y) > 1)
-			// {
-				 // Debug.Log("Collision SKIP "+other.contacts[0].normal+" "+ other.contacts.length);
-					// return;
-			// }
-			// //OnTerrainCollision(transform.position+transform.forward * transform.localScale.x, other.contacts[0].normal);
-		   // Debug.Log("Collision sty removal");
-		   // RemoveBullet(transform.position);
-		// }
-	}
-}
-
-
-function OnCollisionEnter(other : Collision)
-{
-	// if(Network.isClient)
-		// return;
-		
-	// if(other.gameObject.tag != "Bullets" && other.gameObject != m_Owner)
-	// {
-		// //GetComponent(UpdateScript).m_Vel = refVel;
-		// if(other.gameObject.tag == "Terrain")	
-			// return;
-		
-		// if(other.gameObject.name == "FlowerShield" && other.gameObject.GetComponent(FlowerShieldScript).m_Owner == m_Owner)
-			// return;
-		
-		// Debug.Log("Bullet Standard Collision");
-		
-		// if(m_PowerShot)
-		// {
-			// switch (m_PowerShotType)
-			// {
-				// //default
-				// //bulldozer
-				// case 0:
-					// Debug.Log("removing");
-					// RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-					// break;
-				// //standard (-1) explosive (1) scatter(2)
-				 // case 2:
-					 // var refNorm : Vector3 = other.contacts[0].normal;//transform.position - other.transform.position;
-					// // refNorm.y = 0;
-					// // refNorm.Normalize();
-					 // var refVel : Vector3 = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
-					// // refVel.y = 0;
-					// // refVel.Normalize();
-					// // GetComponent(UpdateScript).m_Vel = refVel;
-					// // //creates splinter bullet
-					// // m_PowerShotType = -1; 
-					// // for(var i = 0 ; i < 5; i++)
-					// // {
-						// // var rot :Quaternion = Quaternion.AngleAxis((i) * 15,Vector3.up); 
-						// // if( i == 0)
-						// // {
-							// // rot = Quaternion.identity;
-						// // }
-						// // refVel = rot*refNorm;
-						// // Debug.Log(refVel);
-						// // var go : GameObject  = Network.Instantiate(m_Owner.GetComponent(BeeControllerScript).m_BulletInstance, transform.position + refVel * 2, Quaternion.LookRotation(refVel, Vector3.up), 0);	
-						// // m_Owner.networkView.RPC("Shot", RPCMode.All, go.name, go.transform.position+ refVel * 2, refVel * go.GetComponent(UpdateScript).m_MaxSpeed);
-					// // }
-					
-					// // RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-					
-				 // break;
-				// default: 
-					
-					// RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-					
-				// break;
-			// }
-		// }
-		// else
-		// {
-			// switch (m_BulletType)
-			// {
-				// //ricochet type
-				// case 0: 
-					// refNorm = other.contacts[0].normal;
-					// refNorm.y = 0;
-					// refNorm.Normalize();
-					// refVel = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
-					// refVel.y = 0;
-					// m_BulletType = -1;
-					// refVel.Normalize();
-					// GetComponent(UpdateScript).m_Vel = refVel*GetComponent(UpdateScript).m_MaxSpeed;
-					// ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
-				// break;
-				// //penetration
-				// case 1:
-					// if(other.gameObject.GetComponent(PenetrableScript) != null)
-					// {
-						// var sum = Dice.RollDice(1, 6);
-						// if(sum/6.0 > (1-other.gameObject.GetComponent(PenetrableScript).m_PercentChanceOfPenetration))
-						// {
-							// //m_BulletType = -1;
-							// ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
-						// }
-						// else
-						// {
-							
-							// RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-						
-						// }
-					// }
-					// else
-					// {
-						
-						// RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-					
-					// }
-				// break;
-				// default:
-					
-					// RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-					
-				// break;
-			// }
-			// //ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
-			// //ServerRPC.DeleteFromBuffer(gameObject);
-		// }
-		
-	// }
-}
-
-
-function OnTerrainCollision(point:Vector3, normal:Vector3)
-{
-	if(Network.isClient)
-		return;
-
-//	Debug.Log(normal);
-	if(Vector3.Dot(normal, Vector3.up) > 0.98 )
-		return;
-				
-		
+	var go : GameObject = gameObject.Instantiate(m_HitEffect);
+	go.transform.position = pos;
+	go.transform.LookAt(pos+norm);
 	if(m_PowerShot)
 	{
-		switch (m_PowerShotType)
-		{
-			//default
-			//bulldozer
-			case 0:
-				RemoveBullet(point);
-				//m_PowerShotType-=2; 
-				//ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, point);
-				break;
-			//standard (-1) explosive (1) scatter(2)
-			case 2:
-				var refNorm : Vector3 = normal;//transform.position - other.transform.position;
-				refNorm.y = 0;
-				refNorm.Normalize();
-				var refVel : Vector3 = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
-				refVel.y = 0;
-				refVel.Normalize();
-				GetComponent(UpdateScript).m_Vel = refVel;
-				//creates splinter bullet
-				m_PowerShotType = -1; 
-				for(var i = 0 ; i < 5; i++)
-				{
-					var rot :Quaternion = Quaternion.AngleAxis((i) * 15,Vector3.up); 
-					if( i == 0)
-					{
-						rot = Quaternion.identity;
-					}
-					refVel = rot*refNorm;
-					//Debug.Log(refVel);
-					var go : GameObject  = Network.Instantiate(m_Owner.GetComponent(BeeControllerScript).m_BulletInstance, transform.position + refVel * 2, Quaternion.LookRotation(refVel, Vector3.up), 0);	
-					m_Owner.networkView.RPC("Shot", RPCMode.All, go.name, go.transform.position+ refVel * 2, refVel * go.GetComponent(UpdateScript).m_MaxSpeed);
-				}
-				
-				RemoveBullet(point);
-				
-			break;
-			default: 
-				
-				RemoveBullet(point);
-				
-			break;
-		}
+		if(renderer.isVisible)
+			Camera.main.GetComponent(CameraScript).Shake(0.25,2);
 	}
-	else
-	{
-		switch (m_BulletType)
-		{
-			//ricochet type
-			case 0: 
-				refNorm = normal;
-				refNorm.y = 0;
-				refNorm.Normalize();
-				refVel = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
-				refVel.y = 0;
-				m_BulletType = -1;
-				refVel.Normalize();
-				GetComponent(UpdateScript).m_Vel = refVel*GetComponent(UpdateScript).m_MaxSpeed;
-				ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, point);
-			break;
-			//penetration
-			case 1:
-				
-					
-					RemoveBullet(point);
-				
-				
-			break;
-			default:
-				
-				RemoveBullet(point);
-				
-			break;
-		}
-		//ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
-		//ServerRPC.DeleteFromBuffer(gameObject);
-	}
-	
-	
-	
-
-}
-
-function OnTriggerEnter(other : Collider)
-{
-	//NOTE: powershots should always do 5 dmg
-	// if(Network.isClient)
-		// return;
-	// if(other.gameObject.tag == "Flowers")
-	// {
-		// if(GameObject.Find(other.name+"/Shield")!= null)
-		// {
-			// //make sure we arent shooting our own bees
-			// if(other.GetComponent(FlowerScript).m_Owner != m_Owner)
-			// {
-				// //Handle power shot
-				// if(m_PowerShot)
-				// {
-					// ServerRPC.Buffer(other.gameObject.networkView, "SetHP", RPCMode.All, other.gameObject.GetComponent(FlowerScript).m_HP-5);
-				// }
-				// //handle regular shot
-				// else
-				// {
-					// //other.gameObject.GetComponent(FlowerScript)
-					// ServerRPC.Buffer(other.gameObject.networkView, "SetHP", RPCMode.All, other.gameObject.GetComponent(FlowerScript).m_HP-1);
-					
-				// }
-				// //destroy bullet
-				
-				// RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-				
-			// }
-		// }
-		
-	// }
-	// else
-	// if(other.gameObject.tag == "Hives")
-	// {
-		// if(other.GetComponent(HiveScript).m_Owner != m_Owner)
-		// {
-			// // if(m_PowerShot)
-				// // networkView.RPC("DamageHive", RPCMode.All,other.gameObject.name, 5);
-			// // else
-				// // networkView.RPC("DamageHive", RPCMode.All,other.gameObject.name, 1);
-			
-			// // RemoveBullet( Vector3(transform.position.x, 0 ,transform.position.z)+transform.forward * transform.localScale.x + Vector3(0,other.gameObject.transform.position.y,0));
-
-		// }
-	// }
 }
 
 @RPC function BulletHit(pos:Vector3)
@@ -685,12 +458,20 @@ function OnTriggerEnter(other : Collider)
 	{
 		if(renderer.isVisible)
 			Camera.main.GetComponent(CameraScript).Shake(0.25,2);
-		var systems:Component[] = go.GetComponentsInChildren(ParticleSystem);
-		for (var system:ParticleSystem in systems)
-		{
-			system.startSize *= 3;
-		}
 	}
+}
+
+function RemoveBulletOriented(pos:Vector3, norm:Vector3)
+{
+	//this function first checs if the bullet is already marked as 'dead' (by checking the lifespan)
+	//it is possible a bullet collides with multiple objects at once but we can only have the rpc call happen once
+	//otherwise the client destroys the bullet and another RPC arrives from the server due to second collision
+	if(m_Life > 0)
+	{
+		ServerRPC.Buffer(networkView, "KillBulletOriented", RPCMode.All, pos, norm);
+		ServerRPC.DeleteFromBuffer(gameObject);
+	}
+	m_Life = -1;
 }
 
 function RemoveBullet(pos:Vector3)
@@ -707,24 +488,48 @@ function RemoveBullet(pos:Vector3)
 }
 
 @RPC
-function KillBullet(pos:Vector3)
+function KillBulletOriented(pos:Vector3, norm:Vector3)
 {
 	var go : GameObject = gameObject.Instantiate(m_HitEffect);
-	go.transform.position = pos;
-	Debug.Log("POWERSHOT "+m_PowerShotType);
+	go.transform.position = pos+norm;
+	go.transform.LookAt(pos+norm*2);
 	if(m_PowerShot)
 	{
-		var systems:Component[] = go.GetComponentsInChildren(ParticleSystem);
-		for (var system:ParticleSystem in systems)
-		{
-			system.startSize *= 3;
-		}
 		switch (m_PowerShotType)
 		{
 			//explosive
 			case 1: 
 				go = gameObject.Instantiate(m_BombExplosion, transform.position, Quaternion.identity);
 				//go.transform.position = transform.position;
+				
+				Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
+			break;
+			//scatter
+			case 2: 
+				
+			break;
+		}
+		
+
+	}
+	AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
+	Destroy(gameObject);
+} 
+
+@RPC
+function KillBullet(pos:Vector3)
+{
+	var go : GameObject = gameObject.Instantiate(m_HitEffect);
+	go.transform.position = pos;
+	
+	if(m_PowerShot)
+	{
+		switch (m_PowerShotType)
+		{
+			//explosive
+			case 1: 
+				go = gameObject.Instantiate(m_BombExplosion, transform.position, Quaternion.identity);
+				go.transform.position = transform.position;
 				
 				Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 			break;

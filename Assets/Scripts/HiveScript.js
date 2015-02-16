@@ -157,6 +157,7 @@ function OnDestroy()
 	{
 		m_Pedestal.GetComponent(PollenNetworkScript).m_Owner = null;
 		m_Pedestal.GetComponent(HivePedestalScript).m_Activated = false;
+		m_Pedestal.GetComponent(HivePedestalScript).m_Hive = null;
 		m_Pedestal.renderer.material.mainTexture = m_Pedestal.GetComponent(HivePedestalScript).m_TempTexture;
 	}
 	

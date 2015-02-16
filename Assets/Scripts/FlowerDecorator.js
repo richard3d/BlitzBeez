@@ -48,6 +48,11 @@ function Start () {
 	
 }
 
+function SetLifetime(life:float)
+{
+	m_Lifetime = life;	
+}
+
 function OnNetworkInput(IN : InputState)
 {
 	

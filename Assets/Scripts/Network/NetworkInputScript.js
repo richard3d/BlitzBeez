@@ -190,7 +190,7 @@ function Update () {
 		//ORIGINAL
 		var Sensitivity = 7;
 		var LookDiff :Vector3 = transform.forward;
-		m_CursorDist += Input.GetAxis("Look Up/Down")*(Sensitivity+5);
+		m_CursorDist = 100;// += Input.GetAxis("Look Up/Down")*(Sensitivity+5);
 		m_CursorDist = Mathf.Max(10,Mathf.Min(m_CursorDist, 200));
 		LookDiff =  Quaternion.AngleAxis(Input.GetAxis("Look Left/Right")*(200.0/m_CursorDist)*Sensitivity, Vector3.up)*LookDiff;
 		

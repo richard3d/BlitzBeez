@@ -5,9 +5,10 @@ var m_RespawnPos = Vector3(0,350,0);
 function Awake()
 {
 	gameObject.AddComponent(ControlDisablerDecorator);
-	
+
 	GetComponent(BeeScript).Show(false);
-	collider.enabled = false;
+	GetComponent(CharacterController).enabled = false;
+	GetComponent(SphereCollider).enabled = false;
 	GetComponentInChildren(TrailRenderer).enabled = false;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 }
@@ -73,8 +74,9 @@ function OnDestroy()
 		Camera.main.GetComponent(CameraScript).m_Freeze = false;
 	}
 	
-	GetComponent(BeeScript).m_HP = 3;
-	collider.enabled = true;
+	GetComponent(BeeScript).m_HP = GetComponent(BeeScript).GetMaxHP();
+	GetComponent(CharacterController).enabled = true;
+	GetComponent(SphereCollider).enabled = true;
 	gameObject.transform.localScale = Vector3(2,2,2);
 	//gameObject.animation.Play("SpawnPlayer");
 	GetComponent(BeeScript).Show(true);

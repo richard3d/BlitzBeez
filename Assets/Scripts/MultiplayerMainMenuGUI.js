@@ -12,6 +12,11 @@ public var m_MenuPos :Vector2;
 function Start () {
 GameObject.Find("MainBee").renderer.material.color = PlayerProfile.m_PlayerColor;
 m_MenuPos.y = Screen.height*0.25;
+GameObject.Find("BeeParticles").renderer.enabled = false;
+}
+
+function OnEnable(){
+GameObject.Find("BeeParticles").renderer.enabled = true;
 }
 
 function Update () {
@@ -44,7 +49,8 @@ function OnGUI()
 	if(m_ShowMainMenu)
 	{
 		GUILayout.BeginArea (Rect(Screen.width*0.5 - width, Screen.height * 0.65, width*2,500));
-		
+		transform.position.x = Random.Range(-0.2, 0.2);
+		transform.position.y = Random.Range(-0.2, 0.2);
 		if (GUILayout.Button ("Create Game", Style)) 
 		{
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);

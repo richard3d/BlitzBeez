@@ -1,4 +1,5 @@
 #pragma strict
+var m_Hive:GameObject = null;
 var m_ProgressEffectInstance : GameObject = null;
 var m_ActivatedTexture : Texture2D = null;
 var m_Colliding : boolean = false;
@@ -35,17 +36,20 @@ function OnTriggerStay(coll : Collider)
 	var player:GameObject = null;
 	if(coll.gameObject.tag == "Player" )
 	{	
-	
-		// if(animation.isPlaying)
-		// {
-			// Debug.Log("Pushing");
-			// coll.gameObject.transform.position += (coll.gameObject.transform.position - transform.position);
-		// }
-	
+
 		//handle player specific logic if the player is us
-		if(coll.gameObject.GetComponent(ItemDecorator) == null && animation.isPlaying == false)
+		if(coll.gameObject.GetComponent(ItemDecorator) == null/*&& animation.isPlaying == false*/)
 		{
-			coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
+			if(m_Activated)
+			{
+				if(m_Hive != null)
+					coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = m_Hive;
+			}
+			else
+			{
+				coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = gameObject;
+			}
+			
 			if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 			{	
 				// var txt : GameObject  = gameObject.Find("UseText");
