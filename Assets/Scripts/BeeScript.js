@@ -5,7 +5,8 @@ class Inventory
 	var m_Img : Texture2D = null;
 	var m_Item : GameObject = null;	 
 }
-var m_Meshes:Mesh[] = null;
+var m_Camera:GameObject = null;
+var m_Meshes:GameObject[] = null;
 var m_SwarmInstance : GameObject = null;
 var m_WorkerBeeInstance : GameObject = null;
 var m_DeathEffect : GameObject = null;
@@ -258,10 +259,10 @@ function Update() {
 function OnGUI()
 {	
 	//only draw our client info
-	if(NetworkUtils.IsControlledGameObject(gameObject))
-	{
+	//if(NetworkUtils.IsControlledGameObject(gameObject))
+	//{
 		DrawGUI();
-	}
+	//}
 }
 
 function DrawGUI()
@@ -462,7 +463,10 @@ function DrawGUI()
 		var beeCtrlScript:BeeControllerScript = GetComponent(BeeControllerScript);
 		
 		//draw XPBar
-		var relPos:Vector2 = Vector2(83, 16);
+		var camWidth = m_Camera.camera.rect.width;
+		var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
+		var relPos:Vector2 = Vector2(camPos.x+83, camPos.y+16);
+		//var relPos:Vector2 = Vector2(83, 16);
 		if(m_XPMeterFlashTimer > 0)
 		{
 			m_XPMeterFlashTimer -= Time.deltaTime;
@@ -470,7 +474,11 @@ function DrawGUI()
 		GUI.DrawTexture(Rect(relPos.x,relPos.y, 128, 32), MeterBarBGTexture, ScaleMode.StretchToFill, true);
 		GUI.color = Color(0.2+m_XPMeterFlashTimer,0.2+m_XPMeterFlashTimer,0.2+m_XPMeterFlashTimer,0.75+m_XPMeterFlashTimer);
 		GUI.DrawTexture(Rect(relPos.x,relPos.y, 128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
-		var fPerc :float = Mathf.Min(m_CurrXP / m_XPToLevel[m_CurrLevel], 1);
+		var fPerc :float = 0;
+		if(m_CurrLevel >= m_XPToLevel.length)
+			fPerc = 1;
+		else
+			fPerc = Mathf.Min(m_CurrXP / m_XPToLevel[m_CurrLevel], 1);
 		GUI.color = Color(0.9+m_XPMeterFlashTimer,0.8+m_XPMeterFlashTimer,m_XPMeterFlashTimer);
 		GUI.DrawTexture(Rect(relPos.x,relPos.y, fPerc*128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
 		GUI.color = Color.white;
@@ -487,31 +495,31 @@ function DrawGUI()
 		}
 		
 		//draw HealthBar
-		relPos = Vector2(83, 54);
+		relPos = Vector2(camPos.x+83, camPos.y+54);
 		if(m_LifeMeterFlashTimer > 0)
 		{
 			m_LifeMeterFlashTimer -= Time.deltaTime;
 		}
-		GUI.DrawTexture(Rect(83,relPos.y, 128, 32), MeterBarBGTexture, ScaleMode.StretchToFill, true);
+		GUI.DrawTexture(Rect(relPos.x,relPos.y, 128, 32), MeterBarBGTexture, ScaleMode.StretchToFill, true);
 		GUI.color = Color(0.2+m_LifeMeterFlashTimer,0.2+m_LifeMeterFlashTimer,0.2+m_LifeMeterFlashTimer,0.75+m_LifeMeterFlashTimer);
-		GUI.DrawTexture(Rect(83,relPos.y, 128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
+		GUI.DrawTexture(Rect(relPos.x,relPos.y, 128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
 		var maxHP:float = GetMaxHP();
 		fPerc = Mathf.Min(m_HP/maxHP, 1);
 		GUI.color = Color(0.9+m_LifeMeterFlashTimer,m_LifeMeterFlashTimer,m_LifeMeterFlashTimer);
-		GUI.DrawTexture(Rect(83,relPos.y, fPerc*128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
+		GUI.DrawTexture(Rect(relPos.x,relPos.y, fPerc*128, 32), MeterBarTexture, ScaleMode.StretchToFill, true);
 		GUI.color = Color.white;
 		GUI.DrawTexture(Rect(relPos.x-51, relPos.y, 44, 32), m_LifeTexture, ScaleMode.StretchToFill, true);
-		GUI.Label(Rect(91,relPos.y+3, 128, 34), m_HP.ToString(),SmallFontStyle);
+		GUI.Label(Rect(relPos.x+8,relPos.y+3, 128, 34), m_HP.ToString(),SmallFontStyle);
 		
 		//draw worker bee ratio
 		var color = NetworkUtils.GetColor(gameObject);
 		GUI.color = color;
-		GUI.DrawTexture(Rect(relPos.x - 45 ,92, 32, 32), BeeTexture, ScaleMode.StretchToFill, true);
+		GUI.DrawTexture(Rect(relPos.x - 45 ,relPos.y+38, 32, 32), BeeTexture, ScaleMode.StretchToFill, true);
 		GUI.color = Color.white;
-		GUI.DrawTexture(Rect(relPos.x - 45 ,92, 32, 32), BeeWingsTexture, ScaleMode.StretchToFill, true);
+		GUI.DrawTexture(Rect(relPos.x - 45 ,relPos.y+38, 32, 32), BeeWingsTexture, ScaleMode.StretchToFill, true);
 		var maxWorkers:int =beeCtrlScript.m_Stats["Max_Workers"];
 		maxWorkers+=1;
-		GUI.Label(Rect(relPos.x,95,256,48), m_WorkerBees+" / "+(m_MaxWorkerBees+maxWorkers),SmallFontStyle);
+		GUI.Label(Rect(relPos.x,relPos.y+41,256,48), m_WorkerBees+" / "+(m_MaxWorkerBees+maxWorkers),SmallFontStyle);
 		
 		var workerGenTimer:float  = beeCtrlScript.m_WorkerGenTimer;
 		var workerGenTime:float  = beeCtrlScript.m_WorkerGenTime;
@@ -519,7 +527,7 @@ function DrawGUI()
 		if(workerTimeRatio <= 1 && m_WorkerBees < m_MaxWorkerBees+maxWorkers)
 		{
 			//only draw the regen timer if there is time on the clock and we are not trying to use a flower
-			var pos:Vector2 = Vector2(relPos.x - 29, 118);
+			var pos:Vector2 = Vector2(relPos.x - 29, relPos.y + 64);
 			var width:float = 32;
 			GUI.DrawTexture(Rect(pos.x- width*0.5,pos.y- width*0.5 , width, width),ClockBGTexture);
 			GUIUtility.RotateAroundPivot (-workerTimeRatio*359,  Vector2(pos.x, pos.y)); 
@@ -529,17 +537,20 @@ function DrawGUI()
 			if(!HasHive())
 			{
 				GUI.color = Color(1,1,0.5,Mathf.Sin(Time.time * 24) > 0 ? 1:0 );
-				GUI.Label(Rect(relPos.x+70,95,256,256), "HIVE NEEDED",SmallFontStyle);
+				GUI.Label(Rect(relPos.x+70,relPos.y+41,256,256), "HIVE NEEDED",SmallFontStyle);
 				GUI.color = Color.white;
 			}
 		}	
 		
 		
+		var bottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
+		var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
+		
 		//draw the game event messages
-		GameEventMessenger.DrawMessages(relPos.x-32,(Screen.height - 48),SmallFontStyle);
+		GameEventMessenger.DrawMessages(relPos.x-32,(bottom- 48),SmallFontStyle);
 			
 		//draw the actual honey meter that shows the race for the crown
-		GUI.BeginGroup(Rect(Screen.width-330,16, 512, 512));
+		GUI.BeginGroup(Rect(right-330,camPos.y+16, 512, 512));
 		GUI.DrawTexture(Rect(210, 32, 48, 48), CrownTexture, ScaleMode.ScaleToFit, true);
 		for(var i:int = 0; i < NetworkUtils.GetNumClients(); i++)
 		{
@@ -586,7 +597,7 @@ function DrawGUI()
 		
 		
 		//draw flower counter 
-		GUI.BeginGroup(Rect(Screen.width-324, 102, 512, 512));
+		GUI.BeginGroup(Rect(right-324, camPos.y+102, 512, 512));
 		GUI.Label(Rect(42, 0, 256, 48), GetNumFlowers()+" / 20", SmallFontStyle);
 		place = CalculateFlowerRank();
 		strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
@@ -607,16 +618,16 @@ function DrawGUI()
 		
 		
 		//draw Inventory boxes
-		GUI.DrawTexture(Rect(Screen.width - 100,Screen.height - 90, 86, 86), InventoryBoxTexture, ScaleMode.ScaleToFit, true);
-		GUI.DrawTexture(Rect(Screen.width - 180,Screen.height - 90, 86, 86), InventoryBoxTexture, ScaleMode.ScaleToFit, true);
+		GUI.DrawTexture(Rect(right - 100,bottom - 90, 86, 86), InventoryBoxTexture, ScaleMode.ScaleToFit, true);
+		GUI.DrawTexture(Rect(right - 180,bottom- 90, 86, 86), InventoryBoxTexture, ScaleMode.ScaleToFit, true);
 		
 		if(m_Inventory[0].m_Img != null)
 		{
-			GUI.DrawTexture(Rect(Screen.width - 90,Screen.height - 80, 66, 66), m_Inventory[0].m_Img, ScaleMode.ScaleToFit, true);
+			GUI.DrawTexture(Rect(right - 90,bottom - 80, 66, 66), m_Inventory[0].m_Img, ScaleMode.ScaleToFit, true);
 		}
 		if(m_Inventory[1].m_Img != null)
 		{
-			GUI.DrawTexture(Rect(Screen.width - 170,Screen.height - 80, 66, 66), m_Inventory[1].m_Img, ScaleMode.ScaleToFit, true);
+			GUI.DrawTexture(Rect(right - 170,bottom - 80, 66, 66), m_Inventory[1].m_Img, ScaleMode.ScaleToFit, true);
 		}
 		
 		//draw ammo amount and reload bar
@@ -639,7 +650,7 @@ function DrawGUI()
 			// GUI.DrawTexture(Rect(Screen.width - 275, Screen.height - 20, 90,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
 			// //current reload percent
 			// GUI.DrawTexture(Rect(Screen.width - 275, Screen.height - 20, 90*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);
-			pos = Vector2(Screen.width - 255, Screen.height - 73);
+			pos = Vector2(right - 255, bottom - 73);
 			width = 32;
 			GUI.DrawTexture(Rect(pos.x- width*0.5,pos.y- width*0.5 , width, width),ClockBGTexture);
 			GUIUtility.RotateAroundPivot (-ReloadPerc*359,  Vector2(pos.x, pos.y)); 
@@ -647,12 +658,12 @@ function DrawGUI()
 			GUIUtility.RotateAroundPivot (ReloadPerc*359,  Vector2(pos.x, pos.y));
 		}
 		else
-		GUI.DrawTexture(Rect(Screen.width - 265, Screen.height - 90, 32,32), AmmoIconTexture, ScaleMode.ScaleToFit, true);
+		GUI.DrawTexture(Rect(right - 265, bottom - 90, 32,32), AmmoIconTexture, ScaleMode.ScaleToFit, true);
 		//ammo count 
 		if(ammo == 0)
-			GUI.Label(Rect(Screen.width - 235, Screen.height - 95, 132,132), "--", FontStyle);
+			GUI.Label(Rect(right - 235, bottom - 95, 132,132), "--", FontStyle);
 		else
-			GUI.Label(Rect(Screen.width - 235, Screen.height - 95, 132,132), (ammo < 10 ? "0" +ammo.ToString() : ammo.ToString()), FontStyle);
+			GUI.Label(Rect(right - 235, bottom - 95, 132,132), (ammo < 10 ? "0" +ammo.ToString() : ammo.ToString()), FontStyle);
 		
 		
 		
@@ -665,50 +676,50 @@ function DrawGUI()
 		
 		//powershot icon
 		
-		GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+		GUI.DrawTexture(Rect(right - 257, bottom - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
 		if(GameObject.Find(gameObject.name+"/PowerShotEffect"))
 		{
 			GUI.color = Color(1,1,1,Mathf.Sin(Time.time * 48) > 0 ? 1:0 );
 			//powershot meter
-			GUI.Label(Rect(Screen.width - 277, Screen.height - 60, 132,132), "p", SmallFontStyle);
+			GUI.Label(Rect(right - 277, bottom - 60, 132,132), "p", SmallFontStyle);
 			GUI.color = Color.white;
-			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
-			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			GUI.DrawTexture(Rect(right - 257, bottom - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			GUI.DrawTexture(Rect(right - 257, bottom - 50, 72,12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
 			
 		}
 		else
 		{
-			GUI.Label(Rect(Screen.width - 277, Screen.height - 60, 132,132), "p", SmallFontStyle);
-			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
-			GUI.DrawTexture(Rect(Screen.width - 257, Screen.height - 50, 72*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			GUI.Label(Rect(right - 277, bottom - 60, 132,132), "p", SmallFontStyle);
+			GUI.DrawTexture(Rect(right - 257, bottom - 50, 72*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
+			GUI.DrawTexture(Rect(right - 257, bottom - 50, 72*(1-ReloadPerc),12), ReloadBarTexture, ScaleMode.StretchToFill, true);	
 			
 		}
 		
 		var numDashes:int = beeCtrlScript.m_NumDashes;
 		//stamina icon
-		GUI.Label(Rect(Screen.width - 277, Screen.height - 38, 132,132), "s", SmallFontStyle);
+		GUI.Label(Rect(right - 277, bottom - 38, 132,132), "s", SmallFontStyle);
 		for(i = 0; i < 3; i++)
 		{
 			//stamina meter background
-			GUI.DrawTexture(Rect(Screen.width - 257 + i*(25), Screen.height - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+			GUI.DrawTexture(Rect(right - 257 + i*(25), bottom - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
 		}		
 		for(i = 0; i < numDashes; i++)
 		{
 			//stamina meter
-			GUI.DrawTexture(Rect(Screen.width - 257 + i*(25), Screen.height - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
-			GUI.DrawTexture(Rect(Screen.width - 257 + i*(25), Screen.height - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+			GUI.DrawTexture(Rect(right- 257 + i*(25), bottom - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
+			GUI.DrawTexture(Rect(right - 257 + i*(25), bottom - 30, 22,12), ReloadBarTexture, ScaleMode.StretchToFill, true);
 		}		
 		
 		
 		
 		//draw money amount
-		var money : String;
-		if(m_Money < 100)
-		 money += "0";
-		if(m_Money < 10)
-			money += "0";
+		// var money : String;
+		// if(m_Money < 100)
+		 // money += "0";
+		// if(m_Money < 10)
+			// money += "0";
 		
-		GUI.Label(Rect(Screen.width - 135, Screen.height - 135, 132,132), "$"+money+m_Money, FontStyle);
+		// GUI.Label(Rect(right - 135, bottom - 135, 132,132), "$"+money+m_Money, FontStyle);
 	}
 }
 

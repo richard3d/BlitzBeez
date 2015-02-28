@@ -1,6 +1,5 @@
 #pragma strict
 var m_Target : GameObject;
-var m_PlayerPrefab : GameObject = null;
 var m_CamPos : Vector3;
 var m_ShakeStrength : float = 0;
 var m_fShakeTimer : float = 0;
@@ -33,7 +32,7 @@ function Update () {
 	}
 	else if(Network.isServer)
 	{
-		m_Target = gameObject.Find("Bee0");
+		//m_Target = gameObject.Find("Bee0");
 	}
 	
 	if(!m_Target || m_Freeze)
@@ -70,7 +69,7 @@ function Update () {
 			diff = m_Target.transform.position - transform.position - (m_Offset.x*m_Target.transform.right+m_Offset.y*m_Target.transform.up+m_Offset.z*m_Target.transform.forward);
 		
 		//diff.y = 0;
-		m_CamVel = diff*2;
+		m_CamVel = diff*4;
 		m_CamPos += m_CamVel * Time.deltaTime;
 		
 		if(m_fShakeTime > 0)

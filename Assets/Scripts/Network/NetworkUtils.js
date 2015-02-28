@@ -2,7 +2,19 @@
 import ClientNetworkInfo;
 public class NetworkUtils
 {
-	public static function IsControlledGameObject(go:GameObject ):boolean 
+	//What we really want to ask is, does this object exist under my control?
+	// public static function IsControlledGameObject(go:GameObject ):boolean 
+	// {
+		
+		// if((Network.isServer && GameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == go) ||
+			// (Network.isClient && GameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == go))
+		// {
+			// return true;
+		// }
+		// return false;
+	// }
+
+	public static function IsControlledGameObject(go:GameObject):boolean 
 	{
 		
 		if((Network.isServer && GameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == go) ||

@@ -20,7 +20,7 @@ var m_CursorPosition:Vector3;
 var m_CursorScreenPosition:Vector3;
 var m_CursorDist:float = 100;
 var m_ClientOwner : int = -1;
-
+var m_LocalClient:boolean = false;
 class InputState
 {
 	static var MOVE_LEFT : int = 1;
@@ -97,7 +97,7 @@ function OnGUI()
 function Update () {
 	
 	
-	if(!NetworkUtils.IsControlledGameObject(gameObject))
+	if( !m_LocalClient)
 		return;
 	
 	if(Network.isServer)
@@ -132,7 +132,7 @@ function Update () {
 		}
 	
 		//we need to still get input if we are the server client
-		if(m_ClientOwner != 0)
+		if(!m_LocalClient)//if(m_ClientOwner != 0)
 			return;
 	}
 	
@@ -147,29 +147,31 @@ function Update () {
 	m_PrevActions = m_CurrentActions;
 	m_CurrentActions = 0;
 	
+	var joyStr = "Joy"+m_ClientOwner+" ";
+	Debug.Log(joyStr);
 	//handle movement keys
-	if(Input.GetAxis("Move Forward/Back") > 0)
+	if(Input.GetAxis(joyStr+"Move Forward/Back") > 0)
 	{
 		m_CurrentActions |= InputState.MOVE_UP;
 	}
 	
-	if(Input.GetAxis("Move Forward/Back") < 0)
+	if(Input.GetAxis(joyStr+"Move Forward/Back") < 0)
 	{
 		m_CurrentActions |= InputState.MOVE_BACK;
 	}
 	
-	if(Input.GetAxis("Strafe Left/Right") > 0)
+	if(Input.GetAxis(joyStr+"Strafe Left/Right") > 0)
 	{
 		m_CurrentActions |= InputState.MOVE_RIGHT;
 	}
 	
-	if(Input.GetAxis("Strafe Left/Right") < 0)
+	if(Input.GetAxis(joyStr+"Strafe Left/Right") < 0)
 	{
 		m_CurrentActions |= InputState.MOVE_LEFT;
 	}
 	//handle look direction
-	if(Camera.main.GetComponent(CameraScript) != null &&
-	   Camera.main.GetComponent(CameraScript).m_Target != null)
+	if(GetComponent(BeeScript).m_Camera != null &&
+	   GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Target != null)
 	{
 		//NEW
 		// var delta:Vector3;
@@ -192,7 +194,8 @@ function Update () {
 		var LookDiff :Vector3 = transform.forward;
 		m_CursorDist = 100;// += Input.GetAxis("Look Up/Down")*(Sensitivity+5);
 		m_CursorDist = Mathf.Max(10,Mathf.Min(m_CursorDist, 200));
-		LookDiff =  Quaternion.AngleAxis(Input.GetAxis("Look Left/Right")*(200.0/m_CursorDist)*Sensitivity, Vector3.up)*LookDiff;
+		
+		LookDiff =  Quaternion.AngleAxis(Input.GetAxis(joyStr+"Look Left/Right")*(200.0/m_CursorDist)*Sensitivity, Vector3.up)*LookDiff;
 		
 		// var vPos : Vector3 = Camera.main.GetComponent(CameraScript).m_Target.transform.position;
 		// var LookDiff = Input.mousePosition-Camera.main.WorldToScreenPoint(vPos);
@@ -212,13 +215,13 @@ function Update () {
 			if(NetworkUtils.IsControlledGameObject(gameObject))
 				Camera.main.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + LookDiff);
 			
-			if(m_ClientOwner != 0)
+			if(!m_LocalClient)//if(m_ClientOwner != 0)
 			{
 				networkView.RPC("PlayerLookat", RPCMode.Server, m_ClientOwner,   LookDiff);
 			}
 			else
 			{
-				PlayerLookat(0,  LookDiff);
+				PlayerLookat(m_ClientOwner,  LookDiff);
 			}
 		}
 	}
@@ -227,13 +230,13 @@ function Update () {
 	 // Camera.main.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + lookDiff);
 	
 	//handle dash button
-	if(Input.GetAxis("Dash") > 0)
+	if(Input.GetAxis(joyStr+"Dash") > 0)
 	{
 		m_CurrentActions |= InputState.DASH;
 	}
 	
 	//handle shooting actions
-	if(Input.GetAxis("Shoot") > 0)
+	if(Input.GetAxis(joyStr+"Shoot") > 0)
 	{
 		m_CurrentActions |= InputState.SHOOT;
 	}
@@ -266,14 +269,14 @@ function Update () {
 	// }
 	
 	//handle use action
-	if(Input.GetAxis("Reload") > 0)
+	if(Input.GetAxis(joyStr+"Reload") > 0)
 	{
 	
 		m_CurrentActions |= InputState.RELOAD;
 	}
 	
 	//handle use action
-	if(Input.GetAxis("Use Item/Interact") > 0)
+	if(Input.GetAxis(joyStr+"Use Item/Interact") > 0)
 	{
 		m_CurrentActions |= InputState.USE;
 	}
@@ -294,14 +297,14 @@ function Update () {
 		m_CurrInputState.m_Sequence = m_SeqCounter;
 		//m_InputStateBuffer.Push(m_CurrInputState);
 		
-		if(m_ClientOwner != 0)
+		if(!m_LocalClient)//if(m_ClientOwner != 0)
 		{
 			//SendMessage("OnNetworkInput", m_CurrInputState, SendMessageOptions.DontRequireReceiver);
 			networkView.RPC("PlayerInputEvent", RPCMode.Server, m_ClientOwner,m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions);
 		}
 		else
 		{
-			PlayerInputEvent(0, m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions);
+			PlayerInputEvent(m_ClientOwner, m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions);
 		}
 		m_SeqCounter++;
 	//}

@@ -13,7 +13,13 @@ function Start () {
 		Camera.main.GetComponent(CameraScript).Shake(1.5, 1.5);
 		Camera.main.GetComponent(MotionBlur).enabled = true;
 	}
-	//transform.GetChild(0).GetComponent(MeshFilter).mesh = GetComponent(BeeScript).m_Meshes[1];
+	Destroy(transform.GetChild(0).gameObject);
+	var newBee:GameObject = GameObject.Instantiate(GetComponent(BeeScript).m_Meshes[GetComponent(BeeScript).m_CurrLevel-1]);
+	newBee.transform.parent = gameObject.transform;//.GetComponent(MeshFilter).mesh;
+	newBee.transform.eulerAngles = gameObject.transform.eulerAngles;
+	//transform.GetChild(0).renderer.materials = GetComponent(BeeScript).m_Meshes[0].renderer.materials;
+	//transform.GetChild(0).localScale = GetComponent(BeeScript).m_Meshes[0].transform.localScale;
+	
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
 	m_LightEffect.animation.Play();
 	//m_LightEffect.transform.localScale = Vector3(12,300,12);

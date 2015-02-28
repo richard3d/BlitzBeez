@@ -20,7 +20,23 @@ GameObject.Find("BeeParticles").renderer.enabled = true;
 }
 
 function Update () {
-//m_OptionsMenuPos = Vector2(0,256);
+
+	if(m_ShowMainMenu)
+	{
+		if(Mathf.Abs(transform.position.x) > 0.25)
+		{
+			transform.position.x += (0-transform.position.x)*Time.deltaTime*8;
+		}
+		else
+		{
+			transform.position.x = Random.Range(-0.2, 0.2);
+			transform.position.y = Random.Range(-0.2, 0.2);
+		}
+	}
+	else
+	{
+		transform.position.x += (123-transform.position.x)*Time.deltaTime*8;
+	}
 }
 
 function ShowOptions()
@@ -49,10 +65,14 @@ function OnGUI()
 	if(m_ShowMainMenu)
 	{
 		GUILayout.BeginArea (Rect(Screen.width*0.5 - width, Screen.height * 0.65, width*2,500));
-		transform.position.x = Random.Range(-0.2, 0.2);
-		transform.position.y = Random.Range(-0.2, 0.2);
+	
 		if (GUILayout.Button ("Create Game", Style)) 
 		{
+		
+			GameObject.Find("Flash").animation.Stop("FlashIntro");
+			GameObject.Find("Flash").animation["FlashIntro"].time = 2.35;
+			GameObject.Find("Flash").animation.Play("FlashIntro");
+			
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			GetComponent(Animation).Play("CameraIntro");
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;

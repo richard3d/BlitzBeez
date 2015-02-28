@@ -232,6 +232,9 @@ function OnServerInitialized() {
 	
 	var plr : NetworkPlayer;
 	OnPlayerConnected(plr);
+	 OnPlayerConnected(plr);
+	
+	
 	GetComponent(MultiplayerLobbyGUI).enabled = true;
 }
 
@@ -257,7 +260,8 @@ function OnMasterServerEvent(msEvent: MasterServerEvent)
 function OnPlayerConnected(player: NetworkPlayer) {
 	
 	//The server does not get this call
-	if(m_ClientCount != 0)
+	//player 0 also includes all local players for local multiplayer game
+	if(player.ToString() != "0")
 	{
 		Network.SetSendingEnabled(player, 0, false);
 		Debug.Log("Disabling send for player: "+player);
@@ -289,7 +293,7 @@ function OnPlayerConnected(player: NetworkPlayer) {
 				":" +m_Clients[m_ClientCount-1].m_Port);
 	
 	//The server is client 0, we dont send these to ourselves
-	if(currClient.m_ID != 0)	
+	if(player.ToString() != "0")	
 	{
 		//first we must execute everything in the buffer for this player, the group keeps track of certain types of messages
 		//in this case we are handling connection\disconnection info
@@ -300,10 +304,11 @@ function OnPlayerConnected(player: NetworkPlayer) {
 	else
 	{
 		ServerRPC.Buffer(m_ConnectMsgsView, "ClientConnected", RPCMode.Others, player);
-		if(PlayerProfile.m_PlayerTag == "Player")
-			PlayerProfile.m_PlayerTag += " 1";
+		//if(PlayerProfile.m_PlayerTag == "Player")
+		PlayerProfile.m_PlayerTag = "Player";
+			PlayerProfile.m_PlayerTag += m_ClientCount.ToString();
 		var clr:Vector3 = Vector3(PlayerProfile.m_PlayerColor.r, PlayerProfile.m_PlayerColor.g,PlayerProfile.m_PlayerColor.b);
-		RegisterPlayer(PlayerProfile.m_PlayerTag,clr, 0);
+		RegisterPlayer(PlayerProfile.m_PlayerTag,clr, m_ClientCount-1);
 		return;
 	}
 	ServerRPC.Buffer(m_ConnectMsgsView, "ClientConnected", RPCMode.Others, player);
@@ -460,7 +465,12 @@ function GetGameObject() : GameObject
 	yield; 
 	yield;
 	//Fire this off since we treat the server as a client as well (clientID 0)
-	ClientLevelLoaded(0);
+	for(var i = 0; i < m_Clients.length; i++)
+	{
+		if(m_Clients[i].m_Player.ToString() == "0")
+			ClientLevelLoaded(i);
+	}
+	
 	GetComponent(GameStateManager).StartMatchTick(5,1);
 	ServerRPC.Buffer(m_SyncMsgsView,"StartMatchTick", RPCMode.Others, 5,1);
 	m_GameInProgress = true;
@@ -471,13 +481,16 @@ function GetGameObject() : GameObject
 @RPC function ClientLevelLoaded(clientID : int)
 {
 	if(clientID == -1)
+	{
 		Debug.Log("Invalid client loaded level");
+		return;
+	}
 	m_Clients[clientID].m_LevelLoaded = true;
 	Debug.Log("Client " + clientID + " finished loading level");
 	
 	//we can now start receiving data such as object instantiation
 	//just dont call this on ourself since we are the server
-	if(clientID != 0)
+	if(m_Clients[clientID].m_Player.ToString() != "0")
 	{
 		ServerRPC.ExecuteBuffer(m_Clients[clientID].m_Player, m_SyncMsgsView.group);
 	}
@@ -514,12 +527,93 @@ function GetGameObject() : GameObject
 		m_ConnectMsgsView.RPC("LoadLevel", m_Clients[clientID].m_Player, "Scene2");
 }
 
+
+
 @RPC function SetClientGameObject(clientID : int, go : String)
 {
 	if(clientID != -1)
 	{
 		m_Clients[clientID].m_GameObject = gameObject.Find(go);
 		m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_ClientOwner = clientID;
+		if(m_Clients[clientID].m_Player.ToString() == "0")
+		{
+			Debug.Log("FFFFFFF "+clientID);
+			//tell the input system it is dealing with a local client
+			m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient = true;
+			
+			//instantiate a new camera for this player to render on screen (split screen)
+			var playerCam:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/PlayerCamera"));
+			playerCam.name = go + "Camera";
+			playerCam.GetComponent(CameraScript).m_Target = m_Clients[clientID].m_GameObject;
+			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Camera = playerCam;
+			//perform calculations for screen rects for each camera
+			var numLocalClients:int = 0;
+			Debug.Log("NUM "+m_Clients.length);
+			//count local clients and adjust the cameras accordingly
+			for(var i:int = 0; i < m_Clients.length; i++)
+			{
+				if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
+					numLocalClients++;
+			}
+			
+			
+			var localCount:int = 0;
+			var twoPixX = 2.0/Screen.width;
+			var twoPixY= 2.0/Screen.height;
+			twoPixX = twoPixY;
+			if(numLocalClients == 1)
+			{
+			}
+			else if(numLocalClients == 2)
+			{
+				for(i= 0; i < m_Clients.length; i++)
+				{
+					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
+					{
+						if(localCount == 0)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5,1,0.5);
+						else if(localCount == 1)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-twoPixY,1,0.5);
+						localCount++;
+					}		
+				}
+			}
+			else if(numLocalClients == 3)
+			{
+				for(i= 0; i < m_Clients.length; i++)
+				{
+					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
+					{
+						if(localCount == 0)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5,1,0.5);
+						else if(localCount == 1)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-twoPixY,0.5,0.5);
+						else if(localCount == 2)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+twoPixX,0-twoPixY,0.5,0.5);
+						localCount++;
+					}	
+				}
+			}
+			else if(numLocalClients == 4)
+			{
+				for(i= 0; i < m_Clients.length; i++)
+				{
+					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
+					{
+						if(localCount == 0)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5,0.5,0.5);
+						else if(localCount == 1)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+twoPixX,0.5,0.5,0.5);
+						else if(localCount == 2)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-twoPixY,0.5,0.5);
+						else if(localCount == 3)
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+twoPixX,0-twoPixY,0.5,0.5);
+						localCount++;
+					}
+						
+				}
+			}
+		}
 		//set the client gameObejct color			
 		m_Clients[clientID].m_GameObject.renderer.material.color = m_Clients[clientID].m_Color;
 		if(NetworkUtils.IsControlledGameObject(m_Clients[clientID].m_GameObject))
