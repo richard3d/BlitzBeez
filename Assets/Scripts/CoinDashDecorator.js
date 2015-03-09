@@ -16,7 +16,7 @@ function FindCoin(lastCoin:GameObject)
 	//we just got a coin so show the xp text
 	m_CoinCount++;
 	m_Lifetime = 0.2;
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	 {
 		var kudosText:GameObject = null;
 		if(gameObject.Find("XPKudos") != null)
@@ -36,6 +36,8 @@ function FindCoin(lastCoin:GameObject)
 		 kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
 		 kudosText.GetComponent(GUIText).text = "+"+m_CoinCount+" XP";
 		 kudosText.GetComponent(GUIText).fontSize = 32;
+		 kudosText.GetComponent(KudosTextScript).m_CameraOwner = gameObject.GetComponent(BeeScript).m_Camera;
+		 kudosText.layer = LayerMask.NameToLayer("GUILayer_P"+(gameObject.GetComponent(NetworkInputScript).m_ClientOwner+1));
 	 }
 	 
 	

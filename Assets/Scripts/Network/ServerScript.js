@@ -48,19 +48,12 @@ function OnGUI()
 	{
 		//if(GetNumClients() > 1)
 		var skin :GUISkin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
-		GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
-		GUILayout.Label("Match starting in "+(mgr.m_MatchTick)+"...", skin.label);
-		GUILayout.EndArea();
+		 GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
+		// GUILayout.Label(" ", skin.label);
+		 GUILayout.EndArea();
+		
+	}
 	
-	}
-	else
-	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
-	{
-		skin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
-		GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
-		GUILayout.Label("All Hail "+m_Clients[GameStateManager.m_WinningPlayer].m_Name+".\n The new QUEEN (OR KING) BEE!", skin.label);
-		GUILayout.EndArea();
-	}
 }
 
 function OnStateChange(state:int)
@@ -81,6 +74,8 @@ function OnStateChange(state:int)
 			if(m_Clients[i].m_GameObject != null && m_Clients[i].m_LevelLoaded)
 			{			
 				m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled = true;
+				if(m_Clients[i].m_LocalClient)
+					m_Clients[i].m_GameObject.GetComponent(BeeScript).m_DrawGUI = true;
 				Debug.Log("enabling input for "+i);
 			}
 		}
@@ -188,7 +183,6 @@ function Update () {
 			//make sure the client doesnt already own a gameobject and make sure the level is loaded for them first too
 			if(m_Clients[i].m_GameObject != null && m_Clients[i].m_LevelLoaded && m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled )
 			{			
-				Debug.Log("killing input for "+i);
 				m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled = false;
 			}
 		}
@@ -200,12 +194,12 @@ function Update () {
 		var numClientsExited = 0;
 		for(i = 0; i < GetNumClients(); i++)
 		{
-			if(GetClient(i).m_GameObject == null){
+			if(GetClient(i).m_GameObject == null || GetClient(i).m_LocalClient){
 					numClientsExited++;
 			}
 		}
 		Debug.Log(numClientsExited+" "+GetNumClients());
-		if(numClientsExited == GetNumClients()-1)
+		if(numClientsExited == GetNumClients())
 		{
 			Debug.Log("Exiting match from server");
 			//ServerRPC.ClearBuffer();
@@ -233,6 +227,8 @@ function OnServerInitialized() {
 	var plr : NetworkPlayer;
 	OnPlayerConnected(plr);
 	 OnPlayerConnected(plr);
+	 OnPlayerConnected(plr);
+	// OnPlayerConnected(plr);
 	
 	
 	GetComponent(MultiplayerLobbyGUI).enabled = true;
@@ -471,8 +467,8 @@ function GetGameObject() : GameObject
 			ClientLevelLoaded(i);
 	}
 	
-	GetComponent(GameStateManager).StartMatchTick(5,1);
-	ServerRPC.Buffer(m_SyncMsgsView,"StartMatchTick", RPCMode.Others, 5,1);
+	GetComponent(GameStateManager).StartMatchTick(4,0.66);
+	ServerRPC.Buffer(m_SyncMsgsView,"StartMatchTick", RPCMode.Others, 4,0.66);
 	m_GameInProgress = true;
 	
 }
@@ -539,16 +535,37 @@ function GetGameObject() : GameObject
 		{
 			Debug.Log("FFFFFFF "+clientID);
 			//tell the input system it is dealing with a local client
+			m_Clients[clientID].m_LocalClient = true;
 			m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient = true;
-			
+			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_DrawGUI = false;
 			//instantiate a new camera for this player to render on screen (split screen)
 			var playerCam:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/PlayerCamera"));
 			playerCam.name = go + "Camera";
+			if(clientID ==0)
+			{
+				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P2") | 1 <<LayerMask.NameToLayer("GUILayer_P3") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
+			}
+			else
+			if(clientID ==1)
+			{
+				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P3") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
+			}
+			else
+			if(clientID ==2)
+			{
+				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P2") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
+			}
+			else
+			if(clientID ==3)
+			{
+				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P2") | 1<<LayerMask.NameToLayer("GUILayer_P3")));
+			}
 			playerCam.GetComponent(CameraScript).m_Target = m_Clients[clientID].m_GameObject;
 			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Camera = playerCam;
+			
 			//perform calculations for screen rects for each camera
 			var numLocalClients:int = 0;
-			Debug.Log("NUM "+m_Clients.length);
+		
 			//count local clients and adjust the cameras accordingly
 			for(var i:int = 0; i < m_Clients.length; i++)
 			{
@@ -558,9 +575,9 @@ function GetGameObject() : GameObject
 			
 			
 			var localCount:int = 0;
-			var twoPixX = 2.0/Screen.width;
-			var twoPixY= 2.0/Screen.height;
-			twoPixX = twoPixY;
+			var onePixX = 1.0/Screen.width;
+			var onePixY= 1.0/Screen.height;
+			onePixX = onePixY;
 			if(numLocalClients == 1)
 			{
 			}
@@ -571,9 +588,9 @@ function GetGameObject() : GameObject
 					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
 					{
 						if(localCount == 0)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5,1,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5+onePixY,1,0.5-onePixY);
 						else if(localCount == 1)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-twoPixY,1,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-onePixY,1,0.5-onePixY);
 						localCount++;
 					}		
 				}
@@ -585,11 +602,11 @@ function GetGameObject() : GameObject
 					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
 					{
 						if(localCount == 0)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5,1,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5+onePixY,1,0.5-onePixY);
 						else if(localCount == 1)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-twoPixY,0.5,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 2)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+twoPixX,0-twoPixY,0.5,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+onePixX,0-onePixY,0.5-onePixX,0.5-onePixY);
 						localCount++;
 					}	
 				}
@@ -601,13 +618,13 @@ function GetGameObject() : GameObject
 					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
 					{
 						if(localCount == 0)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5,0.5,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5+onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 1)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+twoPixX,0.5,0.5,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+onePixX,0.5+onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 2)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-twoPixY,0.5,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 3)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+twoPixX,0-twoPixY,0.5,0.5);
+							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+onePixX,0-onePixY,0.5-onePixX,0.5-onePixY);
 						localCount++;
 					}
 						

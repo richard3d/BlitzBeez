@@ -17,6 +17,8 @@ static var m_HostListTimeout : float = 10;
 private var m_HostListWaitTimer : float = 0;
 private var m_MenuPos:Vector2;
 
+public var m_StartMatch:boolean = false;
+public var m_ReturnToMain:boolean = false;
 
 function GetHosts()
 {
@@ -40,11 +42,20 @@ function Start () {
 
 function ResetMenu()
 {
-	m_MenuPos = Vector2(-Screen.width, 256);
+	m_MenuPos = Vector2(-Screen.width, Screen.height*0.25);
 }
 
 function Update () {
 
+	if(Input.GetButtonDown("Joy0 Start"))
+	{
+		if(Network.isServer)
+		{
+			var plr : NetworkPlayer;
+			gameObject.Find("GameServer").GetComponent(ServerScript).OnPlayerConnected(plr);
+		}
+	}
+	
 	if(Input.GetKeyDown(KeyCode.Escape))
 	{
 		if(Network.isServer)
@@ -63,14 +74,94 @@ function Update () {
 		networkView.RPC("SetLevelPreviewIndex", RPCMode.Others,m_LevelIndex);
 	}
 	
-	if(gameObject.Find("Background") != null && gameObject.Find("Background").animation != null && !gameObject.Find("Background").animation.isPlaying)
-		m_MenuPos.x = Mathf.Lerp(m_MenuPos.x,0,Time.deltaTime*5);
+	
+		
+	if(m_StartMatch)
+	{
+		if(Camera.main.animation["CameraMapMenuExit"].time == 0)
+		{
+			m_MenuPos.x = Mathf.Lerp(m_MenuPos.x,Screen.width,Time.deltaTime*20);
+			if(m_MenuPos.x >= Screen.width-1)
+			{
+				gameObject.Find("Title").animation.Stop();
+				gameObject.Find("Title").animation["TitleMapMenu"].time = gameObject.Find("Title").animation["TitleMapMenu"].length;
+				gameObject.Find("Title").animation["TitleMapMenu"].speed = -1;
+				gameObject.Find("Title").animation.Play();
+				Camera.main.animation.Play("CameraMapMenuExit");
+			}
+			
+			
+		}
+		 else if(Camera.main.animation["CameraMapMenuExit"].time+Time.deltaTime >= Camera.main.animation["CameraMapMenuExit"].length)
+		 {
+			// Camera.main.animation.Stop();
+			 m_StartMatch = false;
+			 StartMatch();
+		 }
+		
+	}
+	else if(m_ReturnToMain)
+	{
+		if(Camera.main.animation["CameraMapMenuReturn"].time == 0)
+		{
+			m_MenuPos.x = Mathf.Lerp(m_MenuPos.x,-Screen.width,Time.deltaTime*20);
+			if(m_MenuPos.x <= -Screen.width+1)
+			{
+				gameObject.Find("Title").animation.Stop();
+				gameObject.Find("Title").animation["TitleMapMenu"].time = gameObject.Find("Title").animation["TitleMapMenu"].length;
+				gameObject.Find("Title").animation["TitleMapMenu"].speed = -1;
+				gameObject.Find("Title").animation.Play();
+				Camera.main.animation.Play("CameraMapMenuReturn");
+			}
+			
+			
+		}
+		 else if(Camera.main.animation["CameraMapMenuReturn"].time+Time.deltaTime >= Camera.main.animation["CameraMapMenuReturn"].length)
+		 {
+			// Camera.main.animation.Stop();
+			m_ReturnToMain = false;
+			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+			if(Network.isServer)
+				gameObject.Destroy(gameObject.Find("GameServer"));
+			Application.LoadLevel(0);
+		 }
+	}
+	else
+	{	//Debug.Log("Here");
+		var title:GameObject = gameObject.Find("Title") ;
+		Debug.Log(title.animation["TitleMapMenu"].time);
+		if(title != null && title.animation["TitleMapMenu"].time == 0 && !title.animation.isPlaying)
+		{
+			Debug.Log(title.animation["TitleMapMenu"].time);
+			m_MenuPos.x = Mathf.Lerp(m_MenuPos.x,0,Time.deltaTime*20);
+		}
+	}
+}
+
+function WaitForExitAnimation()
+{
+
+	
+}
+
+function StartMatch()
+{
+	m_StartMatch = false;
+	if(Network.isServer)
+	{
+		
+		AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+		GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
+		GetComponent(ServerScript).LoadLevel("Scene2");
+	}
+	
 }
 
 function OnGUI()
 {	
 		if(Network.isServer)
 		{
+			
 			var width : float = 800;
 			GUILayout.BeginArea (Rect(m_MenuPos.x, m_MenuPos.y, 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 				
@@ -100,16 +191,20 @@ function OnGUI()
 					
 					if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
 					{
-						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-						gameObject.Destroy(gameObject.Find("GameServer"));
-						Application.LoadLevel(0);
+						m_ReturnToMain = true;
+						// AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+						// gameObject.Destroy(gameObject.Find("GameServer"));
+						// Application.LoadLevel(0);
 					}
 					if(GUILayout.Button("Start Match", m_GUISkin.button))
 					{
 						// //Tell the clients which level to load
-						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-					   GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
-					   GetComponent(ServerScript).LoadLevel("Scene2");
+						Debug.Log("Here");
+						m_StartMatch = true;
+						//StartMatch();
+						//AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+					 //  GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
+					  // GetComponent(ServerScript).LoadLevel("Scene2");
 					}
 				GUILayout.EndHorizontal();
 			GUILayout.EndArea();

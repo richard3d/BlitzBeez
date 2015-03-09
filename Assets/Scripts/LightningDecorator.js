@@ -28,7 +28,7 @@ function Start () {
 		if(go != gameObject)
 		{
 			var dist:float = (go.transform.position - transform.position).magnitude;
-			var width:float =Camera.main.orthographicSize*2*Mathf.Cos(45*Mathf.Deg2Rad);
+			var width:float =GetComponent(BeeScript).m_Camera.camera.orthographicSize*2*Mathf.Cos(45*Mathf.Deg2Rad);
 			
 			var pos:Vector2 = new Vector2(go.transform.position.x, go.transform.position.z);
 			
@@ -56,10 +56,10 @@ function Start () {
 		}
 	m_StrikePos.y = 350;
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		Camera.main.gameObject.AddComponent(CameraZoomDecorator);
-		Camera.main.GetComponent(CameraZoomDecorator).m_fLifetime = m_Lifetime+m_AnimTime;
+		GetComponent(BeeScript).m_Camera.AddComponent(CameraZoomDecorator);
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraZoomDecorator).m_fLifetime = m_Lifetime+m_AnimTime;
 	}
 }
 

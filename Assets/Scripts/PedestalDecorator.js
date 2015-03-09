@@ -7,7 +7,7 @@ public var m_HiveCreated : boolean = false;
 private var m_SpeedAddBees : boolean = false;
 private var m_ShieldEffect : GameObject = null;
 var m_ProgressEffect : GameObject = null;
-
+private var m_Camera:GameObject = null;
 
 function Awake()
 {
@@ -16,8 +16,9 @@ function Awake()
 
 function Start () {
 
+	m_Camera = GetComponent(BeeScript).m_Camera;
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
-	GetComponent(BeeControllerScript).m_LookEnabled = false;
+	
 	//GetComponent(BeeControllerScript).m_AttackEnabled = false;
 	
 	var trgt : Transform = transform.Find("PowerShotParticleSystem(Clone)");
@@ -32,11 +33,11 @@ function Start () {
 	m_ProgressEffect.transform.localScale = Vector3(25,0,25);
 	m_ProgressEffect.renderer.material.SetColor("_Emission", NetworkUtils.GetColor(gameObject));
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		//m_Pedestal.audio.Play();
-		Camera.main.animation["CameraLessDramaticZoom"].speed = 1;
-		Camera.main.animation.Play("CameraLessDramaticZoom");
+		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
+		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
 	
 	var color = NetworkUtils.GetColor(gameObject);
@@ -78,13 +79,13 @@ function OnGUI()
 	// var width : float = 100;
 	// var perc : float = Mathf.Min(1, 1 - m_HiveTimer/3);
 	// perc *= width;
-	// var pos : Vector3 = Camera.main.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.z*6);
+	// var pos : Vector3 = m_Camera.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.z*6);
 	
-		 if(NetworkUtils.IsControlledGameObject(gameObject))
+		 if(NetworkUtils.IsLocalGameObject(gameObject))
 		 {		
 			 if(!m_HiveCreated)
 			 {
-				var pos : Vector3 = Camera.main.WorldToScreenPoint(m_Pedestal.transform.position + Vector3.up * transform.localScale.z*6);
+				var pos : Vector3 = m_Camera.camera.WorldToScreenPoint(m_Pedestal.transform.position + Vector3.up * transform.localScale.z*6);
 				GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +50, 200, 55), m_Pedestal.GetComponent(HivePedestalScript).m_BuildingTexture);
 				// //GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y, width, 10), m_Pedestal.GetComponent(HivePedestalScript).BaseTexture);
 				// //GUI.DrawTexture(Rect(pos.x- width* 0.5,Screen.height-pos.y,perc,10), m_Pedestal.GetComponent(HivePedestalScript).LifeTexture);
@@ -115,10 +116,7 @@ function Update () {
 	GetComponent(UpdateScript).m_Vel = Vector3.zero;
 	transform.position +=   (m_Pedestal.transform.position + Vector3(0,12,0) - transform.position) * Time.deltaTime * 20;
 	transform.position. y = m_Pedestal.transform.position.y + 12;
-	
-	if(!GetComponent(BeeControllerScript).m_LookEnabled)
-		transform.eulerAngles = Vector3(0,0,0);
-	
+		
 	
 	if(m_HiveTimer > 0)
 	{
@@ -129,7 +127,7 @@ function Update () {
 			// Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
 		// {
 			// var txt : GameObject = gameObject.Find("SwarmCountText");
-			// txt.transform.position = Camera.main.WorldToViewportPoint(transform.position+ Vector3.up * transform.localScale.z*5);
+			// txt.transform.position = m_Camera.WorldToViewportPoint(transform.position+ Vector3.up * transform.localScale.z*5);
 			// txt.transform.position.y += 0.04;
 			// txt.GetComponent(GUIText).enabled = true;
 			// //var count : int = m_Flower.GetComponentInChildren(ParticleEmitter).particleCount;
@@ -168,14 +166,14 @@ function OnDestroy()
 	
 	if(Network.isServer && m_HiveCreated)
 	{
-		Camera.main.GetComponent(CameraScript).Shake(0.25, 1.0);
+		m_Camera.GetComponent(CameraScript).Shake(0.25, 1.0);
 	}
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		Camera.main.animation["CameraLessDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-		Camera.main.animation["CameraLessDramaticZoom"].speed = -1;
-		Camera.main.animation.Play("CameraLessDramaticZoom");
+		m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+		m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
 	Destroy(m_ProgressEffect);
 }

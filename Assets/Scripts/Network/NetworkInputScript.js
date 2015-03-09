@@ -148,7 +148,7 @@ function Update () {
 	m_CurrentActions = 0;
 	
 	var joyStr = "Joy"+m_ClientOwner+" ";
-	Debug.Log(joyStr);
+	
 	//handle movement keys
 	if(Input.GetAxis(joyStr+"Move Forward/Back") > 0)
 	{
@@ -209,11 +209,11 @@ function Update () {
 		//END ORIG
 							//Vector3(transform.position.x,0,transform.position.y)
 		m_CursorPosition = transform.position + transform.forward * m_CursorDist;
-		m_CursorScreenPosition = Camera.main.WorldToScreenPoint(m_CursorPosition);
+		m_CursorScreenPosition = GetComponent(BeeScript).m_Camera.camera.WorldToScreenPoint(m_CursorPosition);
 		if(GetComponent(BeeControllerScript).m_LookEnabled)
 		{
 			if(NetworkUtils.IsControlledGameObject(gameObject))
-				Camera.main.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + LookDiff);
+				gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + LookDiff);
 			
 			if(!m_LocalClient)//if(m_ClientOwner != 0)
 			{

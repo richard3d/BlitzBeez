@@ -2,6 +2,7 @@
 var m_WorldPos : Vector3;
 var m_Color:Color = Color.white;
 var m_Delay:float = 0;
+var m_CameraOwner:GameObject;
 function Start () {
 
 }
@@ -24,7 +25,8 @@ function Update () {
 	{
 		m_WorldPos += Vector3.up*20*Time.deltaTime;
 		GetComponent(GUIText).material.color = m_Color;
-		gameObject.transform.position = Camera.main.WorldToViewportPoint(m_WorldPos);
+		if(m_CameraOwner != null)
+			gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_WorldPos);
 	}
 
 }

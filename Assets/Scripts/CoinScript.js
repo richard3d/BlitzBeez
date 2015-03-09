@@ -57,7 +57,7 @@ function GetCoin(name : String)
 	var currLevel:int = bee.GetComponent(BeeScript).m_CurrLevel;
 	bee.GetComponent(BeeScript).m_CurrXP +=1;
 	
-	if(NetworkUtils.IsControlledGameObject(bee) && bee.GetComponent(BeeScript).m_XPMeterFlashTimer <= 0)
+	if(NetworkUtils.IsLocalGameObject(bee) && bee.GetComponent(BeeScript).m_XPMeterFlashTimer <= 0)
 			bee.GetComponent(BeeScript).m_XPMeterFlashTimer = 0.25;
 	
 	if(bee.GetComponent(BeeScript).m_CurrXP >= bee.GetComponent(BeeScript).m_XPToLevel[currLevel])
@@ -69,10 +69,11 @@ function GetCoin(name : String)
 		bee.AddComponent("LevelUpDecorator");
 		AudioSource.PlayClipAtPoint(bee.GetComponent(BeeScript).m_LevelUpSound, Camera.main.transform.position);
 		GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(bee).m_Name+ " leveled up");
-		if(NetworkUtils.IsControlledGameObject(bee))
+		if(NetworkUtils.IsLocalGameObject(bee))
 		{
 			var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
 			txt.GetComponent(GUIText).text = "Upgrade Unlocked!";
+			txt.layer = LayerMask.NameToLayer("GUILayer_P"+(bee.GetComponent(NetworkInputScript).m_ClientOwner+1));
 			
 			var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
 			kudosText.GetComponent(GUIText).material.color = Color.yellow;
@@ -81,6 +82,8 @@ function GetCoin(name : String)
 			kudosText.GetComponent(GUIText).text = "Level Up!";
 			kudosText.animation.Stop();
 			kudosText.animation.Play();
+			kudosText.GetComponent(KudosTextScript).m_CameraOwner = bee.GetComponent(BeeScript).m_Camera;
+			kudosText.layer = LayerMask.NameToLayer("GUILayer_P"+(bee.GetComponent(NetworkInputScript).m_ClientOwner+1));
 		}
 	}
 	
@@ -105,7 +108,7 @@ function GetCoin(name : String)
 	effect.transform.position = bee.transform.position;
 	AudioSource.PlayClipAtPoint(m_PickupSound, Camera.main.transform.position);
 	
-	if(NetworkUtils.IsControlledGameObject(bee) && bee.GetComponent(CoinDashDecorator) == null)
+	if(NetworkUtils.IsLocalGameObject(bee) && bee.GetComponent(CoinDashDecorator) == null)
 	{
 		
 		if(gameObject.Find("XPKudos") != null)
@@ -125,6 +128,8 @@ function GetCoin(name : String)
 		 kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
 		 kudosText.GetComponent(GUIText).text = "+1 XP";
 		 kudosText.GetComponent(GUIText).fontSize = 32;
+		 kudosText.GetComponent(KudosTextScript).m_CameraOwner = bee.GetComponent(BeeScript).m_Camera;
+		 kudosText.layer = LayerMask.NameToLayer("GUILayer_P"+(bee.GetComponent(NetworkInputScript).m_ClientOwner+1));
 	}
 }
 

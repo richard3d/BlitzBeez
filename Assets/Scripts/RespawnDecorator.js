@@ -2,6 +2,7 @@
 private var m_Lifetime : float = 0.0;
 private var m_AnimTime : float = 0.25;
 var m_RespawnPos = Vector3(0,350,0);
+private var m_Camera:GameObject = null;
 function Awake()
 {
 	gameObject.AddComponent(ControlDisablerDecorator);
@@ -15,8 +16,19 @@ function Awake()
 
 function Start () {
 
-	if(NetworkUtils.IsControlledGameObject(gameObject))
-		Camera.main.GetComponent(CameraScript).m_Freeze = true;
+	m_Camera = gameObject.GetComponent(BeeScript).m_Camera;
+	if(NetworkUtils.IsLocalGameObject(gameObject))
+	{
+		GetComponent(BeeControllerScript).m_LookEnabled = false;
+		GetComponent(BeeScript).m_DrawGUI = false;
+		
+		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
+		m_Camera.animation.Play("CameraLessDramaticZoom");
+	
+	
+	
+	}
+
 
 }
 
@@ -33,18 +45,24 @@ function Update () {
 			//start animating
 			GetComponent(BeeScript).Show(true);
 			AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_RespawnSound, Camera.main.transform.position);
+			if(NetworkUtils.IsLocalGameObject(gameObject))
+			{
+				m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+				m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+				m_Camera.animation.Play("CameraLessDramaticZoom");
+			}
 		}
 	}
 	
 	if(m_Lifetime <= 0)
 	{
-		if(NetworkUtils.IsControlledGameObject(gameObject))
+		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
 			//Camera.main.GetComponent(CameraScript).m_Freeze = false;
-			Camera.main.transform.position = m_RespawnPos +200*Vector3.up-transform.forward*200;
-			Camera.main.transform.position.y = 200;
-			Camera.main.transform.LookAt(Vector3(m_RespawnPos.x,0,m_RespawnPos.z));
-			Camera.main.GetComponent(CameraScript).m_CamPos = Camera.main.transform.position;
+			m_Camera.transform.position = m_RespawnPos +200*Vector3.up-transform.forward*200;
+			m_Camera.transform.position.y = 200;
+			m_Camera.transform.LookAt(Vector3(m_RespawnPos.x,0,m_RespawnPos.z));
+			m_Camera.GetComponent(CameraScript).m_CamPos = Camera.main.transform.position;
 		}
 		gameObject.GetComponent(BeeScript).enabled = false;
 		m_AnimTime -= Time.deltaTime;
@@ -62,6 +80,23 @@ function Update () {
 	}
 }
 
+function OnGUI()
+{
+	if(NetworkUtils.IsLocalGameObject(gameObject))
+	{
+		var camWidth = m_Camera.camera.rect.width;
+		var camScale = m_Camera.camera.rect.width;
+		var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
+		var time:int = (m_Lifetime+0.5);
+		var style:GUIStyle = GetComponent(BeeScript).FontStyle;
+		var tempMinItemWidth:float;
+		var tempMaxItemWidth:float;
+		style.CalcMinMaxWidth(GUIContent("Respawning in  "), tempMinItemWidth, tempMaxItemWidth);
+		GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempMinItemWidth*0.5,camPos.y,256,512), "Respawning in "+time, style);
+		
+	}
+}
+
 function SetLifetime(time : float)
 {
 	m_Lifetime = time;
@@ -69,9 +104,14 @@ function SetLifetime(time : float)
 
 function OnDestroy()
 {
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		Camera.main.GetComponent(CameraScript).m_Freeze = false;
+		GetComponent(BeeControllerScript).m_LookEnabled = true;
+		GetComponent(BeeScript).m_DrawGUI = true;
+		
+		m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+		m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
 	
 	GetComponent(BeeScript).m_HP = GetComponent(BeeScript).GetMaxHP();

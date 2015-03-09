@@ -2,16 +2,18 @@
 private var m_Lifetime: float = 1.5;
 private var m_LightEffect:GameObject = null;
 private var m_LightSpot:GameObject = null;
+private var m_PlayerCam:GameObject = null;
 function Start () {
 
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		Camera.main.animation["CameraDramaticZoom"].time = 0;
-		Camera.main.animation["CameraDramaticZoom"].speed = 1;
-		Camera.main.animation.Play("CameraDramaticZoom");
+		m_PlayerCam = gameObject.GetComponent(BeeScript).m_Camera;
+		m_PlayerCam.animation["CameraDramaticZoom"].time = 0;
+		m_PlayerCam.animation["CameraDramaticZoom"].speed = 1;
+		m_PlayerCam.animation.Play("CameraDramaticZoom");
 		
-		Camera.main.GetComponent(CameraScript).Shake(1.5, 1.5);
-		Camera.main.GetComponent(MotionBlur).enabled = true;
+		m_PlayerCam.GetComponent(CameraScript).Shake(1.5, 1.5);
+		m_PlayerCam.GetComponent(MotionBlur).enabled = true;
 	}
 	Destroy(transform.GetChild(0).gameObject);
 	var newBee:GameObject = GameObject.Instantiate(GetComponent(BeeScript).m_Meshes[GetComponent(BeeScript).m_CurrLevel-1]);
@@ -55,13 +57,12 @@ function Update () {
 function OnDestroy()
 {
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		Camera.main.animation["CameraDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-		Camera.main.animation["CameraDramaticZoom"].speed = -1;
-		Camera.main.animation.Play("CameraDramaticZoom");
-		Camera.main.GetComponent(MotionBlur).enabled = false;
-	//	Destroy(Camera.main.transform.gameObject.GetComponent(MotionBlur));
+		m_PlayerCam.animation["CameraDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
+		m_PlayerCam.animation["CameraDramaticZoom"].speed = -1;
+		m_PlayerCam.animation.Play("CameraDramaticZoom");
+		m_PlayerCam.GetComponent(MotionBlur).enabled = false;
 	}
 	GetComponent(BeeControllerScript).m_ControlEnabled = true;
 	//Destroy(GetComponent(PauseDecorator));

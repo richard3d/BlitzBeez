@@ -5,7 +5,7 @@ private var m_OrigScale = Vector3(1,1,1);
 private var m_WaterHeight :float;
 function Awake()
 {
-	m_Lifetime = 2.0;
+	m_Lifetime = 0.20;
 	
 	
 	GetComponent(BeeScript).Show(false);
@@ -28,6 +28,10 @@ function Start () {
 	 {	
 		 Destroy(GetComponent(HammerDecorator));
 	 }
+	 
+	var trgt : Transform = transform.Find("PowerShotEffect");
+	if(trgt != null)
+		Destroy(trgt.gameObject);
 		
 	var go:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/SplashParticles"));
 	go.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point;

@@ -12,25 +12,27 @@ var m_FlowerShieldEffect : GameObject = null;
 private var m_PollenParticles : GameObject = null;
 var m_ProgressEffect : GameObject = null;
 var m_FlashTimer : float = -1;
+private var m_Camera:GameObject = null;
 function Start () {
 
+	m_Camera = GetComponent(BeeScript).m_Camera;
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
 	
 	var trgt : Transform = transform.Find("PowerShotParticleSystem(Clone)");
 	if(trgt != null)
 		Destroy(trgt.gameObject);
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 	
 		//m_Flower.audio.Play();
-		Camera.main.animation["CameraLessDramaticZoom"].speed = 1;
-		Camera.main.animation.Play("CameraLessDramaticZoom");
+		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
+		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
 	
 	//don't show progress meter if the flower is already completely occupied
 	if(m_Flower.GetComponent(FlowerScript).m_NumBees < m_Flower.GetComponent(FlowerScript).m_MaxBees)
 	{
-		if(NetworkUtils.IsControlledGameObject(gameObject))
+		if(NetworkUtils.IsLocalGameObject(gameObject))
 			m_Flower.audio.Play();
 		m_ProgressEffect = GameObject.Instantiate(m_Flower.GetComponent(FlowerScript).m_ProgressEffectInstance);
 		m_ProgressEffect.transform.position = m_Flower.transform.position + Vector3.up * 6;
@@ -103,10 +105,10 @@ GetComponent(UpdateScript).m_Vel = Vector3.zero;
 		
 	//GetComponent(BeeControllerScript).m_WorkerGenTimer = 	GetComponent(BeeControllerScript).m_WorkerGenTime;
 	var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		var txt:GameObject= gameObject.Find("SwarmCountText");
-		txt.transform.position = Camera.main.WorldToViewportPoint(m_Flower.transform.position - Vector3.up * transform.localScale.z*18);
+		txt.transform.position = m_Camera.camera.WorldToViewportPoint(m_Flower.transform.position - Vector3.up * transform.localScale.z*18);
 		txt.transform.position.y += 0.04;
 		txt.GetComponent(GUIText).enabled = true;
 		if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
@@ -195,19 +197,7 @@ GetComponent(UpdateScript).m_Vel = Vector3.zero;
 	transform.position. y = m_Flower.transform.position.y + 12;
 	if(!GetComponent(BeeControllerScript).m_LookEnabled)
 		transform.eulerAngles = Vector3(0,0,0);
-	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
-	{
-		if(m_Flower.transform.Find("Swarm"+m_Flower.name) == null)
-		{
-			// txt= gameObject.Find("SwarmCountText");
-			// txt.transform.position = Camera.main.WorldToViewportPoint(transform.position + Vector3.up * transform.localScale.z*5);
-			// txt.transform.position.y += 0.04;
-			// //txt.GetComponent(GUIText).enabled = true;
-			// //txt.GetComponent(GUIText).text = "Capturing";
-			// txt.GetComponent(GUIText).fontSize = 24;
-		}
-	}
+
 
 }
 
@@ -222,11 +212,11 @@ function OnGUI()
 	if(m_Flower == null)
 		return;
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		var width : float = 100;
 		var perc : float =   Mathf.Min(m_LifeTimer/m_Lifetime,1) * width;	
-		var pos : Vector3 = Camera.main.WorldToScreenPoint(m_Flower.transform.position + Vector3.up * transform.localScale.z*6);
+		var pos : Vector3 = m_Camera.camera.WorldToScreenPoint(m_Flower.transform.position + Vector3.up * transform.localScale.z*6);
 		//GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y, width, 10), m_Flower.GetComponent(FlowerScript).BaseTexture);
 	//	GUI.DrawTexture(Rect(pos.x- width* 0.5,Screen.height-pos.y,perc,10), m_Flower.GetComponent(FlowerScript).LifeTexture);
 		
@@ -271,11 +261,11 @@ function OnDestroy()
 	{
 		
 		gameObject.Destroy(m_ShieldEffect);
-		if(NetworkUtils.IsControlledGameObject(gameObject))
+		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
-			Camera.main.animation["CameraLessDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-			Camera.main.animation["CameraLessDramaticZoom"].speed = -1;
-			Camera.main.animation.Play("CameraLessDramaticZoom");
+			m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+			m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+			m_Camera.animation.Play("CameraLessDramaticZoom");
 		}
 		
 		if(Network.isServer)
@@ -321,7 +311,7 @@ function OnDestroy()
 		
 		// m_Flower.animation.Play("Flower");
 		// AudioSource.PlayClipAtPoint(m_Flower.GetComponent(FlowerScript).m_BuildComplete, transform.position);
-		if(NetworkUtils.IsControlledGameObject(gameObject))
+		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{	
 			//AudioSource.PlayClipAtPoint(m_Flower.GetComponent(FlowerScript).m_StopwatchDing, transform.position);
 			// var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
@@ -330,10 +320,10 @@ function OnDestroy()
 			// gameObject.GetComponent(BeeScript).m_Money +=  25;
 			// txt.GetComponent(GUIText).text = "+ $25";
 			// txt.GetComponent(GUIText).material.color = Color.yellow;
-			Camera.main.GetComponent(CameraScript).Shake(0.25, 0.5);
-			Camera.main.animation["CameraLessDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-			Camera.main.animation["CameraLessDramaticZoom"].speed = -1;
-			Camera.main.animation.Play("CameraLessDramaticZoom");
+			m_Camera.GetComponent(CameraScript).Shake(0.25, 2);
+			m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+			m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+			m_Camera.animation.Play("CameraLessDramaticZoom");
 		}
 	}
 	Destroy(m_ProgressEffect);

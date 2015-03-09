@@ -5,6 +5,7 @@ private var m_MovementSpeed : float = 50;
 private var m_Forward:Vector3;
 private var m_Right:Vector3;
 private var m_OrigCamOffset:Vector3;
+private var m_Camera:GameObject = null;
 var m_MovementEnabled : boolean = true;
 var m_Hammer:GameObject;
 function Start () {
@@ -27,13 +28,14 @@ function Start () {
 	m_Right = Vector3.Cross(Vector3.up,m_Forward);
 	transform.LookAt(transform.position + m_Forward);		
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		 Camera.main.GetComponent(CameraScript).m_Fixed = true;
+		m_Camera =GetComponent(BeeScript).m_Camera;
+		m_Camera.GetComponent(CameraScript).m_Fixed = true;
 		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
 		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - dir *200;
 		m_OrigCamOffset = Camera.main.GetComponent(CameraScript).m_DefaultOffset;
-		Camera.main.GetComponent(CameraScript).m_Offset = m_Forward *200 - Vector3.up *200;
+		m_Camera.GetComponent(CameraScript).m_Offset = m_Forward *200 - Vector3.up *200;
 		// Camera.main.transform.eulerAngles.z = 0;
 		// Camera.main.transform.eulerAngles.y = transform.eulerAngles.y;
 	}	
@@ -121,15 +123,11 @@ function OnNetworkInput(IN : InputState)
 
 function OnDestroy()
 {
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		Camera.main.GetComponent(CameraScript).m_Fixed = false;
-		Camera.main.GetComponent(CameraScript).m_Offset = m_OrigCamOffset;
-		// Camera.main.GetComponent(CameraScript).m_ThirdPerson = true;
-		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
-		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - transform.forward *200;
-		// Camera.main.GetComponent(CameraScript).m_Offset = Vector3.forward *200;
-		// Camera.main.transform.eulerAngles.z = 0;
+		m_Camera.GetComponent(CameraScript).m_Fixed = false;
+		m_Camera.GetComponent(CameraScript).m_Offset = m_OrigCamOffset;
+		
 	}	
 	
 	GetComponent(BeeControllerScript).m_ControlEnabled = true;

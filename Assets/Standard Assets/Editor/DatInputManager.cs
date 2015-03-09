@@ -529,8 +529,8 @@ public class DatInputManager : EditorWindow {
 			GetChildProperty(axisProperty, "negativeButton").stringValue = "";
 		}
 		
-		GetChildProperty(axisProperty, "altNegativeButton").stringValue = (player > 0 && axis.altNegativeButton.Length == 1) ? "" : axis.altNegativeButton;
-		GetChildProperty(axisProperty, "altPositiveButton").stringValue = (player > 0 && axis.altPositiveButton.Length == 1) ? "" : axis.altPositiveButton;
+		GetChildProperty(axisProperty, "altNegativeButton").stringValue = (player > 0 && (axis.altNegativeButton.Length == 1 || axis.altNegativeButton.Contains("mouse"))) ? "" : axis.altNegativeButton;
+		GetChildProperty(axisProperty, "altPositiveButton").stringValue = (player > 0 && (axis.altPositiveButton.Length == 1 || axis.altPositiveButton.Contains("mouse"))) ? "" : axis.altPositiveButton;
 		
 		GetChildProperty(axisProperty, "gravity").floatValue = axis.gravity;
 		GetChildProperty(axisProperty, "dead").floatValue = axis.dead;

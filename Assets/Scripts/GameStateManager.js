@@ -43,19 +43,58 @@ function SetState(state:int)
 	SendMessage("OnStateChange", state, SendMessageOptions.DontRequireReceiver);
 }
 
-@RPC function StartMatchTick(numTicks:int, ticksPerSec:int)
+@RPC function StartMatchTick(numTicks:int, ticksPerSec:float)
 {
 	m_WinningPlayer = -1;
 	SetState(MATCH_STARTING);
 	m_MatchTick = numTicks;
+	var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
+	txt.GetComponent(GUIScript).m_Text = "Ready!";
+	txt.GetComponent(GUIScript).m_Depth = -999999;
+	
 	if(Network.isServer)
 		yield MatchTickCoroutine(numTicks, ticksPerSec);
 } 
 
 @RPC function EndMatch(winner:int)
 {
+
+	var flash:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"));
+		// GameObject.Find("Flash").animation.Stop("FlashIntro");
+			// GameObject.Find("Flash").animation["FlashIntro"].time = 2.35;
+			// GameObject.Find("Flash").animation.Play("FlashIntro");
+	flash.transform.position = Vector3(0.5,0.5,1);
+	flash.animation.Stop("FlashIntro");
+	flash.animation["FlashIntro"].time = 2.35;
+	flash.animation.Play("FlashIntro");
+
+	//this (MatchStartGUI) is really just a text type with a cool zoom effect
+	var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
+	txt.GetComponent(GUIScript).m_Text =  "Game!";
+	txt.GetComponent(GUIScript).m_Depth = -999999;
+
+	yield WaitForSeconds(0.1);
+	txt   = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
+	txt.GetComponent(GUIScript).m_Text =  "Game!";
+	txt.GetComponent(GUIScript).m_Depth = -999999;
+	
+	txt.GetComponent(GUIScript).m_SpawnGUI = Resources.Load("GameObjects/MatchEndGUI");
+	txt.GetComponent(GUIScript).m_SpawnGUI.GetComponent(GUIScript).m_Depth = -999;
+
+	yield WaitForSeconds(0.1);
+	txt   = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
+	txt.GetComponent(GUIScript).m_Text =  "Game!";
+	txt.GetComponent(GUIScript).m_Depth = -999999;
+	
+	
+	
+	// var gui : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchEndGUI"));
+	// gui.GetComponent(GUIScript).m_Depth = -999;
+	
+	
 	SetState(MATCH_OVER);
 	m_WinningPlayer = winner;
+	
 }
 
 @RPC function ExitMatch()
@@ -66,7 +105,7 @@ function SetState(state:int)
 
 
 
-function MatchTickCoroutine(numTicks:int, ticksPerSec:int)
+function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 {
 	while(m_MatchTick >= 0)
 	{
@@ -83,10 +122,37 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:int)
 
 @RPC private function  DoMatchTick()
 {
-	m_MatchTick--;
+		
+	
+	m_MatchTick--;	
+	if(m_MatchTick < 0)
+	{
+		m_MatchTick = 0;
+		return;
+	}
+	if(m_MatchTick >= 0)
+	{	
+		var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
+		txt.GetComponent(GUIScript).m_Text =  m_MatchTick ==0 ? "Go!":" "+m_MatchTick;
+		txt.GetComponent(GUIScript).m_Depth = -999999;
+		txt.GetComponent(GUIScript).m_Color =  m_MatchTick ==0 ?Color.white:Color.yellow;
+		yield WaitForSeconds(0.1);
+		txt   = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
+		txt.GetComponent(GUIScript).m_Text = m_MatchTick ==0 ? "Go!":" "+m_MatchTick;
+		txt.GetComponent(GUIScript).m_Depth = -999999;
+		txt.GetComponent(GUIScript).m_Color =  m_MatchTick ==0 ?Color.white:Color.yellow;
+		yield WaitForSeconds(0.1);
+		txt   = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
+		txt.GetComponent(GUIScript).m_Text = m_MatchTick ==0 ? "Go!":" "+m_MatchTick;
+		txt.GetComponent(GUIScript).m_Depth = -999999;
+		txt.GetComponent(GUIScript).m_Color =  m_MatchTick ==0 ?Color.white:Color.yellow;
+	}
+	
 	if(m_MatchTick == 0)
 	{		
+		txt.GetComponent(UpdateScript).m_Lifetime = 1.2;
 		SetState(MATCH_PLAYING);
+		
 	}
 	
 }

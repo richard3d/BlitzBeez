@@ -7,7 +7,7 @@ var m_HexOffset:float = 0;
 var m_BGOffset:float = 0; 
 var m_bShow : boolean = false;
 private var m_Fade : float = 0;
-
+private var m_Camera:GameObject = null;
 
 class Selection
 {
@@ -30,9 +30,27 @@ var m_Selection : int[] = new int[6];
 function Start () {
 	
 	//set appropriate styles
-	
-	 
-	 //register event listeners
+	if(GetComponent(BeeScript) != null)
+	{
+		m_Camera = GetComponent(BeeScript).m_Camera;
+		if(m_Camera)
+		{
+			if(m_Camera.camera.rect.height < 1)
+			{
+				m_GUISkin.GetStyle("MenuText").fontSize = 18; 
+				m_GUISkin.GetStyle("DescriptionText").fontSize = 18;
+			}
+			else
+			{
+				m_GUISkin.GetStyle("MenuText").fontSize = 24;
+				m_GUISkin.GetStyle("DescriptionText").fontSize = 24;
+			}
+			 
+			
+			
+		}
+	}
+
 	
 }
 
@@ -41,18 +59,18 @@ function Update () {
 	
 	 if(!m_bShow)
 		 return;
+	var joyStr:String = "Joy"+GetComponent(NetworkInputScript).m_ClientOwner+" ";
+	// if(Input.GetAxis(joyStr+"Use Item/Interact"))
+	// {
 	
-	if(Input.GetAxis("Use Item/Interact"))
-	{
+	// }
 	
-	}
-	
-	//if the user clicks off the menu( there is no valid sel index );
-	if (Input.GetMouseButtonDown(0))
-	{
-		//hide the menu
+	// //if the user clicks off the menu( there is no valid sel index );
+	// if (Input.GetMouseButtonDown(0))
+	// {
+		// //hide the menu
 		
-	}
+	// }
 }
 
 function OnNetworkInput(IN : InputState)
@@ -156,7 +174,7 @@ function OnNetworkInput(IN : InputState)
 function Show(bShow : boolean)
 {
 	m_bShow = bShow;
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		if(m_bShow)
 		{
@@ -167,8 +185,8 @@ function Show(bShow : boolean)
 			animation["BeeGUIOpen"].speed = 1;
 			animation.Play("BeeGUIOpen");
 			
-			Camera.main.animation["CameraDramaticZoom"].speed = 1;
-			Camera.main.animation.Play("CameraDramaticZoom");
+			m_Camera.animation["CameraDramaticZoom"].speed = 1;
+			m_Camera.animation.Play("CameraDramaticZoom");
 			//m_CurrSelMenu.Push(m_MainMenu);
 			//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
 		}
@@ -177,7 +195,7 @@ function Show(bShow : boolean)
 			Screen.showCursor = false;
 			
 			m_Fade = 0;
-			Camera.main.orthographicSize = 100;
+			m_Camera.camera.orthographicSize = 100;
 			
 			Debug.Log("Hiding");
 			
@@ -186,9 +204,9 @@ function Show(bShow : boolean)
 			animation["BeeGUIOpen"].time = animation["BeeGUIOpen"].length;
 			animation.Play("BeeGUIOpen");
 			
-			Camera.main.animation["CameraDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-			Camera.main.animation["CameraDramaticZoom"].speed = -1;
-			Camera.main.animation.Play("CameraDramaticZoom");
+			m_Camera.animation["CameraDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+			m_Camera.animation["CameraDramaticZoom"].speed = -1;
+			m_Camera.animation.Play("CameraDramaticZoom");
 			
 		}
 	}
@@ -196,44 +214,54 @@ function Show(bShow : boolean)
 
 function OnGUI()
 {
-	if(m_bShow && NetworkUtils.IsControlledGameObject(gameObject))
+	if(m_bShow && NetworkUtils.IsLocalGameObject(gameObject))
 	{	
 		if(m_Fade < 1 && m_bShow)
 		{
 			m_Fade += Time.deltaTime * 2;
-			Camera.main.orthographicSize -= Time.deltaTime * 90;
+			m_Camera.camera.orthographicSize -= Time.deltaTime * 90;
 		}
 		
 		
-		if(NetworkUtils.IsControlledGameObject(gameObject)) 
+		if(NetworkUtils.IsLocalGameObject(gameObject)) 
 		{
+			var camScaleX  = m_Camera.camera.rect.width;
+			var camScaleY  = m_Camera.camera.rect.height;
+		
+			var camWidth = m_Camera.camera.rect.width*Screen.width;
+			var camHeight = m_Camera.camera.rect.height*Screen.height;
+			var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(1.0-(m_Camera.camera.rect.y+m_Camera.camera.rect.height) )*Screen.height);
+			Debug.Log(1.0-(m_Camera.camera.rect.y+m_Camera.camera.rect.height));
+			var camBottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
+			//var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
+			//var camPixWidth = m_Camera.camera.rect.width*
 			//draw background
 			GUI.color = Color(1,1,1,1);
-			GUI.DrawTexture(Rect(0,0, Screen.width*m_BGOffset,Screen.height), m_BGTexture);
+			GUI.DrawTexture(Rect(camPos.x,camPos.y, camWidth*m_BGOffset ,camHeight), m_BGTexture);
 			GUI.color = Color.white;
 			//display directions
-			GUI.Label(Rect(0,0, Screen.width,32), "Hold Direction and Press Fire to Make a Selection", m_GUISkin.label);
+			GUI.Label(Rect(camPos.x,camPos.y, camWidth,32), "Hold Direction and Press Fire to Make a Selection", m_GUISkin.label);
 			
 			
 			
 			//display info for the current selection
-			var hexCenterPoint:Vector2 = Vector2(Screen.width*0.25,Screen.height*0.5);
+			var hexCenterPoint:Vector2 = Vector2(camPos.x+camWidth*0.25,camPos.y+camHeight*0.5);
 			if(m_CurrSelIndex != -1)
 			{	
 				var t:Talent = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;
-				GUI.Label(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), " ", m_GUISkin.label);
+				GUI.Label(Rect(camPos.x,camPos.y+camHeight*0.25, camWidth,camHeight*0.5), " ", m_GUISkin.label);
 				GUI.Label(Rect(hexCenterPoint.x-64,hexCenterPoint.y-16, 128,32), t.m_Name, m_GUISkin.GetStyle("MenuHeading"));
-				GUI.Label(Rect(0,Screen.height-32, Screen.width,32), "", m_GUISkin.label);
-				GUI.Label(Rect(Screen.width*0.60+50,Screen.height*0.70, 256,32), t.m_Desc, m_GUISkin.GetStyle("MenuText"));
+				GUI.Label(Rect(camPos.x,camBottom-30.0, camWidth,30), "", m_GUISkin.label);
+				GUI.Label(Rect(camPos.x+camWidth*0.60+50,camPos.y+camHeight*0.70, 256,32), t.m_Desc, m_GUISkin.GetStyle("MenuText"));
 			}
 			
 			
 			for(var i:int = 0; i < m_Selection.length; i++)
 			{
 				var offset:Vector3 = Quaternion.AngleAxis(-i*60, Vector3.forward) * Vector3.up;
-				offset *= m_HexOffset;
+				offset *= m_HexOffset *camScaleY;
 				
-				var width:float = 190;
+				var width:float = 190*camScaleY;
 				if(m_CurrSelIndex == i)
 					width  += Mathf.Sin(Time.time*8)*10;
 				
@@ -241,19 +269,20 @@ function OnGUI()
 			}
 			var beeCtrlScript:BeeControllerScript = GetComponent(BeeControllerScript);
 			 var count = 0;
-			 var statsPoint:Vector2 = Vector2(Screen.width*0.60,Screen.height*0.27);
+			 var statsPoint:Vector2 = Vector2(camPos.x+camWidth*0.60,camPos.y+camHeight*0.27);
+			 var fontSize = m_GUISkin.GetStyle("DescriptionText").fontSize;
 			 for(var s:String in beeCtrlScript.m_Stats.Keys)
 			 {
 				if(s == "Loadout" || s == "Powershot" || s == "Special_Rounds")
 					continue;
 					var label = s.Replace("_", " ");
 					//label.Replace("_", " ");
-				 GUI.Label(Rect(statsPoint.x,statsPoint.y+30*count, 128,30), label, m_GUISkin.GetStyle("DescriptionText"));
+				 GUI.Label(Rect(statsPoint.x,statsPoint.y+fontSize*count, 128,30), label, m_GUISkin.GetStyle("DescriptionText"));
 				 
 				 //draw empty sqaures for the meter
 				 for(var p:int = 0; p < 5; p++)
 				 {
-					GUI.DrawTexture(Rect(statsPoint.x+200+p*27,statsPoint.y+6+30*count, 24,18), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
+					GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
 				 }
 				 
 				 //draw the filled in squares for the meter
@@ -272,8 +301,8 @@ function OnGUI()
 				
 				 for(p = 0; p < (val+1); p++)
 				 {
-					GUI.DrawTexture(Rect(statsPoint.x+200+p*27,statsPoint.y+6+30*count, 24,18), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
-					GUI.DrawTexture(Rect(statsPoint.x+200+p*27,statsPoint.y+6+30*count, 24,18), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
+					GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
+					GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
 				 }
 				 count++;
 			 }

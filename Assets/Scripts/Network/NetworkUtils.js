@@ -13,7 +13,14 @@ public class NetworkUtils
 		// }
 		// return false;
 	// }
-
+	public static function IsLocalGameObject(go:GameObject):boolean
+	{
+		if(go.GetComponent(NetworkInputScript).m_LocalClient)
+		{
+			return true;
+		}
+		return false;
+	}
 	public static function IsControlledGameObject(go:GameObject):boolean 
 	{
 		

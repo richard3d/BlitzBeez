@@ -13,19 +13,25 @@ function Update () {
 
 function OnTriggerStay(coll:Collider)
 {
-	if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+	if(coll.gameObject.tag == "Player")
 	{
-		Camera.main.GetComponent(CameraScript).m_Offset = m_Offset;
+		
+		if(NetworkUtils.IsLocalGameObject(coll.gameObject))
+		{
+			coll.gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Offset = m_Offset;
+		}
 	}
 }
 
 
 function OnTriggerExit(coll:Collider)
 {
-	
-	if(NetworkUtils.IsControlledGameObject(coll.gameObject))
+	if(coll.gameObject.tag == "Player")
 	{
-		Camera.main.GetComponent(CameraScript).m_Offset = Camera.main.GetComponent(CameraScript).m_DefaultOffset ;
+		if(NetworkUtils.IsLocalGameObject(coll.gameObject))
+		{
+			coll.gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Offset = coll.gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_DefaultOffset ;
+		}
 	}
 	
 }

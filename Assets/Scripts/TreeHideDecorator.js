@@ -3,9 +3,16 @@ var m_Tree : GameObject = null;
 private var m_FirstInput : boolean = true; //this component is added during a message that is sent and wil lbe processed asap on this component, so we use this variable to defer it
 public var m_DisplaceVector : Vector3;
 private var m_OrigPosition : Vector3; //original position of the character before they hid. We will put them this distance away
+private var m_Camera:GameObject;
 
+function Awake()
+{
+	m_Camera = GetComponent(BeeScript).m_Camera;
+}
 
 function Start () {
+
+	Debug.Log("Starting");
 
 	m_OrigPosition = transform.position;
 
@@ -14,17 +21,19 @@ function Start () {
 	{
 	
 		//m_Flower.audio.Play();
-		Camera.main.animation["CameraLessDramaticZoom"].speed = 1;
-		Camera.main.animation.Play("CameraLessDramaticZoom");
+		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
+		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
 }
 
 function Update () {
 
+	if(m_Tree == null)
+		return;
 	GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
 	GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 	
-	transform.position = (m_Tree.transform.position);//+ Vector3.up *10) ;
+	transform.position = m_Tree.transform.position + Vector3.up *10;
 	m_DisplaceVector = Vector3(0,0,0);
 	
 	
@@ -96,7 +105,8 @@ function OnNetworkInput(IN : InputState)
 
 function Hide(tree : GameObject)
 {
-	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, Camera.main.transform.position);
+	Debug.Log("Hiding");
+	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, m_Camera.transform.position);
 	m_Tree = tree;
 	collider.enabled = false;
 	
@@ -111,11 +121,11 @@ function OnDestroy()
 {
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
-		Camera.main.animation["CameraLessDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-		Camera.main.animation["CameraLessDramaticZoom"].speed = -1;
-		Camera.main.animation.Play("CameraLessDramaticZoom");
+		m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+		m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
-	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, Camera.main.transform.position);
+	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, m_Camera.transform.position);
 
 	
 	m_Tree.transform.position.y = 0;

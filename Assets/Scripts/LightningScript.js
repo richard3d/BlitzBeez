@@ -53,7 +53,7 @@ function OnCollisionEnter(coll : Collision)
 		go.AddComponent(LightningDecorator);
 		go.GetComponent(LightningDecorator).SetLifetime(0.25);
 		
-		AudioSource.PlayClipAtPoint(m_ActivateSound, Camera.main.transform.position);
+		AudioSource.PlayClipAtPoint(m_ActivateSound, go.GetComponent(BeeScript).m_Camera.transform.position);
 	}
 }
 
@@ -77,7 +77,7 @@ function OnDestroy()
 	go.transform.position = transform.position;
 	go.renderer.material.SetColor("_TintColor", renderer.material.color);
 	
-	Camera.main.GetComponent(CameraScript).Shake(0.25,3.5);
+	go.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.25,3.5);
 }
 
 

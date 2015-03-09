@@ -88,7 +88,7 @@ function OnGUI()
 	if(m_LifebarTimer > 0)
 	{
 		m_LifebarTimer -= Time.deltaTime;
-		var scrPos:Vector3 = Camera.main.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.y * 1.25);
+		var scrPos:Vector3 = m_Owner.GetComponent(BeeScript).m_Camera.camera.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.y * 1.25);
 		var height = 12;
 		var width = 48;
 		if(transform.Find("Shield") != null)
