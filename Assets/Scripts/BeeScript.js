@@ -273,6 +273,7 @@ function OnGUI()
 	}
 }
 
+
 function DrawGUI()
 {
 	if(GetComponent(BeehiveGUI).m_bShow)
@@ -561,6 +562,19 @@ function DrawGUI()
 		//draw the actual honey meter that shows the race for the crown
 		GUI.BeginGroup(Rect(right-330*camScale,camPos.y+16*camScale, 512*camScale, 512*camScale));
 		GUI.DrawTexture(Rect(210*camScale, 32*camScale, 48*camScale, 48*camScale), CrownTexture, ScaleMode.ScaleToFit, true);
+		
+		
+		if(GetHoneyRate() > 0)
+		{
+			var yPos:float = (Mathf.Sin(Time.time*5)+1)*20;
+			if(Mathf.Sin(Time.time*5) - Mathf.Sin(Time.time*5-0.001) < 0) 
+			yPos = 40;
+			GUI.color.a = (1-yPos/40.0);
+			GUI.Label(Rect(210*camScale, -yPos+16*camScale, 256*camScale, 48*camScale), "+"+GetHoneyRate()*100, SmallFontStyle);
+		//	GUI.Label(Rect(166*camScale, -yPos+24*camScale, 256*camScale, 48*camScale), place+strPlace, SmallFontStyle);
+			GUI.color.a = 1;
+		}
+		
 		for(var i:int = 0; i < NetworkUtils.GetNumClients(); i++)
 		{
 			var player:GameObject = NetworkUtils.GetGameObjectFromClient(i);
@@ -607,7 +621,7 @@ function DrawGUI()
 		
 		//draw flower counter 
 		GUI.BeginGroup(Rect(right-324*camScale, camPos.y+102*camScale, 512*camScale, 512*camScale));
-		GUI.Label(Rect(42*camScale, 0, 256*camScale, 48*camScale), GetNumFlowers()+" / 20", SmallFontStyle);
+		GUI.Label(Rect(42*camScale, 0, 256*camScale, 48*camScale), GetNumFlowers()+"x Chain", SmallFontStyle);
 		place = CalculateFlowerRank();
 		strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
 		GUI.Label(Rect(42*camScale, 24*camScale, 256*camScale, 48*camScale), place+strPlace, SmallFontStyle);
@@ -618,11 +632,12 @@ function DrawGUI()
 		
 		
 		//draw production rate counter
+		
 		place = GetHoneyRateRank();
 		strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
 		GUI.DrawTexture(Rect(122*camScale,0, 32*camScale, 32*camScale), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
-		GUI.Label(Rect(166*camScale, 0, 256*camScale, 48*camScale), "p: "+GetHoneyRate(), SmallFontStyle);
-		GUI.Label(Rect(166*camScale, 24*camScale, 256*camScale, 48*camScale), place+strPlace, SmallFontStyle);
+	
+		
 		GUI.EndGroup();
 		
 		
@@ -731,6 +746,8 @@ function DrawGUI()
 		// GUI.Label(Rect(right - 135, bottom - 135, 132,132), "$"+money+m_Money, FontStyle);
 	//}
 }
+
+
 
 function Show(show:boolean)
 {
@@ -857,7 +874,7 @@ function OnCollisionEnter(coll : Collision) {
 		if(coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != gameObject)
 		{
 			networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(HammerScript).m_Owner).m_Name+" pounded "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
-			networkView.RPC("SetHP", RPCMode.All, 0);
+			KillAndRespawn(true);
 		}
 	}
 }
@@ -929,7 +946,7 @@ function KillAndRespawn(splat:boolean)
 {
 	if(GetComponent(RespawnDecorator) != null)
 		return;
-	Debug.Log("KIll AND RESPAWN");
+	
 	ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, splat);
 	var pos:Vector3 = FindRespawnLocation();
 	ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);
@@ -1191,7 +1208,7 @@ function CalculateRank() : int
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		m_Camera.GetComponent(CameraScript).Shake(0.25, 0.5);
+		m_Camera.GetComponent(CameraScript).Shake(0.25, 2);
 	}
 	
 	var flowerDec :FlowerDecorator = GetComponent(FlowerDecorator);

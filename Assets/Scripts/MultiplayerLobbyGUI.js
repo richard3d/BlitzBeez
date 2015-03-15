@@ -120,19 +120,19 @@ function Update () {
 		 {
 			// Camera.main.animation.Stop();
 			m_ReturnToMain = false;
-			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+			
 			if(Network.isServer)
 				gameObject.Destroy(gameObject.Find("GameServer"));
 			Application.LoadLevel(0);
 		 }
 	}
 	else
-	{	//Debug.Log("Here");
+	{	
 		var title:GameObject = gameObject.Find("Title") ;
-		Debug.Log(title.animation["TitleMapMenu"].time);
+	
 		if(title != null && title.animation["TitleMapMenu"].time == 0 && !title.animation.isPlaying)
 		{
-			Debug.Log(title.animation["TitleMapMenu"].time);
+	
 			m_MenuPos.x = Mathf.Lerp(m_MenuPos.x,0,Time.deltaTime*20);
 		}
 	}
@@ -199,8 +199,9 @@ function OnGUI()
 					if(GUILayout.Button("Start Match", m_GUISkin.button))
 					{
 						// //Tell the clients which level to load
-						Debug.Log("Here");
+	
 						m_StartMatch = true;
+						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 						//StartMatch();
 						//AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					 //  GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");

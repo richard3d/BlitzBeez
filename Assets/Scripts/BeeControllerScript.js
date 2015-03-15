@@ -76,6 +76,8 @@ function Start () {
 	//AudioSource.PlayClipAtPoint(m_FlySound, Camera.main.transform.position, 0.75);
 	m_WorkerGenTimer = m_WorkerGenTime;
 	m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
+	var clip:int = m_Stats["Clip_Size"];
+	GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 	
 }
 
@@ -592,7 +594,6 @@ function OnPlayerLookAt(at : Vector3)
 //this function is just responsible for making a quick reload request
 @RPC function QuickReload()
 {
-	Debug.Log("Quick Reload Exectured");
 	m_ReloadTimer = 0;
 	GetComponentInChildren(ParticleRenderer).enabled = true;
 	var clip:int = m_Stats["Clip_Size"];

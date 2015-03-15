@@ -320,7 +320,7 @@ function OnDestroy()
 			// gameObject.GetComponent(BeeScript).m_Money +=  25;
 			// txt.GetComponent(GUIText).text = "+ $25";
 			// txt.GetComponent(GUIText).material.color = Color.yellow;
-			m_Camera.GetComponent(CameraScript).Shake(0.25, 2);
+			
 			m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 			m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
 			m_Camera.animation.Play("CameraLessDramaticZoom");

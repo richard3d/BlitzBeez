@@ -17,6 +17,7 @@ function Start () {
 	}
 	Destroy(transform.GetChild(0).gameObject);
 	var newBee:GameObject = GameObject.Instantiate(GetComponent(BeeScript).m_Meshes[GetComponent(BeeScript).m_CurrLevel-1]);
+	newBee.name = "Bee";
 	newBee.transform.parent = gameObject.transform;//.GetComponent(MeshFilter).mesh;
 	newBee.transform.eulerAngles = gameObject.transform.eulerAngles;
 	//transform.GetChild(0).renderer.materials = GetComponent(BeeScript).m_Meshes[0].renderer.materials;

@@ -90,7 +90,7 @@ function OnStateChange(state:int)
 		}
 		//after some time tell clients we are bumping out
 		Screen.showCursor = true;
-		InitiateMatchShutdown();
+		//InitiateMatchShutdown();
 		
 		
 	}
@@ -104,7 +104,8 @@ function OnStateChange(state:int)
 function InitiateMatchShutdown()
 {
 	
-	yield WaitForSeconds(10);
+	//yield WaitForSeconds(14);
+	
 	GetComponent(GameStateManager).SetState(GameStateManager.MATCH_EXITING);
 	Debug.Log("Initiate match shutdown called");
 	//stop sending gameplay updates

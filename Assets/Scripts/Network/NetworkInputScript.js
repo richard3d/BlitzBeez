@@ -85,7 +85,7 @@ function Start () {
 
 function OnGUI()
 { 
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsControlledGameObject(gameObject) && GetComponent(BeeScript).m_DrawGUI)
 	{
 		//GUI.color = renderer.material.color;
 		var scale:float = 26+2*Mathf.Sin(Time.time*16);

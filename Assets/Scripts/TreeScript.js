@@ -1,6 +1,7 @@
 #pragma strict
 private static var m_InstanceID : int = 0;
 var m_FireEffect : GameObject = null;
+var m_LeafParticles:GameObject = null;
 var m_IsBurning: boolean = false;
 function Awake()
 {
@@ -55,6 +56,8 @@ function OnBulletCollision(coll:BulletCollision)
 	{
 	
 	}
+	
+	GameObject.Instantiate(m_LeafParticles,coll.hit.point, Quaternion.identity);
 }
 
 

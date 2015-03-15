@@ -51,7 +51,7 @@ function SetState(state:int)
 	var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
 	txt.GetComponent(GUIScript).m_Text = "Ready!";
 	txt.GetComponent(GUIScript).m_Depth = -999999;
-	
+	Debug.Log("Ticks "+numTicks+" Freq "+ticksPerSec);
 	if(Network.isServer)
 		yield MatchTickCoroutine(numTicks, ticksPerSec);
 } 
