@@ -4,9 +4,9 @@ var m_fLifetime:float =1.0;
 
 function Start () {
 
-	Camera.main.GetComponent(MotionBlur).enabled = true;
-	Camera.main.animation["CameraDramaticZoom"].speed = 1.5;
-	Camera.main.animation.Play("CameraDramaticZoom");
+	gameObject.GetComponent(MotionBlur).enabled = true;
+	gameObject.animation["CameraDramaticZoom"].speed = 1.5;
+	gameObject.animation.Play("CameraDramaticZoom");
 
 }
 
@@ -25,8 +25,8 @@ function Update () {
 
 function OnDestroy()
 {
-	Camera.main.animation["CameraDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-	Camera.main.animation["CameraDramaticZoom"].speed = -1.0;
-	Camera.main.animation.Play("CameraDramaticZoom");
-	Camera.main.GetComponent(MotionBlur).enabled = false;
+	gameObject.animation["CameraDramaticZoom"].time = gameObject.animation["CameraDramaticZoom"].length;
+	gameObject.animation["CameraDramaticZoom"].speed = -1.0;
+	gameObject.animation.Play("CameraDramaticZoom");
+	gameObject.GetComponent(MotionBlur).enabled = false;
 }

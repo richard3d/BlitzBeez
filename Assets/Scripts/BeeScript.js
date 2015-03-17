@@ -6,6 +6,7 @@ class Inventory
 	var m_Item : GameObject = null;	 
 }
 var m_Camera:GameObject = null;
+var m_Color:Color = Color.yellow;
 var m_Meshes:GameObject[] = null;
 var m_SwarmInstance : GameObject = null;
 var m_WorkerBeeInstance : GameObject = null;
@@ -102,6 +103,20 @@ function GetCurrentLevel() : int
 		}
 	}
 	return -1;
+}
+
+function SetColor(c:Color)
+{
+	var go:GameObject = GameObject.Find(gameObject.name+"/Bee");
+	for(var mat:Material in go.renderer.materials)
+	{
+		if(mat.name.Contains("HiveYellow"))
+		{
+			mat.color = c;
+			m_Color = c;
+			return;
+		}
+	}
 }
 
 function Update() {
@@ -475,6 +490,9 @@ function DrawGUI()
 		var camWidth = m_Camera.camera.rect.width;
 		var camScale = m_Camera.camera.rect.width;
 		var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
+		
+		if(m_Camera.camera.rect.y == 0.0 &&  m_Camera.camera.rect.height == 1)
+			camPos.y = 0;
 		var relPos:Vector2 = Vector2(camPos.x+83*camScale, camPos.y+16*camScale);
 		//var relPos:Vector2 = Vector2(83, 16);
 		if(m_XPMeterFlashTimer > 0)
@@ -566,13 +584,18 @@ function DrawGUI()
 		
 		if(GetHoneyRate() > 0)
 		{
-			var yPos:float = (Mathf.Sin(Time.time*5)+1)*20;
-			if(Mathf.Sin(Time.time*5) - Mathf.Sin(Time.time*5-0.001) < 0) 
-			yPos = 40;
-			GUI.color.a = (1-yPos/40.0);
-			GUI.Label(Rect(210*camScale, -yPos+16*camScale, 256*camScale, 48*camScale), "+"+GetHoneyRate()*100, SmallFontStyle);
+			var yPos:float = (Mathf.Sin(Time.time*8)+1)*20;
+			if(Mathf.Sin(Time.time*8) - Mathf.Sin(Time.time*8-0.001) < 0) 
+			{
+				yPos = 40;
+			}
+			else
+			{
+		//	GUI.color.a = (1-yPos/40.0);
+			GUI.Label(Rect(210*camScale, -yPos+24*camScale, 256*camScale, 48*camScale), "+"+GetHoneyRate()*100, SmallFontStyle);
 		//	GUI.Label(Rect(166*camScale, -yPos+24*camScale, 256*camScale, 48*camScale), place+strPlace, SmallFontStyle);
 			GUI.color.a = 1;
+			}
 		}
 		
 		for(var i:int = 0; i < NetworkUtils.GetNumClients(); i++)
@@ -623,8 +646,8 @@ function DrawGUI()
 		GUI.BeginGroup(Rect(right-324*camScale, camPos.y+102*camScale, 512*camScale, 512*camScale));
 		GUI.Label(Rect(42*camScale, 0, 256*camScale, 48*camScale), GetNumFlowers()+"x Chain", SmallFontStyle);
 		place = CalculateFlowerRank();
-		strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
-		GUI.Label(Rect(42*camScale, 24*camScale, 256*camScale, 48*camScale), place+strPlace, SmallFontStyle);
+		//strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
+		//GUI.Label(Rect(42*camScale, 24*camScale, 256*camScale, 48*camScale), place+strPlace, SmallFontStyle);
 		
 		GUI.color = Color(1,0.9,0.3);
 		GUI.DrawTexture(Rect(0, 0, 32*camScale, 32*camScale), FlowerTexture, ScaleMode.ScaleToFit, true);
@@ -633,9 +656,9 @@ function DrawGUI()
 		
 		//draw production rate counter
 		
-		place = GetHoneyRateRank();
-		strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
-		GUI.DrawTexture(Rect(122*camScale,0, 32*camScale, 32*camScale), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
+		// place = GetHoneyRateRank();
+		// strPlace = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
+		// GUI.DrawTexture(Rect(122*camScale,0, 32*camScale, 32*camScale), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
 	
 		
 		GUI.EndGroup();
@@ -1408,7 +1431,7 @@ function CalculateRank() : int
 	GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" built a hive");
 	var go : GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Hive"));
 	go.name = go.name+gameObject.name;
-	go.renderer.material.color = renderer.material.color;
+	go.renderer.material.color = m_Color;
 	go.transform.position = pos; 
 	go.transform.localScale *= 20;
 	go.GetComponent(HiveScript).m_Owner = gameObject;

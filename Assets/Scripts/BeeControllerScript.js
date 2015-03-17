@@ -576,7 +576,7 @@ function HandleShotLogic()
 		// }
 		// GetComponentInChildren(BeeParticleScript).RemoveParticle();
 	// }
-    go.renderer.material.color = color;
+    go.renderer.material.SetColor("_Color",color);
 	go.renderer.material.SetColor("_Emission", color);
 	
 	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;

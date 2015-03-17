@@ -87,6 +87,8 @@ function OnGUI()
 		var camWidth = m_Camera.camera.rect.width;
 		var camScale = m_Camera.camera.rect.width;
 		var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
+		if(m_Camera.camera.rect.y == 0.0 &&  m_Camera.camera.rect.height == 1)
+			camPos.y = 0;
 		var time:int = (m_Lifetime+0.5);
 		var style:GUIStyle = GetComponent(BeeScript).FontStyle;
 		var tempMinItemWidth:float;

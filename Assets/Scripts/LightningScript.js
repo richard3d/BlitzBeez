@@ -77,7 +77,7 @@ function OnDestroy()
 	go.transform.position = transform.position;
 	go.renderer.material.SetColor("_TintColor", renderer.material.color);
 	
-	go.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.25,3.5);
+	m_Owner.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.25,3.5);
 }
 
 

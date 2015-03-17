@@ -269,7 +269,7 @@ function Update () {
 
 function OnBulletCollision(coll:BulletCollision) : boolean
 {
-	Debug.Log("BULLET COLLISION: "+coll.hit.collider.gameObject.name );
+	//Debug.Log("BULLET COLLISION: "+coll.hit.collider.gameObject.name );
 	var tag:String = coll.hit.collider.gameObject.tag;
 	var other:GameObject = coll.hit.collider.gameObject;
 	if(coll.hit.collider.isTrigger)
@@ -422,7 +422,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 			break;
 			
 			default:
-				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||  tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
+				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||  tag == "Shield" ||
 				  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
 				  (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null))
 				  {

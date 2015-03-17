@@ -20,6 +20,7 @@ var m_CursorPosition:Vector3;
 var m_CursorScreenPosition:Vector3;
 var m_CursorDist:float = 100;
 var m_ClientOwner : int = -1;
+var m_JoyOwner : int = -1;
 var m_LocalClient:boolean = false;
 class InputState
 {
@@ -147,7 +148,7 @@ function Update () {
 	m_PrevActions = m_CurrentActions;
 	m_CurrentActions = 0;
 	
-	var joyStr = "Joy"+m_ClientOwner+" ";
+	var joyStr = "Joy"+m_JoyOwner+" ";
 	
 	//handle movement keys
 	if(Input.GetAxis(joyStr+"Move Forward/Back") > 0)

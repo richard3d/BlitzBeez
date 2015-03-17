@@ -160,7 +160,7 @@ function InitiateMatchShutdown()
 	// Now the level has been loaded and we can start sending out data to clients
 	Network.SetSendingEnabled(0, true);
 	GetComponent(MultiplayerLobbyGUI).enabled = true;
-	GetComponent(MultiplayerLobbyGUI).ResetMenu();
+	GetComponent(MultiplayerLobbyGUI).ResetMenu(true);
 }
 
 function Update () {
@@ -220,15 +220,14 @@ function OnServerInitialized() {
 	Debug.Log("Server initialized");
 	//MasterServer.ipAddress = "127.0.0.1";
 	Debug.Log(SystemInfo.deviceName);
-	MasterServer.RegisterHost("BeeHappy", 
-		SystemInfo.deviceName, "Bzzz death to all!");
+	//MasterServer.RegisterHost("BeeHappy", SystemInfo.deviceName, "Bzzz death to all!");
 	
 	Debug.Log("Registering host with master server...");
 	
 	var plr : NetworkPlayer;
-	OnPlayerConnected(plr);
-	 OnPlayerConnected(plr);
-	 OnPlayerConnected(plr);
+	OnLocalPlayerConnected(plr, 0);
+	// OnPlayerConnected(plr);
+	 //OnPlayerConnected(plr);
 	// OnPlayerConnected(plr);
 	
 	
@@ -252,7 +251,50 @@ function OnMasterServerEvent(msEvent: MasterServerEvent)
     }
 }
 
-
+function OnLocalPlayerConnected(player:NetworkPlayer, joyNum:int)
+{	
+	var currClient : ClientNetworkInfo = new ClientNetworkInfo();
+	currClient.m_Player = player;
+	currClient.m_ID = m_ClientCount;
+	currClient.m_JoyNum = joyNum;
+	currClient.m_IPAddr = player.ipAddress;
+	currClient.m_Port = player.port;
+	
+	//add the new client to our array
+	if(m_Clients == null)
+	{
+		m_Clients = new ClientNetworkInfo[1];
+		m_Clients[0] = currClient;
+	}
+	else
+	{
+		for(var i:int = 0; i < m_Clients.length; i++)
+		{
+			if(m_Clients[i].m_JoyNum == joyNum)
+				return;
+		}
+	
+		var vClients : Array = new Array(m_Clients);
+		vClients.Push(currClient);
+		m_Clients = vClients.ToBuiltin(ClientNetworkInfo) as ClientNetworkInfo[];
+	}
+	m_ClientCount++;
+	
+	//log the message
+	Debug.Log("Player " + m_Clients[m_ClientCount-1].m_ID + 
+				" connected : " + m_Clients[m_ClientCount-1].m_IPAddr + 
+				":" +m_Clients[m_ClientCount-1].m_Port);
+	//this tells us the player is a local client
+	ServerRPC.Buffer(m_ConnectMsgsView, "ClientConnected", RPCMode.Others, player);
+	//if(PlayerProfile.m_PlayerTag == "Player")
+	PlayerProfile.m_PlayerTag = "Player";
+		PlayerProfile.m_PlayerTag += m_ClientCount.ToString();
+	var clr:Vector3 = Vector3(PlayerProfile.m_PlayerColor.r, PlayerProfile.m_PlayerColor.g,PlayerProfile.m_PlayerColor.b);
+	RegisterPlayer(PlayerProfile.m_PlayerTag,clr, m_ClientCount-1);
+	//return;
+	
+	//ServerRPC.Buffer(m_ConnectMsgsView, "ClientConnected", RPCMode.Others, player);
+}
 
 function OnPlayerConnected(player: NetworkPlayer) {
 	
@@ -300,6 +342,7 @@ function OnPlayerConnected(player: NetworkPlayer) {
 	}
 	else
 	{
+		//this tells us the player is a local client
 		ServerRPC.Buffer(m_ConnectMsgsView, "ClientConnected", RPCMode.Others, player);
 		//if(PlayerProfile.m_PlayerTag == "Player")
 		PlayerProfile.m_PlayerTag = "Player";
@@ -360,6 +403,8 @@ function GetNumClients() : int
 
 function GetClient(index : int) : ClientNetworkInfo
 {
+	if(m_Clients.length <= index)
+		return null;
 	return m_Clients[index];
 }
 
@@ -532,11 +577,12 @@ function GetGameObject() : GameObject
 	{
 		m_Clients[clientID].m_GameObject = gameObject.Find(go);
 		m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_ClientOwner = clientID;
+		
 		if(m_Clients[clientID].m_Player.ToString() == "0")
 		{
-			Debug.Log("FFFFFFF "+clientID);
 			//tell the input system it is dealing with a local client
 			m_Clients[clientID].m_LocalClient = true;
+			m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_JoyOwner = m_Clients[clientID].m_JoyNum;
 			m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient = true;
 			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_DrawGUI = false;
 			//instantiate a new camera for this player to render on screen (split screen)
@@ -633,7 +679,7 @@ function GetGameObject() : GameObject
 			}
 		}
 		//set the client gameObejct color			
-		m_Clients[clientID].m_GameObject.renderer.material.color = m_Clients[clientID].m_Color;
+		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).SetColor(m_Clients[clientID].m_Color);
 		if(NetworkUtils.IsControlledGameObject(m_Clients[clientID].m_GameObject))
 		{
 			Camera.main.GetComponent(CameraScript).SetFocalPosition(m_Clients[clientID].m_GameObject.transform.position);

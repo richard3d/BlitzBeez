@@ -20,6 +20,7 @@ function Start () {
 	newBee.name = "Bee";
 	newBee.transform.parent = gameObject.transform;//.GetComponent(MeshFilter).mesh;
 	newBee.transform.eulerAngles = gameObject.transform.eulerAngles;
+	
 	//transform.GetChild(0).renderer.materials = GetComponent(BeeScript).m_Meshes[0].renderer.materials;
 	//transform.GetChild(0).localScale = GetComponent(BeeScript).m_Meshes[0].transform.localScale;
 	
@@ -41,7 +42,7 @@ function Start () {
 }
 
 function Update () {
-
+	GetComponent(BeeScript).SetColor(GetComponent(BeeScript).m_Color);
 	if(m_Lifetime > 0)
 	{
 		m_Lifetime -= Time.deltaTime;

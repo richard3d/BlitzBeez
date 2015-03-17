@@ -129,7 +129,7 @@ function OnStateChange(state:int)
         // Now the level has been loaded and we can start sending out data to clients
         Network.SetSendingEnabled(0, true);
 		GetComponent(MultiplayerLobbyGUI).enabled = true;
-		GetComponent(MultiplayerLobbyGUI).ResetMenu();
+		GetComponent(MultiplayerLobbyGUI).ResetMenu(true);
 }
 
 function Update () {

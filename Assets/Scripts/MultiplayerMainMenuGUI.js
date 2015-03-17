@@ -9,6 +9,12 @@ var m_MenuSound:AudioClip = null;
 private var m_ShowOptions:boolean = false;
 private var m_ShowMainMenu:boolean = true;
 public var m_MenuPos :Vector2;
+
+public var m_Sel:int = 0;
+public var m_NumSel:int = 4;
+public var m_PrevInput:float = 0;
+public var m_CurrInput:float = 0;
+
 function Start () {
 GameObject.Find("MainBee").renderer.material.color = PlayerProfile.m_PlayerColor;
 m_MenuPos.y = Screen.height*0.25;
@@ -37,6 +43,21 @@ function Update () {
 	{
 		transform.position.x += (123-transform.position.x)*Time.deltaTime*8;
 	}
+	
+	
+	var currInput:float = Input.GetAxis("Joy0 Move Forward/Back"); 
+	
+	if(Input.GetAxis("Joy0 Move Forward/Back") < 0 && m_PrevInput == 0)
+	{
+		if(m_Sel < m_NumSel-1)
+			m_Sel++;
+	}
+	if(Input.GetAxis("Joy0 Move Forward/Back") > 0 && m_PrevInput == 0)
+	{
+		if(m_Sel > 0)
+			m_Sel--;		
+	}
+	m_PrevInput = currInput;
 }
 
 function ShowOptions()
@@ -60,13 +81,31 @@ function HideOptions()
 
 function OnGUI()
 {
-
+	if(m_Sel == 0)
+	{
+		GUI.FocusControl("Create");
+	}
+	else if(m_Sel == 1)
+	{
+		GUI.FocusControl("Join");
+	}
+	else if(m_Sel == 2)
+	{
+		GUI.FocusControl("Options");
+	}
+	else if(m_Sel == 3)
+	{
+		GUI.FocusControl("Exit");
+	}
+	
+	
 	var width : float = 100;
 	if(m_ShowMainMenu)
 	{
 		GUILayout.BeginArea (Rect(Screen.width*0.5 - width, Screen.height * 0.65, width*2,500));
 	
-		if (GUILayout.Button ("Create Game", Style)) 
+		GUI.SetNextControlName("Create");
+		if (GUILayout.Button ("Create Game", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Create")) 
 		{
 		
 			GameObject.Find("Flash").animation.Stop("FlashIntro");
@@ -82,7 +121,8 @@ function OnGUI()
 			this.enabled = false;
 			
 		}
-		if(GUILayout.Button ("Join Game", Style))
+		GUI.SetNextControlName("Join");
+		if(GUILayout.Button ("Join Game", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Join"))
 		{
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			GetComponent(Animation).Play("CameraClientIntro");
@@ -93,12 +133,14 @@ function OnGUI()
 			this.enabled = false;
 			
 		}
-		if(GUILayout.Button ("Options", Style))
+		GUI.SetNextControlName("Options");
+		if(GUILayout.Button ("Options", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Options"))
 		{
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			ShowOptions();
 		}
-		if(GUILayout.Button ("Exit Game", Style))
+		GUI.SetNextControlName("Exit");
+		if(GUILayout.Button ("Exit Game", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Exit"))
 		{
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			Application.Quit();
