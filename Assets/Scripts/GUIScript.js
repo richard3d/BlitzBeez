@@ -21,6 +21,15 @@ function Start () {
 
 }
 
+function SetCamera(cam:GameObject)
+{
+	m_Rect = cam.camera.rect;
+	if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
+		m_Rect.y = 0;
+	else
+		m_Rect.y = Mathf.Abs(cam.camera.rect.y - 0.5);
+}
+
 function Update () {
 }
 

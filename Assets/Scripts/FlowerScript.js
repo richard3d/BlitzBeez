@@ -83,20 +83,35 @@ function Update () {
 
 }
 
+
+
 function OnGUI()
 {
 	if(m_LifebarTimer > 0 && m_Owner != null)
 	{
 		m_LifebarTimer -= Time.deltaTime;
-		var scrPos:Vector3 = m_Owner.GetComponent(BeeScript).m_Camera.camera.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.y * 1.25);
-		var height = 12;
-		var width = 48;
-		if(transform.Find("Shield") != null)
-		var percent:float = m_HP;
-		percent /= (m_NumBees * m_BaseHP);
-		GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
-		GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width*percent, height), m_LifeTexture);
-		
+		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+		for(var player:GameObject in players)
+		{
+			var cam:Camera = player.GetComponent(BeeScript).m_Camera.camera;
+			
+			var camPos:Vector2 = Vector2(cam.rect.x*Screen.width,Mathf.Abs(cam.rect.y - 0.5)*Screen.height);
+			if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
+				camPos.y = 0;
+			var bottom:float = camPos.y +cam.rect.height*Screen.height;
+			var scrPos:Vector3 = cam.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.y * 1.25);
+			
+			if((Screen.height - scrPos.y > camPos.y) && (Screen.height - scrPos.y < bottom))
+			{
+				var height = 12;
+				var width = 48;
+				if(transform.Find("Shield") != null)
+				var percent:float = m_HP;
+				percent /= (m_NumBees * m_BaseHP);
+				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
+				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width*percent, height), m_LifeTexture);
+			}
+		}
 	}
 }
 

@@ -89,7 +89,7 @@ function Update () {
 	if(m_Lifetime <= 0)
 	{
 		gameObject.GetComponent(BeeScript).enabled = false;
-		transform.position = Vector3(m_StrikePos.x, Mathf.Lerp(m_StrikePos.y, 5, 1-m_AnimTime/0.25), m_StrikePos.z);
+		transform.position = Vector3(m_StrikePos.x, Mathf.Lerp(m_StrikePos.y, 7, 1-m_AnimTime/0.25), m_StrikePos.z);
 		m_LightningEffect.transform.position = transform.position+Vector3(Random.Range(-30, 30),0,0);
 		m_AnimTime -= Time.deltaTime;
 		if(m_AnimTime <= 0)

@@ -17,7 +17,7 @@ function Start () {
 
 	m_Camera = GetComponent(BeeScript).m_Camera;
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
-	
+	transform.GetChild(0).localEulerAngles.z = 0;
 	var trgt : Transform = transform.Find("PowerShotParticleSystem(Clone)");
 	if(trgt != null)
 		Destroy(trgt.gameObject);

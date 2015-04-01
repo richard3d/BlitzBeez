@@ -16,9 +16,10 @@ public var m_PrevInput:float = 0;
 public var m_CurrInput:float = 0;
 
 function Start () {
-GameObject.Find("MainBee").renderer.material.color = PlayerProfile.m_PlayerColor;
-m_MenuPos.y = Screen.height*0.25;
-GameObject.Find("BeeParticles").renderer.enabled = false;
+	GameObject.Find("MainBee").renderer.material.color = PlayerProfile.m_PlayerColor;
+	m_MenuPos.y = Screen.height*0.25;
+	GameObject.Find("BeeParticles").renderer.enabled = false;
+	//m_Skin.GetStyle("MainButton").fixedWidth = 6.166 * m_Skin.GetStyle("MainButton").fontSize;
 }
 
 function OnEnable(){
@@ -98,55 +99,80 @@ function OnGUI()
 		GUI.FocusControl("Exit");
 	}
 	
-	
-	var width : float = 100;
+	var width : float = m_Skin.GetStyle("MainButton").fixedWidth;
 	if(m_ShowMainMenu)
 	{
-		GUILayout.BeginArea (Rect(Screen.width*0.5 - width, Screen.height * 0.65, width*2,500));
+		GUI.BeginGroup(Rect(Screen.width * 0.5-128, Screen.height * 0.75, width,500));
+		var defaultFont = m_Skin.GetStyle("MainButton").fontSize;
+		var fontSize:float = defaultFont;
+		var selectedFontSize = (Mathf.Sin(Time.time*10))*4+32;
 	
 		GUI.SetNextControlName("Create");
-		if (GUILayout.Button ("Create Game", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Create")) 
+		fontSize = GUI.GetNameOfFocusedControl() == "Create" ? selectedFontSize:defaultFont;
+		m_Skin.GetStyle("MainButton").fontSize = fontSize;
+
+		if (GUI.Button(Rect(0,0,256,defaultFont),"Create Game", m_Skin.GetStyle("MainButton")) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Create")) 
 		{
-		
-			GameObject.Find("Flash").animation.Stop("FlashIntro");
-			GameObject.Find("Flash").animation["FlashIntro"].time = 2.35;
-			GameObject.Find("Flash").animation.Play("FlashIntro");
-			
-			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-			GetComponent(Animation).Play("CameraIntro");
-			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
-			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_WorldPos = Vector3(0,20,0);
-			GameObject.Find("Title").active = false;
-			Camera.main.GetComponent(MotionBlur).enabled = true;
-			this.enabled = false;
+			if(GameObject.Find("Title").animation.isPlaying == false)
+			{
+				GameObject.Find("Flash").animation.Stop("FlashIntro");
+				GameObject.Find("Flash").animation["FlashIntro"].time = 2.35;
+				GameObject.Find("Flash").animation.Play("FlashIntro");
+				
+				AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+				GetComponent(Animation).Play("CameraIntro");
+				GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
+				GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_WorldPos = Vector3(0,20,0);
+				GameObject.Find("Title").animation.Stop();
+				GameObject.Find("Title").GetComponent(GUITexture).enabled = false;
+				Camera.main.GetComponent(MotionBlur).enabled = true;
+				this.enabled = false;
+			}
 			
 		}
+		
+		m_Skin.GetStyle("MainButton").fontSize = defaultFont;
+		
 		GUI.SetNextControlName("Join");
-		if(GUILayout.Button ("Join Game", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Join"))
+		fontSize = GUI.GetNameOfFocusedControl() == "Join" ? selectedFontSize:defaultFont;
+		m_Skin.GetStyle("MainButton").fontSize = fontSize;
+
+		if(GUI.Button(Rect(0,defaultFont,256,defaultFont),"Join Game", m_Skin.GetStyle("MainButton")) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Join"))
 		{
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			GetComponent(Animation).Play("CameraClientIntro");
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
 			GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_WorldPos = Vector3(0,20,0);
-			GameObject.Find("Title").active = false;
+			GameObject.Find("Title").animation.Stop();
+			GameObject.Find("Title").GetComponent(GUITexture).enabled = false;
 			Camera.main.GetComponent(MotionBlur).enabled = true;
 			this.enabled = false;
 			
 		}
+		m_Skin.GetStyle("MainButton").fontSize = defaultFont;
+		
 		GUI.SetNextControlName("Options");
-		if(GUILayout.Button ("Options", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Options"))
+		fontSize = GUI.GetNameOfFocusedControl() == "Options" ? selectedFontSize:defaultFont;
+		m_Skin.GetStyle("MainButton").fontSize = fontSize;
+		if(GUI.Button(Rect(0,defaultFont*2,256,defaultFont),"Options", m_Skin.GetStyle("MainButton")) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Options"))
 		{
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			ShowOptions();
 		}
+		m_Skin.GetStyle("MainButton").fontSize = defaultFont;
+		
 		GUI.SetNextControlName("Exit");
-		if(GUILayout.Button ("Exit Game", Style) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Exit"))
+		fontSize = GUI.GetNameOfFocusedControl() == "Exit" ? selectedFontSize:defaultFont;
+		m_Skin.GetStyle("MainButton").fontSize = fontSize;
+		if(GUI.Button(Rect(0,defaultFont*3,256,defaultFont),"Exit Game", m_Skin.GetStyle("MainButton")) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Exit"))
 		{
 			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 			Application.Quit();
 		}
-		GUILayout.EndArea();
+		m_Skin.GetStyle("MainButton").fontSize = defaultFont;
+		GUI.EndGroup();
 	}
+	
 	if(m_ShowOptions)
 	{
 		var pos : Vector2 = m_MenuPos;

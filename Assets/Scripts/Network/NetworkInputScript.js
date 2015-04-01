@@ -39,6 +39,8 @@ class InputState
 	var m_PrevActions : int = 0;
 	var m_BuffActions : int = 0;
 	
+	var m_XAxisVal : float = 0;
+	var m_YAxisVal : float = 0;
 	
 	function GetAction(action : int) : boolean
 	{
@@ -88,9 +90,18 @@ function OnGUI()
 { 
 	if(NetworkUtils.IsControlledGameObject(gameObject) && GetComponent(BeeScript).m_DrawGUI)
 	{
-		//GUI.color = renderer.material.color;
+		var cam:GameObject = GetComponent(BeeScript).m_Camera;
+		var camWidth = cam.camera.rect.width;
+		var camScale = cam.camera.rect.width;
+		var camPos:Vector2 = Vector2(cam.camera.rect.x*Screen.width,Mathf.Abs(cam.camera.rect.y - 0.5)*Screen.height);
+		
+		if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
+			camPos.y = 0;
+		
+		var bottom:float = camPos.y +cam.camera.rect.height*Screen.height;		
+			
 		var scale:float = 26+2*Mathf.Sin(Time.time*16);
-		GUI.DrawTexture(Rect(m_CursorScreenPosition.x-scale*0.5,Screen.height-m_CursorScreenPosition.y-scale*0.5,scale,scale), m_CursorTexture);
+		GUI.DrawTexture(Rect(camPos.x+m_CursorScreenPosition.x-scale*0.5,bottom-m_CursorScreenPosition.y-scale*0.5,scale,scale), m_CursorTexture);
 		//GUI.color = Color.white;
 	}
 }
@@ -151,22 +162,24 @@ function Update () {
 	var joyStr = "Joy"+m_JoyOwner+" ";
 	
 	//handle movement keys
-	if(Input.GetAxis(joyStr+"Move Forward/Back") > 0)
+	m_CurrInputState.m_XAxisVal = Input.GetAxis(joyStr+"Strafe Left/Right");
+	m_CurrInputState.m_YAxisVal = Input.GetAxis(joyStr+"Move Forward/Back");
+	if(m_CurrInputState.m_YAxisVal > 0)
 	{
 		m_CurrentActions |= InputState.MOVE_UP;
 	}
 	
-	if(Input.GetAxis(joyStr+"Move Forward/Back") < 0)
+	if(m_CurrInputState.m_YAxisVal  < 0)
 	{
 		m_CurrentActions |= InputState.MOVE_BACK;
 	}
 	
-	if(Input.GetAxis(joyStr+"Strafe Left/Right") > 0)
+	if(m_CurrInputState.m_XAxisVal > 0)
 	{
 		m_CurrentActions |= InputState.MOVE_RIGHT;
 	}
 	
-	if(Input.GetAxis(joyStr+"Strafe Left/Right") < 0)
+	if(m_CurrInputState.m_XAxisVal < 0)
 	{
 		m_CurrentActions |= InputState.MOVE_LEFT;
 	}
@@ -301,11 +314,11 @@ function Update () {
 		if(!m_LocalClient)//if(m_ClientOwner != 0)
 		{
 			//SendMessage("OnNetworkInput", m_CurrInputState, SendMessageOptions.DontRequireReceiver);
-			networkView.RPC("PlayerInputEvent", RPCMode.Server, m_ClientOwner,m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions);
+			networkView.RPC("PlayerInputEvent", RPCMode.Server, m_ClientOwner,m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions,m_CurrInputState.m_XAxisVal,m_CurrInputState.m_YAxisVal);
 		}
 		else
 		{
-			PlayerInputEvent(m_ClientOwner, m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions);
+			PlayerInputEvent(m_ClientOwner, m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions,m_CurrInputState.m_XAxisVal,m_CurrInputState.m_YAxisVal);
 		}
 		m_SeqCounter++;
 	//}
@@ -344,7 +357,7 @@ function Update () {
 }
 
 
-@RPC function PlayerInputEvent(clientID : int, seq : int, actions : int, prevActions : int, buffActions : int)
+@RPC function PlayerInputEvent(clientID : int, seq : int, actions : int, prevActions : int, buffActions : int, xVal:float, yVal:float)
 {
 	//no need to do anythign if we are the client, its the server who should be handling the calls	
 	if(Network.isClient)
@@ -374,7 +387,8 @@ function Update () {
 	input.m_PrevActions = prevActions;
 	input.m_BuffActions = buffActions;
 	input.m_Timestamp = Time.time;
-	
+	input.m_XAxisVal = xVal;
+	input.m_YAxisVal = yVal;
 	m_CurrentActions = actions;
 	m_PrevActions = prevActions;
 	m_BuffActions = buffActions;

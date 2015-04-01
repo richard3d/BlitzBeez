@@ -18,7 +18,7 @@ function Start () {
 
 	m_Camera = GetComponent(BeeScript).m_Camera;
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
-	
+	transform.GetChild(0).localEulerAngles.z = 0;
 	//GetComponent(BeeControllerScript).m_AttackEnabled = false;
 	
 	var trgt : Transform = transform.Find("PowerShotParticleSystem(Clone)");

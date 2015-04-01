@@ -1,6 +1,6 @@
 #pragma strict
 var m_Offset:Vector3;
-
+var m_Pitch :float;
 function Start () {
 
 }
@@ -18,7 +18,9 @@ function OnTriggerStay(coll:Collider)
 		
 		if(NetworkUtils.IsLocalGameObject(coll.gameObject))
 		{
-			coll.gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Offset = m_Offset;
+			var script:BeeScript = coll.gameObject.GetComponent(BeeScript);
+			script.m_Camera.GetComponent(CameraScript).m_Offset =  m_Offset;
+			script.m_Camera.GetComponent(CameraScript).m_Pitch = m_Pitch;
 		}
 	}
 }
@@ -30,7 +32,9 @@ function OnTriggerExit(coll:Collider)
 	{
 		if(NetworkUtils.IsLocalGameObject(coll.gameObject))
 		{
-			coll.gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Offset = coll.gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_DefaultOffset ;
+			var script:BeeScript = coll.gameObject.GetComponent(BeeScript);
+			script.m_Camera.GetComponent(CameraScript).m_Offset = script.m_Camera.GetComponent(CameraScript).m_DefaultOffset ;
+			script.m_Camera.GetComponent(CameraScript).m_Pitch = script.m_Camera.GetComponent(CameraScript).m_DefaultPitch;
 		}
 	}
 	

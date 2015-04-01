@@ -565,7 +565,7 @@ function GetGameObject() : GameObject
 	ServerRPC.Buffer(m_ConnectMsgsView, "RegisterPlayer", RPCMode.Others, name,color, clientID);
 	
 	//if a game is already in progress we should send the level to the client
-	if(m_GameInProgress && !Application.isLoadingLevel)
+	if(m_GameInProgress && !Application.isLoadingLevel && m_Clients[clientID].m_Player.ToString() != "0")
 		m_ConnectMsgsView.RPC("LoadLevel", m_Clients[clientID].m_Player, "Scene2");
 }
 

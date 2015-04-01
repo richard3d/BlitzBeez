@@ -117,17 +117,19 @@ function CameraOutro()
 {
 	while(m_IsAnimating)
 		yield WaitForSeconds(0.0166);
+	m_IsAnimating = true;
 	gameObject.Find("Title").animation.Stop();
 	gameObject.Find("Title").animation["TitleMapMenu"].time = gameObject.Find("Title").animation["TitleMapMenu"].length;
 	gameObject.Find("Title").animation["TitleMapMenu"].speed = -1;
 	gameObject.Find("Title").animation.Play();
 	Camera.main.animation.Play("CameraMapMenuReturn");
-	
 	yield WaitForSeconds(Camera.main.animation["CameraMapMenuReturn"].length);
+	m_IsAnimating = false;
 	if(Network.isServer)
 		gameObject.Destroy(gameObject.Find("GameServer"));
 	else
 		gameObject.Destroy(gameObject.Find("GameClient"));
+	
 	Application.LoadLevel(0);
 }
 
@@ -135,6 +137,7 @@ function CameraStart()
 {
 	while(m_IsAnimating)
 		yield WaitForSeconds(0.0166);
+	m_IsAnimating = true;
 	gameObject.Find("Title").animation.Stop();
 	gameObject.Find("Title").animation["TitleMapMenu"].time = gameObject.Find("Title").animation["TitleMapMenu"].length;
 	gameObject.Find("Title").animation["TitleMapMenu"].speed = -1;
@@ -142,6 +145,7 @@ function CameraStart()
 	Camera.main.animation.Play("CameraMapMenuExit");
 	
 	yield WaitForSeconds(Camera.main.animation["CameraMapMenuExit"].length);
+	m_IsAnimating = false;
 	StartMatch();
 }
 
@@ -204,7 +208,7 @@ function Update () {
 		pLastInput[i] = currInput;
 	}
 	
-	if(Input.GetButtonDown("Joy0 OK"))
+	if(Input.GetButtonDown("Joy0 OK") && !m_IsAnimating)
 	{
 		if(m_LocalPlayerScreen)
 		{
@@ -250,14 +254,7 @@ function Update () {
 		}
 	}
 	
-	if(Input.GetKeyDown(KeyCode.Escape))
-	{
-		if(Network.isServer)
-			gameObject.Destroy(gameObject.Find("GameServer"));
-		else
-			gameObject.Destroy(gameObject.Find("GameClient"));
-		Application.LoadLevel(0);
-	}
+
 	if(!Network.isServer)
 	{
 		if(gameObject.Find("Title") != null)
@@ -273,7 +270,9 @@ function OnLevelWasLoaded(i:int)
 {
 	if(i == 4)
 	{
+		m_IsAnimating = true;
 		yield WaitForSeconds(0.75);
+		m_IsAnimating = false;
 		MenuEnter(true);
 	}
 }
@@ -291,8 +290,6 @@ function StartMatch()
 	m_StartMatch = false;
 	if(Network.isServer)
 	{
-		
-		AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 		GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
 		GetComponent(ServerScript).LoadLevel("Scene2");
 	}
@@ -392,7 +389,7 @@ function OnGUI()
 					// //Tell the clients which level to load
 
 					//m_StartMatch = true;
-					AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+					//AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					//StartMatch();
 					//AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 				 //  GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");

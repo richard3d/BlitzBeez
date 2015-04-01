@@ -1,18 +1,31 @@
 #pragma strict
 var m_Target : GameObject;
 var m_CamPos : Vector3;
+var m_CamVel : Vector3;
+var m_CamDrag : float;
+
+var m_Offset:Vector3 = Vector3(0,0,200);
+var m_DefaultOffset:Vector3 = Vector3(0,-200,200);
+var m_Pitch:float = 45;
+var m_DefaultPitch:float = 45;
+
 var m_ShakeStrength : float = 0;
 var m_fShakeTimer : float = 0;
 var m_fShakeTime : float = 0;
-var m_CamVel : Vector3;
-var m_CamDrag : float;
-var m_Offset:Vector3 = Vector3(0,0,200);
-var m_DefaultOffset:Vector3 = Vector3(0,-200,200);
-var m_ThirdPerson : boolean = false;
+
+
 var m_Fixed : boolean = false;
 var m_Freeze: boolean = false;
+
+
+//helper variables
+private var m_YRot:float = 0;
+private var m_CurrPitch:float = 45;
+private var m_CurrOffset:Vector3 = Vector3(0,0,200);
+
 function Start () {
 
+	m_CurrPitch = m_Pitch;
 	m_CamPos = transform.position;
 	// if(Network.isServer)
 	// {
@@ -55,22 +68,70 @@ function Update () {
 	else
 	{
 		
-		var diff:Vector3;
-		//transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z));
-		if(m_Fixed)
+		//Let cast 5 rays
+		var rays:Vector3[] = new Vector3[5];
+		var ScreenPts:Vector3[] = new Vector3[5];
+		ScreenPts[0] = Vector3(0,0,camera.nearClipPlane);
+		ScreenPts[1] = Vector3(Screen.width,0,camera.nearClipPlane);
+		ScreenPts[2] = Vector3(Screen.width,Screen.height,camera.nearClipPlane);
+		ScreenPts[3] = Vector3(0,Screen.height,camera.nearClipPlane);
+		ScreenPts[4] = Vector3(Screen.width*0.5,Screen.height*0.5,camera.nearClipPlane);
+		
+		var dist:float = 99999;
+		var point:Vector3;
+		for(var i:int = 0; i < 5; i++)
 		{
-			diff = (m_Target.transform.position - m_Offset) - transform.position;
-			// diff = -transform.forward;
-			// diff.y = 0;
-			// diff = m_Target.transform.position+diff.normalized * m_Offset.z - transform.position;
-			// diff.y = 0;
+			rays[i] = camera.ScreenToWorldPoint(ScreenPts[i]); 
+			rays[i] = rays[i] + transform.forward * m_CurrOffset.magnitude;
+			var r:RaycastHit;
+			Physics.Raycast(rays[i], -transform.forward, r);
+			if(r.distance < dist)
+			{
+				dist = r.distance;
+				point = r.point;
+			}
+			
+		}
+		
+		if(point != Vector3.zero)
+		{
+			//gameObject.Find("Rock1").transform.position = point;
+			if(dist < 100)
+				dist = 100;
+			//m_Offset = m_Offset.normalized * dist;//(point.y - transform.position.y);
+			//var dot:float = Vector3.Dot(m_Offset.normalized, Vector3.up);
+			//m_Pitch = dot*m_Pitch;
+			//m_Offset.z = -(point.z - transform.position.z);
 		}
 		else
-			diff = m_Target.transform.position - transform.position - (m_Offset.x*m_Target.transform.right+m_Offset.y*m_Target.transform.up+m_Offset.z*m_Target.transform.forward);
+		{
+			//m_Pitch = m_DefaultPitch;
+			//m_Offset = m_DefaultOffset;
+		}
 		
-		//diff.y = 0;
-		m_CamVel = diff*4;
-		m_CamPos += m_CamVel * Time.deltaTime;
+		
+		
+		
+		m_CurrOffset = Vector3.Lerp(m_CurrOffset, m_Offset, Time.deltaTime*5);
+		
+		m_CamVel = m_Target.transform.position-m_CamPos;
+		m_CamPos += m_CamVel * Time.deltaTime*4;
+		
+		//New Shit
+		var m_WorldOffset:Vector3 = (m_CurrOffset.x*Vector3.right+m_CurrOffset.y*Vector3.up+m_CurrOffset.z*Vector3.forward);
+		
+		var desiredRot = m_Target.transform.localEulerAngles.y;
+
+		
+		if(desiredRot - m_YRot < -180)
+				m_YRot -= 360;
+		else if (desiredRot - m_YRot > 180)
+			m_YRot += 360;
+		if(!m_Fixed)
+			m_YRot = Mathf.Lerp(m_YRot, desiredRot, Time.deltaTime*5);
+		m_WorldOffset = Quaternion.AngleAxis(m_YRot, Vector3.up) * m_WorldOffset ;
+		var m_CamWorldPos:Vector3 = m_CamPos + m_WorldOffset;
+		
 		
 		if(m_fShakeTime > 0)
 		{
@@ -78,17 +139,36 @@ function Update () {
 			var ShakeOffset : Vector3 = Random.Range(-1, 1) * transform.up + Random.Range(-1, 1) * transform.right;
 			ShakeOffset = ShakeOffset.normalized *m_ShakeStrength;
 			m_fShakeTime -= Time.deltaTime;
-			transform.position = m_CamPos +  ShakeOffset;
-			transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z)+  ShakeOffset);
+			transform.position = m_CamWorldPos +  ShakeOffset;
+			transform.LookAt(m_CamPos + ShakeOffset);
 		}
 		else
 		{
 			m_ShakeStrength = 0.0;
-			transform.position = m_CamPos;
-			transform.LookAt(Vector3(m_Target.transform.position.x,0,m_Target.transform.position.z));
+			//GetComponent(CharacterController).Move(m_CamWorldPos -transform.position);
+			transform.position = m_CamWorldPos;
+			transform.LookAt(m_CamPos);
+			
 		}
 		
+		m_CurrPitch = Mathf.Lerp(m_CurrPitch, m_Pitch, Time.deltaTime *5);
+		transform.localEulerAngles.x = m_CurrPitch;
+		
 	}
+}
+
+//sets the camera to its offsets immediately rather than interpolate to them
+function SnapToOffset()
+{
+	var m_WorldOffset:Vector3 = (m_Offset.x*Vector3.right+m_Offset.y*Vector3.up+m_Offset.z*Vector3.forward);
+	m_CurrOffset = m_WorldOffset;
+	var desiredRot = m_Target.transform.localEulerAngles.y;
+	m_YRot = desiredRot;
+	m_WorldOffset = Quaternion.AngleAxis(desiredRot, Vector3.up) * m_WorldOffset ;
+	var m_CamWorldPos:Vector3 = m_CamPos + m_WorldOffset;
+	transform.position = m_CamWorldPos;
+	transform.LookAt(m_CamPos);
+	transform.localEulerAngles.x = m_Pitch;
 }
 
 function Shake(time : float , strength : float)

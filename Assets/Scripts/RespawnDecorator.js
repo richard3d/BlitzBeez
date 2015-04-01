@@ -41,12 +41,11 @@ function Update () {
 		m_Lifetime -= Time.deltaTime;
 		if(m_Lifetime <= 0.0)
 		{		
-			//find respawn position;
-			//start animating
+			
 			GetComponent(BeeScript).Show(true);
 			AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_RespawnSound, Camera.main.transform.position);
 			if(NetworkUtils.IsLocalGameObject(gameObject))
-			{
+			{				
 				m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 				m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
 				m_Camera.animation.Play("CameraLessDramaticZoom");
@@ -56,13 +55,12 @@ function Update () {
 	
 	if(m_Lifetime <= 0)
 	{
+		//find respawn position;
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
-			//Camera.main.GetComponent(CameraScript).m_Freeze = false;
-			m_Camera.transform.position = m_RespawnPos +200*Vector3.up-transform.forward*200;
-			m_Camera.transform.position.y = 200;
-			m_Camera.transform.LookAt(Vector3(m_RespawnPos.x,0,m_RespawnPos.z));
-			m_Camera.GetComponent(CameraScript).m_CamPos = Camera.main.transform.position;
+			transform.rotation = Quaternion.identity;
+			m_Camera.GetComponent(CameraScript).m_CamPos = transform.position;
+			m_Camera.GetComponent(CameraScript).SnapToOffset();
 		}
 		gameObject.GetComponent(BeeScript).enabled = false;
 		m_AnimTime -= Time.deltaTime;

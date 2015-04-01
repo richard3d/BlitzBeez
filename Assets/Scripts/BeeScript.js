@@ -11,6 +11,7 @@ var m_Meshes:GameObject[] = null;
 var m_SwarmInstance : GameObject = null;
 var m_WorkerBeeInstance : GameObject = null;
 var m_DeathEffect : GameObject = null;
+var m_BurningEffect : GameObject = null;
 var m_HitEffect : GameObject = null;
 var m_DazeEffect : GameObject = null;
 //var m_HoneycombCount : int = 0; //how many honey comb items have we collected? when this number reaches 3 the honey comb item will spawn a hive for us
@@ -864,7 +865,10 @@ function OnBulletCollision(coll:BulletCollision)
 				KillAndRespawn(true);
 			}
 			else
+			{
+				
 				networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
+			}
 		}
 		else
 		{
@@ -883,7 +887,10 @@ function OnBulletCollision(coll:BulletCollision)
 					KillAndRespawn(true);
 				}
 				else
+				{
+				
 					networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+				}
 			}
 		}
 	}
@@ -1084,7 +1091,10 @@ function CalculateRank() : int
 		splatter.renderer.material.color = color;
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
+		{
 			m_Camera.GetComponent(CameraScript).Shake(0.25,5);
+			Hurt();
+		}
 	}
 	
 	if(GetComponent(ItemDecorator) != null)
@@ -1132,6 +1142,23 @@ function CalculateRank() : int
 	GetComponent(RespawnDecorator).m_RespawnPos = pos;
 }
 
+function Hurt()
+{
+	m_Camera.GetComponent(MotionBlur).enabled = true;
+	var gui : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/HurtGUI"));
+	gui.GetComponent(GUIScript).SetCamera(m_Camera);
+	gui.GetComponent(GUIScript).m_Depth = -999999;
+	while(gui.GetComponent(GUIScript).m_ImgColor.a > 0)
+	{
+		gui.GetComponent(GUIScript).m_ImgColor.a -= 1.0/30.0;
+		yield WaitForSeconds(1/30.0);
+	}
+	
+	Destroy(gui);
+	m_Camera.GetComponent(MotionBlur).enabled = false;
+	
+}
+
 @RPC function SetHP(hp:int)
 {
 	if(NetworkUtils.IsLocalGameObject(gameObject))
@@ -1154,6 +1181,8 @@ function CalculateRank() : int
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
 			AudioSource.PlayClipAtPoint(m_HurtSound, m_Camera.transform.position);
+			Hurt();
+			m_Camera.GetComponent(CameraScript).Shake(0.25, 2);
 		}
 	}
 	
@@ -1424,6 +1453,14 @@ function CalculateRank() : int
 	GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" went for a swim");
 	gameObject.AddComponent(DrowningDecorator);		
 	//transform.position -= offset;
+}
+
+@RPC function Burn()
+{
+	
+	
+	if(GetComponent(BurningDecorator) == null)
+		gameObject.AddComponent(BurningDecorator);
 }
 
 @RPC function CreateHive(pos:Vector3)

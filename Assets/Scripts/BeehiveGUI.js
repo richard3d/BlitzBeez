@@ -231,7 +231,7 @@ function OnGUI()
 			var camWidth = m_Camera.camera.rect.width*Screen.width;
 			var camHeight = m_Camera.camera.rect.height*Screen.height;
 			var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(1.0-(m_Camera.camera.rect.y+m_Camera.camera.rect.height) )*Screen.height);
-			Debug.Log(1.0-(m_Camera.camera.rect.y+m_Camera.camera.rect.height));
+			
 			var camBottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
 			//var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
 			//var camPixWidth = m_Camera.camera.rect.width*

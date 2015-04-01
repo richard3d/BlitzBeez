@@ -422,13 +422,21 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 			break;
 			
 			default:
-				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||  tag == "Shield" ||
+				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
 				  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
 				  (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null))
 				  {
 						RemoveBullet(coll.hit.point);
 						return true;
 					}	
+					else if(tag == "Shield" )
+					{
+						if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
+						{
+							RemoveBullet(coll.hit.point);
+							return true;
+						}
+					}
 			break;
 		}
 	}

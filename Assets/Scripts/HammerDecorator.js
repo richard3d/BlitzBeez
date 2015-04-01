@@ -10,6 +10,10 @@ var m_MovementEnabled : boolean = true;
 var m_Hammer:GameObject;
 function Start () {
 	
+	GetComponent(BeeControllerScript).m_ControlEnabled = false;
+	GetComponent(BeeControllerScript).m_LookEnabled = false;
+	m_MovementSpeed = GetComponent(UpdateScript).m_MaxSpeed = 75;
+	
 	var zDot = Vector3.Dot(transform.forward, Vector3.forward);
 	var xDot = Vector3.Dot(transform.forward, Vector3.right);
 	
@@ -32,16 +36,11 @@ function Start () {
 	{
 		m_Camera =GetComponent(BeeScript).m_Camera;
 		m_Camera.GetComponent(CameraScript).m_Fixed = true;
-		// Camera.main.GetComponent(CameraScript).m_CamVel = Vector3(0,0,0);
-		// Camera.main.GetComponent(CameraScript).m_CamPos = Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z) - dir *200;
-		m_OrigCamOffset = Camera.main.GetComponent(CameraScript).m_DefaultOffset;
-		m_Camera.GetComponent(CameraScript).m_Offset = m_Forward *200 - Vector3.up *200;
-		// Camera.main.transform.eulerAngles.z = 0;
-		// Camera.main.transform.eulerAngles.y = transform.eulerAngles.y;
+	//	m_Camera.GetComponent(CameraScript).m_Offset = -Vector3.forward *200 + Vector3.up *200;
+		m_Camera.GetComponent(CameraScript).SnapToOffset();
+		m_OrigCamOffset = m_Camera.GetComponent(CameraScript).m_DefaultOffset;
 	}	
-	GetComponent(BeeControllerScript).m_ControlEnabled = false;
-	GetComponent(BeeControllerScript).m_LookEnabled = false;
-	m_MovementSpeed = GetComponent(UpdateScript).m_MaxSpeed = 75;
+	
 	
 }
 
@@ -49,8 +48,6 @@ function Update()
 {
 	GetComponent(BeeControllerScript).m_ControlEnabled = false;
 	GetComponent(BeeControllerScript).m_LookEnabled = false;
-	
-	
 }
 
 

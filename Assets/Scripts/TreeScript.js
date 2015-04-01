@@ -34,7 +34,7 @@ function OnTriggerStay(coll : Collider)
 				txt.transform.position.y += 0.03;
 				if(!txt.GetComponent(GUITexture).enabled)
 				{
-					txt.GetComponent(GUITexture).enabled = true;
+					//txt.GetComponent(GUITexture).enabled = true;
 					txt.animation.Play();
 				}
 			}
@@ -63,14 +63,16 @@ function OnBulletCollision(coll:BulletCollision)
 
 function OnTriggerEnter(coll : Collider)
 {
-	if(coll.gameObject.tag == "Player" )
+	if(!Network.isServer)
+		return;
+	if(coll.gameObject.tag == "Player")
 	{		
 		//burn the player if the fire animation is playing
-		if(animation.isPlaying && Network.isServer)
+		if(animation.isPlaying && coll.gameObject.GetComponent(BurningDecorator) == null)
 		{
-			if(coll.gameObject.GetComponent(BeeScript).m_HP-3 > 0)
-				ServerRPC.Buffer(coll.gameObject.networkView, "SetHP", RPCMode.All, coll.gameObject.GetComponent(BeeScript).m_HP-3);
-			else
+			if(coll.gameObject.GetComponent(BeeScript).m_HP-1 > 0)
+				coll.gameObject.networkView.RPC("Burn", RPCMode.All);
+			else	
 				coll.gameObject.GetComponent(BeeScript).KillAndRespawn(true);
 		}
 	}
@@ -153,9 +155,22 @@ function OnCollisionEnter(coll : Collision)
     
 }
 
+@RPC function BurnPlayer(name:String)
+{
+	var go:GameObject = GameObject.Find(name);
+	if(go == null)
+		return;
+	go.GetComponent(BeeScript).SetHP(go.GetComponent(BeeScript).m_HP-1);
+				
+	var fire:GameObject = GameObject.Instantiate(m_FireEffect, go.transform.position, Quaternion.identity);
+	fire.name = "fire";
+	//fire.GetComponent(ParticleSystem).simulationSpace = ParticleSystemSimulationSpace.World;
+	fire.transform.parent = go.transform;
+	fire.transform.position = go.transform.position;
+}
+
 @RPC function Burn()
 {
-	
 	for(var i = 0; i < transform.childCount; i++)
 	{
 		if(transform.GetChild(i).tag == "Fire")
@@ -166,8 +181,7 @@ function OnCollisionEnter(coll : Collision)
 	go.transform.position = gameObject.transform.position;
 	go.transform.position.y = 7;
 	animation.Stop();
-	animation.Play();
-	
+	animation.Play();	
 }
 
 function OnCollisionStay(coll : Collision)

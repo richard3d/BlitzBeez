@@ -15,6 +15,8 @@ function Start () {
 	Debug.Log("Starting");
 
 	m_OrigPosition = transform.position;
+	
+	GameObject.Instantiate(m_Tree.GetComponent(TreeScript).m_LeafParticles,transform.position+Vector3(0,5,0), Quaternion.identity);
 
 	GetComponent(BeeControllerScript).m_ControlEnabled = false;
 	if(NetworkUtils.IsControlledGameObject(gameObject))
@@ -126,7 +128,7 @@ function OnDestroy()
 		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
 	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, m_Camera.transform.position);
-
+	
 	
 	m_Tree.transform.position.y = 0;
 	if(m_DisplaceVector.magnitude < 0.001)
@@ -138,6 +140,7 @@ function OnDestroy()
 	var dist : float = m_Tree.GetComponent(CapsuleCollider) == null ? m_Tree.GetComponent(BoxCollider).size.x : m_Tree.GetComponent(CapsuleCollider).radius;
 	transform.position = m_Tree.transform.position + m_DisplaceVector * (m_OrigPosition-m_Tree.transform.position).magnitude;
 	transform.position.y = m_OrigPosition.y;
+	GameObject.Instantiate(m_Tree.GetComponent(TreeScript).m_LeafParticles,transform.position+Vector3(0,5,0), Quaternion.identity);
 	collider.enabled = true;
 	GetComponent(UpdateScript).m_Vel = m_DisplaceVector * GetComponent(UpdateScript).m_DefaultMaxSpeed;
 	if(gameObject.GetComponent(BeeDashDecorator) == null)

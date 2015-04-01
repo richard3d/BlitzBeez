@@ -194,38 +194,40 @@ function OnNetworkInput(IN : InputState)
 		if(IN.GetAction(IN.MOVE_UP))
 		{
 			if(m_ThirdPerson)
-				GetComponent(UpdateScript).m_Accel += transform.forward *m_MovementSpeed;
+				Updater.m_Accel += transform.forward *m_MovementSpeed*IN.m_YAxisVal;
 			else
-				GetComponent(UpdateScript).m_Accel += Vector3.forward *m_MovementSpeed;
+				Updater.m_Accel += Vector3.forward *m_MovementSpeed*IN.m_YAxisVal;
 			m_MovementKeyPressed = true;
 		}
 		
 		if(IN.GetAction(IN.MOVE_RIGHT))
 		{
 			if(m_ThirdPerson)
-				GetComponent(UpdateScript).m_Accel += transform.right *m_MovementSpeed;
+				Updater.m_Accel += transform.right *m_MovementSpeed*IN.m_XAxisVal;
 			else
-				GetComponent(UpdateScript).m_Accel += Vector3.right *m_MovementSpeed;
+				Updater.m_Accel += Vector3.right *m_MovementSpeed*IN.m_XAxisVal;
 			m_MovementKeyPressed = true;
 		}
 		
 		if(IN.GetAction(IN.MOVE_BACK))
 		{
 			if(m_ThirdPerson)
-				GetComponent(UpdateScript).m_Accel -= transform.forward *m_MovementSpeed;
+				Updater.m_Accel += transform.forward *m_MovementSpeed*IN.m_YAxisVal;
 			else
-				GetComponent(UpdateScript).m_Accel -= Vector3.forward *m_MovementSpeed;
+				Updater.m_Accel += Vector3.forward *m_MovementSpeed*IN.m_YAxisVal;
 			m_MovementKeyPressed = true;
 		}
 		
 		if(IN.GetAction(IN.MOVE_LEFT))
 		{
 			if(m_ThirdPerson)
-				GetComponent(UpdateScript).m_Accel -= transform.right *m_MovementSpeed;
+				Updater.m_Accel += transform.right *m_MovementSpeed*IN.m_XAxisVal;
 			else
-				GetComponent(UpdateScript).m_Accel -= Vector3.right *m_MovementSpeed;
+				Updater.m_Accel += Vector3.right *m_MovementSpeed*IN.m_XAxisVal;
 			m_MovementKeyPressed = true;
 		}
+		//TODO: Tiltling for strafing		
+		transform.GetChild(0).localEulerAngles.z = -25*IN.m_XAxisVal;
 	}	
 	//handle dash button
 	if(IN.GetActionBuffered(IN.DASH) && GetComponent(TreeHideDecorator) == null)
@@ -292,20 +294,17 @@ function OnNetworkInput(IN : InputState)
 				//powershot
 				//if(GetComponentInChildren(ParticleEmitter).particles.length >= 5 && GetComponentInChildren(ParticleRenderer).enabled != false)
 				//{
-					
-					var powerShot:int = m_Stats["Powershot"];
-					
+				var powerShot:int = m_Stats["Powershot"];
+				if(powerShot == 4)
+				{
+					networkView.RPC("PowerShot", RPCMode.All, "null");
 				
-					if(powerShot == 4)
-					{
-						networkView.RPC("PowerShot", RPCMode.All, "null");
-					
-					}
-					else
-					{
-						var go : GameObject = Network.Instantiate(m_PowerBulletInstance[powerShot+1], transform.position, transform.rotation, 0);
-						networkView.RPC("PowerShot", RPCMode.All, go.name);
-					}
+				}
+				else
+				{
+					var go : GameObject = Network.Instantiate(m_PowerBulletInstance[powerShot+1], transform.position, transform.rotation, 0);
+					networkView.RPC("PowerShot", RPCMode.All, go.name);
+				}
 			//	}
 			}
 			else
@@ -529,6 +528,11 @@ function HandleShotLogic()
 		m_ReloadTimer = m_Stats["Reload_Speed"];
 		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	}
+	
+	if(NetworkUtils.IsLocalGameObject(gameObject))
+	{
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.5, 0.5);
+	}
 	GetComponentInChildren(BeeParticleScript).RemoveParticle();
 	
 }
@@ -644,8 +648,8 @@ function OnPlayerLookAt(at : Vector3)
 @RPC function PowerShot(bulletName : String)
 {
 	var color = NetworkUtils.GetColor(gameObject);
-	if(NetworkUtils.IsControlledGameObject(gameObject))
-		Camera.main.GetComponent(CameraScript).Shake(0.25,3);
+	if(NetworkUtils.IsLocalGameObject(gameObject))
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.25,3);
 	AudioSource.PlayClipAtPoint(m_PowerShotSound, Camera.main.transform.position);
 	
 	

@@ -53,7 +53,7 @@ function SetState(state:int)
 	txt.GetComponent(GUIScript).m_Depth = -999999;
 	Debug.Log("Ticks "+numTicks+" Freq "+ticksPerSec);
 	if(Network.isServer)
-		yield MatchTickCoroutine(numTicks, ticksPerSec);
+		MatchTickCoroutine(numTicks, ticksPerSec);
 } 
 
 @RPC function EndMatch(winner:int)
@@ -111,6 +111,7 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 	{
 		var freq:float = 1.0/ticksPerSec;
 		yield WaitForSeconds(freq);
+		Debug.Log("Tick" +m_MatchTick);
 		DoMatchTick();
 		ServerRPC.Buffer(GetComponent(ServerScript).m_SyncMsgsView,"DoMatchTick", RPCMode.Others);
 		
@@ -122,14 +123,14 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 
 @RPC private function  DoMatchTick()
 {
-		
+
 	
-	m_MatchTick--;	
 	if(m_MatchTick < 0)
 	{
-		m_MatchTick = 0;
+		//m_MatchTick = 0;
 		return;
 	}
+	m_MatchTick--;	
 	if(m_MatchTick >= 0)
 	{	
 		var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
@@ -150,6 +151,10 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 	
 	if(m_MatchTick == 0)
 	{		
+		var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
+		go.animation.Stop("FlashIntro");
+		go.animation["FlashIntro"].time = 2.35;
+		go.animation.Play("FlashIntro");
 		txt.GetComponent(UpdateScript).m_Lifetime = 1.2;
 		SetState(MATCH_PLAYING);
 		
