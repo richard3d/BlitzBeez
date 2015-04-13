@@ -10,7 +10,9 @@ class LevelPrev
 var Style : GUIStyle;
 var m_GUISkin : GUISkin;
 var m_LevelPreviews : LevelPrev[];
+var m_MenuSelectSound:AudioClip = null;
 var m_MenuSound:AudioClip = null;
+var m_MenuBack:AudioClip = null;
 private var m_LevelIndex : int = 0;
 
 static var m_HostListTimeout : float = 10;
@@ -153,59 +155,62 @@ function Update () {
 
 	gameObject.Find("BeeCamera").camera.targetTexture = m_BeeTexture;
 	
-	
-	for(var i:int = 0; i < 4; i++)
+	if(m_LocalPlayerScreen)
 	{
-		if(Input.GetButtonDown("Joy"+i+" Start"))
+		for(var i:int = 0; i < 4; i++)
 		{
-			if(Network.isServer)
+			if(Input.GetButtonDown("Joy"+i+" Start"))
 			{
-				var plr : NetworkPlayer;
-				GetComponent(ServerScript).OnLocalPlayerConnected(plr, i);
-			
-				
-				if(!GameObject.Find("Bee"+(i+1)).renderer.enabled)
+				if(Network.isServer)
 				{
-					GameObject.Find("Bee"+(i+1)).animation.enabled = true;
-					GameObject.Find("Bee"+(i+1)).renderer.enabled = true;
+					var plr : NetworkPlayer;
+					GetComponent(ServerScript).OnLocalPlayerConnected(plr, i);
 				
-					var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-					go.animation.Stop("FlashIntro");
-					go.animation["FlashIntro"].time = 2.35;
-					go.animation.Play("FlashIntro");
-				}
-			}
-		}
-		
-		var bee:GameObject = GameObject.Find("Bee"+(i+1));
-		bee.transform.eulerAngles.y += Time.deltaTime * 360*Input.GetAxis("Joy"+i+" Look Left/Right");
-		
-		var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right");
-		if(currInput != 0 && pLastInput[i] == 0)
-		{
-			if(currInput > 0)
-			{
-				pColorIndices[i] += 14;
-			}
-			else
-			{
-				pColorIndices[i] -= 14;
-			}
-			bee.renderer.material.color = m_ColorStripTexture.GetPixel(pColorIndices[i],10);	
-			if(Network.isServer)
-			{
-				for(var k:int =0 ; k < 4; k++)
-				{
-					if(GetComponent(ServerScript).GetClient(k) != null)
+					
+					if(!GameObject.Find("Bee"+(i+1)).renderer.enabled)
 					{
-						if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
-							GetComponent(ServerScript).GetClient(k).m_Color = bee.renderer.material.color;
+						GameObject.Find("Bee"+(i+1)).animation.enabled = true;
+						GameObject.Find("Bee"+(i+1)).renderer.enabled = true;
+					
+						var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
+						go.animation.Stop("FlashIntro");
+						go.animation["FlashIntro"].time = 2.35;
+						go.animation.Play("FlashIntro");
 					}
 				}
 			}
-		
+			
+			var bee:GameObject = GameObject.Find("Bee"+(i+1));
+			bee.transform.eulerAngles.y += Time.deltaTime * 360*Input.GetAxis("Joy"+i+" Look Left/Right");
+			
+			var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right");
+			if(currInput != 0 && pLastInput[i] == 0)
+			{
+				if(currInput > 0)
+				{
+					pColorIndices[i] += 14;
+				}
+				else
+				{
+					pColorIndices[i] -= 14;
+				}
+				bee.renderer.material.color = m_ColorStripTexture.GetPixel(pColorIndices[i],10);
+				AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);				
+				if(Network.isServer)
+				{
+					for(var k:int =0 ; k < 4; k++)
+					{
+						if(GetComponent(ServerScript).GetClient(k) != null)
+						{
+							if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
+								GetComponent(ServerScript).GetClient(k).m_Color = bee.renderer.material.color;
+						}
+					}
+				}
+			
+			}
+			pLastInput[i] = currInput;
 		}
-		pLastInput[i] = currInput;
 	}
 	
 	if(Input.GetButtonDown("Joy0 OK") && !m_IsAnimating)
@@ -242,12 +247,13 @@ function Update () {
 	{
 		if(m_LocalPlayerScreen)
 		{
+			AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
 			MenuExit(false);
 			CameraOutro();
 		}
 		else
 		{
-			
+			AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
 			MenuExit(false);
 			MenuEnter(false);
 			
@@ -328,14 +334,17 @@ function OnGUI()
 				GameObject.Find("Bee"+(p+1)).animation.enabled = true;
 				GameObject.Find("Bee"+(p+1)).renderer.enabled = true;
 				GUI.DrawTexture(Rect(0, 0 ,Screen.width, Screen.height),m_BeeTexture);
+				GUI.backgroundColor = Color(0,0,0,0.5);
 				GUI.Label(Rect(p*Screen.width*0.25, Screen.height*0.5 - 32,Screen.width*0.25, 32),"<- Select Color ->",m_GUISkin.label);
+				GUI.backgroundColor = Color.white;
 				
 				
 			}
 			else
 			{
-				//GUILayout.Label("[ Press Start to Join ]", m_GUISkin.label, GUILayout.ExpandHeight(true), GUILayout.MinWidth(Screen.width*0.25 -  m_GUISkin.label.margin.right*2));
+				GUI.backgroundColor = Color(0,0,0,0.5);
 				GUI.Label(Rect(p*Screen.width*0.25 + m_GUISkin.label.margin.right, 0 ,Screen.width*0.25 - m_GUISkin.label.margin.right*2, Screen.height*0.5), "[ Press Start to Join ]", m_GUISkin.label);
+				GUI.backgroundColor = Color.white;
 			}
 			
 		}
@@ -361,9 +370,9 @@ function OnGUI()
 					if(m_LevelIndex < 0)
 						m_LevelIndex = m_LevelPreviews.length - 1;
 				}
-				
+				GUI.backgroundColor = Color(0,0,0,0.5);
 				GUILayout.Label(m_LevelPreviews[m_LevelIndex].m_Name, m_GUISkin.label);
-				
+				GUI.backgroundColor = Color.white;
 				if(GUILayout.Button(">", m_GUISkin.button))
 				{
 					m_LevelIndex++;
@@ -372,9 +381,9 @@ function OnGUI()
 				}
 			GUILayout.EndHorizontal();
 			
-			
+			GUI.backgroundColor = Color(0,0,0,0.5);
 			GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,  m_GUISkin.label, GUILayout.MaxHeight(64));
-			
+			GUI.backgroundColor = Color.white;
 			GUILayout.BeginHorizontal();
 				
 				if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
@@ -406,6 +415,7 @@ function OnGUI()
 		}
 		else
 		{
+			GUI.backgroundColor = new Color(0,0,0,0.5);
 			for(var i : int = 0; i < comp.GetNumClients(); i++)
 			{
 				GUILayout.Label(comp.GetClient(i).m_Name, m_GUISkin.label);		
@@ -414,6 +424,7 @@ function OnGUI()
 			{
 				GUILayout.Label("Waiting for other players to join...", m_GUISkin.label);	
 			}
+			GUI.backgroundColor = Color.white;
 		}
 		GUILayout.EndArea();
 	}
@@ -428,8 +439,10 @@ function OnGUI()
 		if(cliScript.GetNumClients() > 0)
 		{
 			GUILayout.BeginArea (Rect(0, 0, 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
+				GUI.backgroundColor = new Color(0,0,0,0.5);
 				GUILayout.Label(m_LevelPreviews[m_LevelIndex].m_Name, m_GUISkin.label);
 				GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,  m_GUISkin.label,GUILayout.MaxHeight(64));
+				GUI.backgroundColor = Color.white;
 				if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
 				{
 					gameObject.Destroy(gameObject.Find("GameClient"));
@@ -437,11 +450,13 @@ function OnGUI()
 				}
 			GUILayout.EndArea();
 			GUILayout.BeginArea (Rect(m_MenuPos.x+512, 0, Screen.width - 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
+			GUI.backgroundColor = new Color(0,0,0,0.5);
 			GUILayout.Label("Waiting for Match to Start..." , m_GUISkin.label);
 			for(i= 0; i < cliScript.GetNumClients(); i++)
 			{
 				GUILayout.Label(cliScript.GetClient(i).m_Name, m_GUISkin.label);		
 			}
+			GUI.backgroundColor = Color.white;
 			GUILayout.EndArea();
 		}
 		else
@@ -466,18 +481,13 @@ function OnGUI()
 			{
 				//GUILayout.BeginHorizontal();	
 				var name = element.gameName + " " + element.connectedPlayers + " / " + element.playerLimit;
-				//GUILayout.Label(name, m_GUISkin.label);	
-				//GUILayout.Space(5);
+				
 				var hostInfo : String;
 				hostInfo = "[";
 				for (var host in element.ip)
 					hostInfo = hostInfo + host + ":" + element.port + " ";
 				hostInfo = hostInfo + "]";
-				//GUILayout.Label(hostInfo, m_GUISkin.label);	
-				//GUILayout.Space(5);
-				//GUILayout.Label(element.comment, m_GUISkin.label);
-				//GUILayout.Space(5);
-				//GUILayout.FlexibleSpace();
+				
 				if (GUILayout.Button(name+" "+hostInfo+" "+element.comment, m_GUISkin.button))
 				{
 					// Connect to HostData struct, internally the correct method is used (GUID when using NAT).

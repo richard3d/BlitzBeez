@@ -1,7 +1,9 @@
 #pragma strict
 //THIS CLASS IS WACK
-//a number to count down for match start (or can be used for reay set go etc).
-
+var m_ReadySound:AudioClip = null;
+var m_ReadySetSound:AudioClip = null;
+var m_GoSound:AudioClip = null;
+var m_GameSound:AudioClip = null;
 
 static var MATCH_STARTING : int = 0;
 static var MATCH_PLAYING : int = 1;
@@ -48,6 +50,7 @@ function SetState(state:int)
 	m_WinningPlayer = -1;
 	SetState(MATCH_STARTING);
 	m_MatchTick = numTicks;
+	AudioSource.PlayClipAtPoint(m_ReadySound, Camera.main.transform.position);
 	var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
 	txt.GetComponent(GUIScript).m_Text = "Ready!";
 	txt.GetComponent(GUIScript).m_Depth = -999999;
@@ -68,7 +71,10 @@ function SetState(state:int)
 	flash.animation["FlashIntro"].time = 2.35;
 	flash.animation.Play("FlashIntro");
 
+	GameObject.Find("Music").GetComponent(AudioSource).Stop();
+	
 	//this (MatchStartGUI) is really just a text type with a cool zoom effect
+	AudioSource.PlayClipAtPoint(m_GameSound, Camera.main.transform.position);
 	var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
 	txt.GetComponent(GUIScript).m_Text =  "Game!";
 	txt.GetComponent(GUIScript).m_Depth = -999999;
@@ -133,6 +139,11 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 	m_MatchTick--;	
 	if(m_MatchTick >= 0)
 	{	
+		if(m_MatchTick == 0)
+			AudioSource.PlayClipAtPoint(m_GoSound, Camera.main.transform.position);
+		else
+			AudioSource.PlayClipAtPoint(m_ReadySetSound, Camera.main.transform.position);
+		
 		var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
 		txt.GetComponent(GUIScript).m_Text =  m_MatchTick ==0 ? "Go!":" "+m_MatchTick;
 		txt.GetComponent(GUIScript).m_Depth = -999999;

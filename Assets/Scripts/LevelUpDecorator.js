@@ -15,7 +15,7 @@ function Start () {
 		m_PlayerCam.GetComponent(CameraScript).Shake(1.5, 1.5);
 		m_PlayerCam.GetComponent(MotionBlur).enabled = true;
 	}
-	Destroy(transform.GetChild(0).gameObject);
+	Destroy(GameObject.Find(gameObject.name+"/Bee"));
 	var newBee:GameObject = GameObject.Instantiate(GetComponent(BeeScript).m_Meshes[GetComponent(BeeScript).m_CurrLevel-1]);
 	newBee.name = "Bee";
 	newBee.transform.parent = gameObject.transform;//.GetComponent(MeshFilter).mesh;

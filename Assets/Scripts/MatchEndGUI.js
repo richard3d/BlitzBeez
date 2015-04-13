@@ -1,14 +1,21 @@
 #pragma strict
-
+var m_GUISkin:GUISkin = null;
 private var m_Life:float = -1;
 private var m_Lifetime:float = 0.35;
 private var m_Bee:GameObject = null;
 public var m_CrownTexture:Texture2D;
+public var m_MatchOverMusic:AudioClip = null;
+private var m_Players:GameObject[];
 function Start () {
 	m_Life = m_Lifetime;
 	GetComponent(GUIScript).m_ImgColor = Color.black;
 	Camera.main.transform.position = Vector3(0,0,0);
 	Camera.main.transform.LookAt(Vector3(0,0,1));
+	
+	GameObject.Find("Music").GetComponent(AudioSource).clip = m_MatchOverMusic;
+	GameObject.Find("Music").GetComponent(AudioSource).Play();
+	
+	
 	
 }
 
@@ -31,8 +38,8 @@ function Update () {
 				cam.active = false;
 			}
 			
-			var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
-			for(var player :GameObject in players)
+			m_Players = GameObject.FindGameObjectsWithTag("Player");
+			for(var player :GameObject in m_Players)
 			{
 				if(player == NetworkUtils.GetGameObjectFromClient(GameStateManager.m_WinningPlayer))
 				{	
@@ -108,11 +115,20 @@ function ShowWinnerText()
 	txt.GetComponent(GUIScript).m_Text =  str;
 	txt.GetComponent(GUIScript).m_FontSize = 64;
 	txt.GetComponent(GUIScript).m_Depth = -999999;
-	txt.GetComponent(UpdateScript).m_Lifetime = 10;
+	txt.GetComponent(UpdateScript).m_Lifetime = 3;
 	txt.GetComponent(GUIScript).m_Rect = Rect(0,0.5,1,0.5);
 	txt.GetComponent(GUIScript).m_Color = Color.black;
-	yield WaitForSeconds(10);
+	//yield WaitForSeconds(3);
 	
+	
+	while(Input.GetAxis("Joy0 OK") == 0.0)
+	{
+		if(m_Bee != null)
+		{
+			m_Bee.transform.eulerAngles.y += 4;
+		}
+		yield WaitForSeconds(0.033);
+	}
 	
 	GetComponent(GUIScript).enabled = false;
 	while(m_Bee != null && m_Bee.transform.rotation.x > 0.01)
@@ -145,5 +161,52 @@ function ShowWinnerText()
 function OnGUI()
 {
 	
+		//m_GUISkin.label.fixedWidth = Screen.width/5.0;
+	
+		GUI.BeginGroup (Rect(0, Screen.height*.30, Screen.width,Screen.height*0.5), m_GUISkin.GetStyle("Background"));	
+			GUI.backgroundColor.a = 0;
+		//var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");	
+		m_GUISkin.label.alignment = TextAnchor.UpperLeft;
+		//m_GUISkin.label.fontSize = 48;
+		
+			var width = Screen.width/5.0;
+			GUI.Label(Rect(0,0,width, m_GUISkin.label.fontSize)," ", m_GUISkin.label);
+			GUI.Label(Rect(width,0,width, m_GUISkin.label.fontSize),"Score", m_GUISkin.label);
+			GUI.Label(Rect(width*2,0,width, m_GUISkin.label.fontSize),"Kills", m_GUISkin.label);
+			GUI.Label(Rect(width*3,0,width, m_GUISkin.label.fontSize),"Deaths", m_GUISkin.label);
+			GUI.Label(Rect(width*4,0,width, m_GUISkin.label.fontSize),"Longest Chain", m_GUISkin.label);
+		//GUILayout.EndHorizontal();
+		
+		//m_GUISkin.label.margin= new RectOffset(0,0,0,0);
+		//m_GUISkin.label.fontSize = 24;
+		GUI.backgroundColor = new Color(1,0.75,0,0.5);
+		if(m_Players != null)
+		{
+			for(var p:int = 0; p < m_Players.length; p++)
+			{
+				//GUILayout.BeginHorizontal();
+				
+				//GUILayout.Label(m_Players[p].name, m_GUISkin.label);
+				//GUILayout.Label("1000", m_GUISkin.label);
+				//GUILayout.Label("15", m_GUISkin.label);
+				//GUILayout.Label("23", m_GUISkin.label);
+				//GUILayout.Label("8", m_GUISkin.label);
+				var y:float = (p+1) * m_GUISkin.label.fontSize+3;
+				GUI.Label(Rect(0,y,width, 32),NetworkUtils.GetClientObjectFromGameObject(m_Players[p]).m_Name, m_GUISkin.label);
+				GUI.Label(Rect(width,y,width, 32),"1000", m_GUISkin.label);
+				GUI.Label(Rect(width*2,y,width, 32),"15", m_GUISkin.label);
+				GUI.Label(Rect(width*3,y,width, 32),"23", m_GUISkin.label);
+				GUI.Label(Rect(width*4,y,width, 32),"8", m_GUISkin.label);
+				//GUI.color = Color.white;
+				//GUILayout.EndHorizontal();
+			}
+		}	
+		
+		m_GUISkin.label.alignment = TextAnchor.MiddleCenter;
+		//m_GUISkin.label.fontSize = 32;
+		GUI.EndGroup();
+		GUI.backgroundColor = Color.white;
+		//m_GUISkin.label.fixedWidth = 0;
+		//m_GUISkin.label.margin.left = 4;	
 
 }

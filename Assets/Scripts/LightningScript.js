@@ -77,7 +77,14 @@ function OnDestroy()
 	go.transform.position = transform.position;
 	go.renderer.material.SetColor("_TintColor", renderer.material.color);
 	
-	m_Owner.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.25,3.5);
+	if(NetworkUtils.IsLocalGameObject(m_Owner))
+	{
+		var cam:GameObject = m_Owner.GetComponent(BeeScript).m_Camera;
+		cam.GetComponent(CameraScript).Shake(0.33,3.5);
+		// cam.AddComponent(CameraZoomDecorator);
+		// cam.GetComponent(CameraZoomDecorator).m_fLifetime = 0.25;
+		// cam.GetComponent(CameraZoomDecorator).m_ZoomFOV = 45;
+	}
 }
 
 

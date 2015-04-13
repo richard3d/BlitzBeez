@@ -1,11 +1,20 @@
 #pragma strict
 
 var m_GUISkin : GUISkin = null;
+var m_MenuSelectSound:AudioClip = null;
+var m_MenuSound:AudioClip = null;
+var m_MenuShow:AudioClip = null;
+var m_MenuHide:AudioClip = null;
 var m_BGTexture : Texture2D = null;
 var m_HexBGTexture : Texture2D = null;
+var m_TalentIcons:Texture2D[] = null;
+
+
+
 var m_HexOffset:float = 0; 
 var m_BGOffset:float = 0; 
 var m_bShow : boolean = false;
+
 private var m_Fade : float = 0;
 private var m_Camera:GameObject = null;
 
@@ -28,7 +37,7 @@ var m_CurrSelIndex : int = 0;
 var m_Selection : int[] = new int[6];
 
 function Start () {
-	
+
 	//set appropriate styles
 	if(GetComponent(BeeScript) != null)
 	{
@@ -45,14 +54,12 @@ function Start () {
 				m_GUISkin.GetStyle("MenuText").fontSize = 24;
 				m_GUISkin.GetStyle("DescriptionText").fontSize = 24;
 			}
-			 
-			
-			
 		}
 	}
 
 	
 }
+
 
 function Update () {
 	
@@ -132,6 +139,11 @@ function OnNetworkInput(IN : InputState)
 
 @RPC function SetSelectionIndex(index:int)
 {
+	if(NetworkUtils.IsLocalGameObject(gameObject))
+	{
+		if(m_CurrSelIndex != index)
+			AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);		
+	}
 	m_CurrSelIndex = index;
 }
 
@@ -167,8 +179,25 @@ function OnNetworkInput(IN : InputState)
 			GetComponent(BeeScript).m_HP = 3.0 + (health+1);
 		}
 	}
+	
+	
+	if(NetworkUtils.IsLocalGameObject(gameObject))
+	{
+		AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);		
+	}
+	
 	TalentTree.m_Talents.RemoveAt(m_Selection[selIndex]);
 	GetComponent(BeeScript).m_NumUpgradesAvailable--;
+}
+
+function FindIcon(name:String) : Texture2D
+{
+	for(var tex:Texture2D in m_TalentIcons)
+	{
+		if(tex != null && tex.name == name)
+			return tex;
+	}
+	return null;
 }
 
 function Show(bShow : boolean)
@@ -189,6 +218,10 @@ function Show(bShow : boolean)
 			m_Camera.animation.Play("CameraDramaticZoom");
 			//m_CurrSelMenu.Push(m_MainMenu);
 			//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
+			
+		
+			AudioSource.PlayClipAtPoint(m_MenuShow, Camera.main.transform.position);		
+	
 		}
 		else
 		{
@@ -207,6 +240,7 @@ function Show(bShow : boolean)
 			m_Camera.animation["CameraDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 			m_Camera.animation["CameraDramaticZoom"].speed = -1;
 			m_Camera.animation.Play("CameraDramaticZoom");
+			AudioSource.PlayClipAtPoint(m_MenuHide, Camera.main.transform.position);
 			
 		}
 	}
@@ -263,9 +297,19 @@ function OnGUI()
 				
 				var width:float = 190*camScaleY;
 				if(m_CurrSelIndex == i)
+				{
+					GUI.color = Color.white;
 					width  += Mathf.Sin(Time.time*8)*10;
-				
+				}
+				else
+					GUI.color = new Color32(255,246,157,255);
+					
 				GUI.DrawTexture(Rect(hexCenterPoint.x+offset.x-width*0.5,hexCenterPoint.y-offset.y-width*0.5, width,width), m_HexBGTexture);
+				t = TalentTree.m_Talents[m_Selection[i]] as Talent;
+				GUI.color = Color.black;
+				if(FindIcon(t.m_ImgName) != null)
+					GUI.DrawTexture(Rect(hexCenterPoint.x+offset.x-width*0.25,hexCenterPoint.y-offset.y-width*0.25, width*0.5,width*0.5), FindIcon(t.m_ImgName));
+				GUI.color = Color.white;
 			}
 			var beeCtrlScript:BeeControllerScript = GetComponent(BeeControllerScript);
 			 var count = 0;

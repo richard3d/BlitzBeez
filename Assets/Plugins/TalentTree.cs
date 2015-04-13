@@ -11,6 +11,7 @@ public class Talent
 {
 	public string m_Name;
 	public string m_Desc;
+	public string m_ImgName;
 	public Dictionary<string, int> m_Stats = new Dictionary<string,int>();
 }
 
@@ -59,6 +60,8 @@ public class TalentTree : MonoBehaviour {
 		
 		t.m_Name = xmlNode.Attributes["name"].Value;
 		t.m_Desc = xmlNode.Attributes["desc"].Value;
+		t.m_ImgName = xmlNode.Attributes["img"].Value;
+		
 		string stats = xmlNode.Attributes["stats"].Value;
 		char[] delimiters = {',' , ' '};
 		string[] splitStats = stats.Split(delimiters);

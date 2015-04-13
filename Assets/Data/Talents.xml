@@ -1,41 +1,14 @@
 <!-- Game Conditions -->
 <Talents>
 	<!--loadouts-->
-	<Talent name = "Twin Shot" desc = "Fire 2 Stingers at Once" stats = "Loadout:0" />
-	<Talent name = "Burst Shot" desc = "Fires 3 Round Bursts of High Velocity Stingers" stats = "Loadout:1" />
-	<Talent name = "Spread Shot" desc = "Spread fire array" stats = "Loadout:2" />
+	<Talent name = "Twin Shot" img = "Twinshot" desc = "Fire 2 Stingers at Once" stats = "Loadout:0" />
+	<Talent name = "Burst Shot" img = "Spreadshot1" desc = "Fires 3 Round Bursts of High Velocity Stingers" stats = "Loadout:1" />
+	<Talent name = "Spread Shot" img = "Spreadshot" desc = "Spread fire array" stats = "Loadout:2" />	
+	<Talent name = "Hydra Shot" img = "HomingMissile" desc = "Spread fire array" stats = "Loadout:8" />
 	<!--powershots-->
-	<Talent name = "Laser Powershot" desc = "High Energy Beam That Cuts Through Multiple Opponents" stats = "Powershot:0" />
-	<Talent name = "Boomer Powershot" desc = "Powershot Produces a Bomb Blast on Collision" stats = "Powershot:1, Speed:-1" />
-	<Talent name = "Scatter Powershot" desc = "Shoots out mini projectiles on collision" stats = "Powershot:2" />
-	<Talent name = "Bulldozer Powershot" desc = "Powershot barrels through destructible items" stats = "Powershot:3" />
-	<Talent name = "Homing Powershot" desc = "Fire a multidirectional array of homing missiles" stats = "Powershot:4" />
+	<Talent name = "Laser Powershot" img = "LaserPowershot2" desc = "High Energy Beam That Cuts Through Multiple Opponents" stats = "Powershot:0" />
+	<Talent name = "Boomer Powershot" img = "ExplosivePowershot" desc = "Powershot Produces a Bomb Blast on Collision" stats = "Powershot:1, Speed:-1" />
+	<Talent name = "Scatter Powershot" img = "ScatterPowershot" desc = "Shoots out mini projectiles on collision" stats = "Powershot:2" />
+	<Talent name = "Bulldozer Powershot" img = "BulldozerPowershot" desc = "Powershot barrels through destructible items" stats = "Powershot:3" />
 	
-	<!--powershot_reload-->
-	<Talent name = "Hadouken!" desc = "Powershot Reload Speed +2" stats = "Powershot_Reload:2" />
-	<Talent name = "Zen Master" desc = "Powershot Reload Speed +3" stats = "Powershot_Reload:3" />
-	<!--reload_speed-->
-	<Talent name = "Speed Loader" desc = "Reload Speed +2" stats = "Reload_Speed:2" />
-	<Talent name = "Billy the Bee" desc = "Reload Speed +3" stats = "Reload_Speed:3" />
-	<!--worker_generation-->
-	<Talent name = "Recruiter" desc = "Worker Generation Speed +2" stats = "Worker_Generation:2" />
-	<Talent name = "Drone Factory" desc = "Worker Generation Speed +3" stats = "Worker_Generation:3" />
-	<!--stamina-->
-	<Talent name = "Super Sprinter" desc = "Stamina Recovery Speed +2" stats = "Stamina:2" />
-	<Talent name = "Iron Man" desc = "Stamina Recovery Speed +3" stats = "Stamina:3" />
-	<!--clip size-->
-	<Talent name = "Ammo Magazine" desc = "Hold more Bullets" stats = "Clip_Size:2" />
-	<Talent name = "Ammo Belt" desc = "Increase Max Clip Size" stats = "Clip_Size:3" />
-	<!--fire_rate-->
-	<Talent name = "Hailstorm" desc = "Increase Fire Rate +2" stats = "Fire_Rate:2" />
-	<Talent name = "Rain of Death" desc = "Increase Fire Rate +3" stats = "Fire_Rate:3" />
-	<!--max_workers-->
-	<Talent name = "Field Boss" desc = "Increase Max Workers +2" stats = "Max_Workers:2" />
-	<Talent name = "Hiring Spree" desc = "Increase Max Workers +3" stats = "Max_Workers:3" />
-	<!--health-->
-	<Talent name = "Vitality Pill" desc = "Increase Max HP +2" stats = "Health:2" />
-	<Talent name = "Fountain of Youth" desc = "Increase Max HP +3" stats = "Health:3" />
-	<!--pollination_time-->
-	<Talent name = "I Am Da Pollinator" desc = "+2 Pollination Speed" stats = "Pollination_Time:2" />
-	<Talent name = "Crop Duster" desc = "+3 Pollination Speed" stats = "Pollination_Time:3" />
 </Talents>

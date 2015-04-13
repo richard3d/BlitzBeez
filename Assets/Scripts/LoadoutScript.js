@@ -1,7 +1,7 @@
 #pragma strict
 class Pylon
 {
-	var AngOffset : float;    //trajectory angle relative measured from the nose of the bee
+	var AngOffset : float = 0;    //trajectory angle relative measured from the nose of the bee
 	var PosOffset : Vector3; //position offset in local space
 	var m_BulletInstance:GameObject = null;
 	var m_FireRateTimer:float = 0.01;
@@ -68,9 +68,7 @@ class LoadOut
 	{
 		for(var i : int = 0; i < m_Pylons.length; i++)
 		{
-			m_Pylons[i].m_FireRate = 0.1;
-			m_Pylons[i].AngOffset = 0;
-			m_Pylons[i].PosOffset = Vector3(0,0,0);
+			m_Pylons[i] = new Pylon();
 		}
 		switch(type)
 		{
@@ -78,6 +76,7 @@ class LoadOut
 				//| standard single fire shot
 				m_BaseClipSize = 30;
 				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
+				m_Pylons[0].m_FireRate = 0.1;
 				m_Pylons[0].m_FireTime = 0.15;
 				
 			break;
@@ -86,9 +85,11 @@ class LoadOut
 				m_BaseClipSize = 10;
 				
 				m_Pylons[0].PosOffset = Vector3(-6, 0, 0);	
+				m_Pylons[0].m_FireRate = 0.1;
 				m_Pylons[0].m_FireTime = 0.15;
 				
 				m_Pylons[1].PosOffset = Vector3(6, 0, 0);
+				m_Pylons[1].m_FireRate = 0.1;
 				m_Pylons[1].m_FireTime = 0.15;
 			break;
 			case 1:
@@ -102,17 +103,20 @@ class LoadOut
 				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/VelocityBullet");
 			break;
 			case 2:
-				// \|/
+				// Spreadshot
 				m_BaseClipSize = 5;
 				m_Pylons[0].AngOffset = -8.0;
 				m_Pylons[0].PosOffset = Vector3(-1, 0, 0);
+				m_Pylons[0].m_FireRate = 0.1;
 				m_Pylons[0].m_FireTime = 0.2;
 				
 				m_Pylons[1].AngOffset = 8.0;
 				m_Pylons[1].PosOffset = Vector3(1, 0, 0);
+				m_Pylons[1].m_FireRate = 0.1;
 				m_Pylons[1].m_FireTime = 0.2;
 				
 				m_Pylons[2].PosOffset = Vector3(0, 0, 1);
+				m_Pylons[2].m_FireRate = 0.1;
 				m_Pylons[2].m_FireTime = 0.2;
 			break;
 			case 3:
@@ -168,30 +172,38 @@ class LoadOut
 				m_Pylons[3].PosOffset = Vector3(0, 0, -3);
 			break;
 			case 8:
-				// _|_
-				//  |
+				//Hydra shot (4 missiles plus double shot)
 				m_BaseFireRate = 3.0;
 				m_BaseClipSize = 20;
-				m_Pylons[0].PosOffset = Vector3(0, 0, 3);
+				
+				m_Pylons[0].AngOffset = -15;
+				m_Pylons[0].PosOffset = Vector3(-4, 0, 0);
 				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/HomingBullet");
-				m_Pylons[1].AngOffset = 90;
+				m_Pylons[0].m_FireRate = 0.1;
+				
+				m_Pylons[1].AngOffset = 15;
 				m_Pylons[1].PosOffset = Vector3(4, 0, 0);
 				m_Pylons[1].m_BulletInstance = Resources.Load("GameObjects/HomingBullet");
-				m_Pylons[2].AngOffset = -90;
-				m_Pylons[2].PosOffset = Vector3(-4, 0, 0);
-				m_Pylons[2].m_BulletInstance = Resources.Load("GameObjects/HomingBullet");
-				m_Pylons[3].AngOffset = 180;
-				m_Pylons[3].PosOffset = Vector3(0, 0, -3);
-				m_Pylons[3].m_BulletInstance = Resources.Load("GameObjects/HomingBullet");
+				m_Pylons[1].m_FireRate = 0.1;
 				
-				m_Pylons[4].AngOffset = -45;
-				m_Pylons[4].PosOffset = Vector3(0, 0, 3);
-				m_Pylons[5].AngOffset = 45;
-				m_Pylons[5].PosOffset = Vector3(4, 0, 0);
-				m_Pylons[6].AngOffset = -135;
-				m_Pylons[6].PosOffset = Vector3(-4, 0, 0);
-				m_Pylons[7].AngOffset = 135;
-				m_Pylons[7].PosOffset = Vector3(0, 0, -3);
+				// m_Pylons[2].AngOffset = -135;
+				// m_Pylons[2].PosOffset = Vector3(-4, 0, 0);
+				// m_Pylons[2].m_BulletInstance = Resources.Load("GameObjects/HomingBullet");
+				// m_Pylons[2].m_FireRate = 0.1;
+				
+				// m_Pylons[3].AngOffset = 135;
+				// m_Pylons[3].PosOffset = Vector3(0, 0, -3);
+				// m_Pylons[3].m_BulletInstance = Resources.Load("GameObjects/HomingBullet");
+				// m_Pylons[3].m_FireRate = 0.1;
+				
+				//added twinshot
+				m_Pylons[4].PosOffset = Vector3(-6, 0, 0);	
+				m_Pylons[4].m_FireRate = 0.1;
+				m_Pylons[4].m_FireTime = 0.15;
+				
+				m_Pylons[5].PosOffset = Vector3(6, 0, 0);
+				m_Pylons[5].m_FireRate = 0.1;
+				m_Pylons[5].m_FireTime = 0.15;
 			break;
 			 case 9:
 				// // \||/

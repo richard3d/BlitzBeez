@@ -5,9 +5,11 @@ var ServerInstance : GameObject;
 var ClientInstance : GameObject;
 var m_Skin:GUISkin = null;
 var m_ColorPicker:Texture2D = null;
+var m_TitleIntroSound:AudioClip = null;
+var m_MenuSelectSound:AudioClip = null;
 var m_MenuSound:AudioClip = null;
 private var m_ShowOptions:boolean = false;
-private var m_ShowMainMenu:boolean = true;
+private var m_ShowMainMenu:boolean = false;
 public var m_MenuPos :Vector2;
 
 public var m_Sel:int = 0;
@@ -23,7 +25,14 @@ function Start () {
 }
 
 function OnEnable(){
-GameObject.Find("BeeParticles").renderer.enabled = true;
+
+}
+
+function Show()
+{
+	m_ShowMainMenu = true;
+	AudioSource.PlayClipAtPoint(m_TitleIntroSound, Camera.main.transform.position);
+	GameObject.Find("BeeParticles").renderer.enabled = true;
 }
 
 function Update () {
@@ -51,12 +60,24 @@ function Update () {
 	if(Input.GetAxis("Joy0 Move Forward/Back") < 0 && m_PrevInput == 0)
 	{
 		if(m_Sel < m_NumSel-1)
+		{
+			var gos:GameObject[] = GameObject.FindGameObjectsWithTag("Flowers");
+			var flw:int = Random.Range(0,gos.length-1);
+			GameObject.Find("WorkerBee").transform.parent = gos[flw].transform;
+			AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);
 			m_Sel++;
+		}
 	}
 	if(Input.GetAxis("Joy0 Move Forward/Back") > 0 && m_PrevInput == 0)
 	{
 		if(m_Sel > 0)
-			m_Sel--;		
+		{
+			gos= GameObject.FindGameObjectsWithTag("Flowers");
+			flw = Random.Range(0,gos.length-1);
+			GameObject.Find("WorkerBee").transform.parent = gos[flw].transform;
+			AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);
+			m_Sel--;	
+		}			
 	}
 	m_PrevInput = currInput;
 }

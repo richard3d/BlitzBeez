@@ -58,8 +58,10 @@ function Start () {
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 45;
 		GetComponent(BeeScript).m_Camera.AddComponent(CameraZoomDecorator);
-		GetComponent(BeeScript).m_Camera.GetComponent(CameraZoomDecorator).m_fLifetime = m_Lifetime+m_AnimTime;
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraZoomDecorator).m_fLifetime = m_Lifetime+m_AnimTime-0.1;
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraZoomDecorator).m_ZoomFOV = 70;
 	}
 }
 
@@ -122,6 +124,16 @@ function OnDestroy()
 	GetComponent(TrailRenderer).enabled = false;
 	GetComponentInChildren(ParticleRenderer).enabled = true;
 	Destroy(m_LightningEffect);
+	
+	if(NetworkUtils.IsLocalGameObject(gameObject))
+	{
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_DefaultPitch;
+		var cam:GameObject = GetComponent(BeeScript).m_Camera;
+		//cam.GetComponent(CameraScript).Shake(0.33,3.5);
+		 cam.AddComponent(CameraZoomDecorator);
+		 cam.GetComponent(CameraZoomDecorator).m_fLifetime = 0.25;
+		 cam.GetComponent(CameraZoomDecorator).m_ZoomFOV = 45;
+	}
 	// if(Network.isServer)
 	// {
 		// //NetworkDestroy(m_LightningEffect);

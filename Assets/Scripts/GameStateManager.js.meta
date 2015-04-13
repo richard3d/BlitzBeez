@@ -2,6 +2,8 @@ fileFormatVersion: 2
 guid: 61ff86a36ad785a40988c619ac51f4f9
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - m_ReadySetSound: {fileID: 8300000, guid: 4dd972e6e476ddd4e80c55fcb95b519d, type: 1}
+  - m_GoSound: {fileID: 8300000, guid: e0bafad643ea4ab48b8874383bef4317, type: 1}
   executionOrder: 0
   icon: {instanceID: 0}

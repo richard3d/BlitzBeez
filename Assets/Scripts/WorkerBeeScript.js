@@ -8,14 +8,15 @@ private var m_SpawnFlightTimer:float = 0; //time to fly to flower from spawn loc
 private var m_Dead:boolean = false;
 function Start () {
 	
-	gameObject.name = "WorkerBee"+ ++m_InstanceID;
+	if(m_Owner != null)
+		gameObject.name = "WorkerBee"+ ++m_InstanceID;
 	PickPoint();
 
 }
 
 function PickPoint()
 {
-	while(true && !m_Dead)
+	while(!m_Dead)
 	{
 		if(transform.parent != null)
 		{

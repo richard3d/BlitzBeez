@@ -13,7 +13,7 @@ function Start () {
 	GetComponent(BeeControllerScript).m_ControlEnabled = false;
 	GetComponent(BeeControllerScript).m_LookEnabled = false;
 	m_MovementSpeed = GetComponent(UpdateScript).m_MaxSpeed = 75;
-	
+	GameObject.Find(gameObject.name+"/Bee").transform.localEulerAngles.z = 0;
 	var zDot = Vector3.Dot(transform.forward, Vector3.forward);
 	var xDot = Vector3.Dot(transform.forward, Vector3.right);
 	
@@ -36,7 +36,8 @@ function Start () {
 	{
 		m_Camera =GetComponent(BeeScript).m_Camera;
 		m_Camera.GetComponent(CameraScript).m_Fixed = true;
-	//	m_Camera.GetComponent(CameraScript).m_Offset = -Vector3.forward *200 + Vector3.up *200;
+		m_Camera.GetComponent(CameraScript).m_Offset = -Vector3.forward *200 + Vector3.up *200;
+		m_Camera.GetComponent(CameraScript).m_Pitch = 45;
 		m_Camera.GetComponent(CameraScript).SnapToOffset();
 		m_OrigCamOffset = m_Camera.GetComponent(CameraScript).m_DefaultOffset;
 	}	
@@ -124,6 +125,7 @@ function OnDestroy()
 	{
 		m_Camera.GetComponent(CameraScript).m_Fixed = false;
 		m_Camera.GetComponent(CameraScript).m_Offset = m_OrigCamOffset;
+		m_Camera.GetComponent(CameraScript).m_Pitch = m_Camera.GetComponent(CameraScript).m_DefaultPitch;
 		
 	}	
 	

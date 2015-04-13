@@ -30,6 +30,7 @@ var m_PollenCount:int = 0;
 var m_Honey:int = 0;
 var m_HoneyInterpolator:float = 0;
 var m_HurtSound:AudioClip = null;
+var m_DeathSound:AudioClip = null;
 var m_CurrXP : int = 0;
 var m_CurrLevel : int = 0;
 var m_NumUpgradesAvailable:int = 0; //does the bee have a level upgrade available?
@@ -1092,6 +1093,7 @@ function CalculateRank() : int
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
+			AudioSource.PlayClipAtPoint(m_DeathSound, m_Camera.transform.position);
 			m_Camera.GetComponent(CameraScript).Shake(0.25,5);
 			Hurt();
 		}

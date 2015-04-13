@@ -21,7 +21,7 @@ function Start () {
 	{
 		GetComponent(BeeControllerScript).m_LookEnabled = false;
 		GetComponent(BeeScript).m_DrawGUI = false;
-		
+		m_Camera.GetComponent(MotionBlur).enabled = true;
 		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
 		m_Camera.animation.Play("CameraLessDramaticZoom");
 	
@@ -38,6 +38,8 @@ function Update () {
 	GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 	if(m_Lifetime > 0.0)
 	{
+		if(NetworkUtils.IsLocalGameObject(gameObject))
+			m_Camera.GetComponent(MotionBlur).enabled = true;
 		m_Lifetime -= Time.deltaTime;
 		if(m_Lifetime <= 0.0)
 		{		
@@ -46,6 +48,7 @@ function Update () {
 			AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_RespawnSound, Camera.main.transform.position);
 			if(NetworkUtils.IsLocalGameObject(gameObject))
 			{				
+				m_Camera.GetComponent(MotionBlur).enabled = false;
 				m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 				m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
 				m_Camera.animation.Play("CameraLessDramaticZoom");
