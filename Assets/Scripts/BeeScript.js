@@ -31,11 +31,14 @@ var m_Honey:int = 0;
 var m_HoneyInterpolator:float = 0;
 var m_HurtSound:AudioClip = null;
 var m_DeathSound:AudioClip = null;
+
 var m_CurrXP : int = 0;
 var m_CurrLevel : int = 0;
 var m_NumUpgradesAvailable:int = 0; //does the bee have a level upgrade available?
 var m_XPToLevel : float[];
- 
+var m_Kills:int = 0;
+var m_Deaths:int = 0;
+var m_LongestChain:int = 0;
  
 var m_XPMeterFlashTimer:float = 0;
 var m_LifeMeterFlashTimer:float = 0;
@@ -80,8 +83,8 @@ var m_Inventory : Inventory[];
 
 var m_LevelUpSound:AudioClip = null;
 var m_RespawnSound:AudioClip = null;
-
 var m_ViewMap:boolean = false;
+
 
 function Awake()
 {
@@ -863,6 +866,7 @@ function OnBulletCollision(coll:BulletCollision)
 			if(m_HP - 3 <= 0)
 			{
 				networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+				coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
 				KillAndRespawn(true);
 			}
 			else
@@ -885,6 +889,7 @@ function OnBulletCollision(coll:BulletCollision)
 				if(m_HP - 1 <= 0)
 				{
 					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
 					KillAndRespawn(true);
 				}
 				else
@@ -1004,6 +1009,8 @@ function GetNumFlowers() : int
 			if(flowers[i].GetComponent(FlowerScript).m_Owner == gameObject)
 				num++;
 	}
+	if(num > m_LongestChain)
+		m_LongestChain = num;
 	return num;
 }
 
@@ -1058,6 +1065,7 @@ function CalculateRank() : int
 @RPC function KillBee(splat:boolean)
 {	
      m_HP = 0;
+	 m_Deaths++;
 	//play death effect
 	if(splat)
 	{
