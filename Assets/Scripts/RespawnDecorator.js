@@ -107,6 +107,8 @@ function SetLifetime(time : float)
 
 function OnDestroy()
 {
+	if(!gameObject.active)
+		return;
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		GetComponent(BeeControllerScript).m_LookEnabled = true;

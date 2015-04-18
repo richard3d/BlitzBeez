@@ -75,42 +75,66 @@ function Update () {
 		ScreenPts[1] = Vector3(Screen.width,0,camera.nearClipPlane);
 		ScreenPts[2] = Vector3(Screen.width,Screen.height,camera.nearClipPlane);
 		ScreenPts[3] = Vector3(0,Screen.height,camera.nearClipPlane);
-		//var vp = camera.WorldToScreenPoint(m_Target.transform.position)
 		ScreenPts[4] = Vector3(Screen.width*0.5,Screen.height*0.5,camera.nearClipPlane);
 		
-		var dist:float = 99999;
-		var point:Vector3;
 		for(var i:int = 0; i < 5; i++)
 		{
 			rays[i] = camera.ScreenToWorldPoint(ScreenPts[i]); 
-			rays[i] = rays[i] + transform.forward * m_CurrOffset.magnitude;
+		}
+		
+		rays[0] = rays[0] - rays[4];
+		rays[1] = rays[1] - rays[4];
+		rays[2] = rays[2] - rays[4];
+		rays[3] = rays[3] - rays[4];
+		
+		
+		var dist:float = 99999;
+		var point:Vector3;
+		for(i = 0; i < 4; i++)
+		{
+			rays[i] = m_Target.transform.position +Vector3.up*6 + rays[i]; 
+			//rays[i] = rays[i] + transform.forward * m_CurrOffset.magnitude;
 			var r:RaycastHit;
 			//Physics.Raycast(rays[i], -transform.forward, r);
-			Debug.DrawRay(rays[i], -transform.forward*999, Color.red);
-			if(Physics.Raycast(rays[i], -transform.forward, r, Mathf.Infinity, m_TerrainLayer) && r.distance < dist)
+			//Debug.DrawRay(rays[i], -transform.forward*999, Color.red);
+			if(Physics.Raycast(rays[i], -transform.forward, r, Mathf.Infinity, m_TerrainLayer))
 			{
-				dist = r.distance;
-				point = r.point;
-				Debug.Log(r.transform.gameObject.layer);
+				if(r.distance < dist)
+				{
+					dist = r.distance;
+					point = r.point;
+				}
 			}
 			
 		}
 		
 		if(point != Vector3.zero)
 		{
+		
 			//gameObject.Find("Rock1").transform.position = point;
-			// Debug.Log("Occluded");
-			// if(dist < 10)
-				// dist = 10;
-			// m_Offset = m_Offset.normalized * dist;//(point.y - transform.position.y);
-			// var dot:float = Vector3.Dot(m_Offset.normalized, Vector3.up);
-			// m_Pitch = dot*m_Pitch;
-			// m_Offset.z = -(point.z - transform.position.z);
+			 //Debug.Log(point);
+		    
+			if(dist < 20)
+			  dist = 20;
+			 //Debug.Log(dist);
+			 
+			// Debug.DrawLine(point,m_Target.transform.position);
+			 var tempOffset = point - m_Target.transform.position;
+			 var tempY = tempOffset.y;
+			 tempOffset.y = 0;
+			 m_Offset.z = -tempOffset.magnitude;
+			 m_Offset.y = tempY;
+			 
+			// m_Offset = point - transform.position;
+			 
+			if(m_Offset.magnitude < 20)
+				m_Offset = m_Offset.normalized * 20;
+			
 		}
 		else
 		{
-		//	m_Pitch = m_DefaultPitch;
-		//	m_Offset = m_DefaultOffset;
+			//m_Pitch = m_DefaultPitch;
+			m_Offset = m_DefaultOffset;
 		}
 		
 		

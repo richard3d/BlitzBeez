@@ -60,7 +60,7 @@ var m_ReloadJam: boolean = false;
 var m_Stats = {"Loadout":-1, "Clip_Size":-1, "Special_Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload_Speed":-1,"Powershot_Reload":-1,  "Fire_Rate" : -1, "Pollination_Time":-1, "Max_Workers":-1, "Worker_Generation":-1 };
 
 
-
+private var m_Swarm:GameObject = null;
 var m_NearestObject : GameObject = null;
 
 
@@ -77,7 +77,8 @@ function Start () {
 	m_WorkerGenTimer = m_WorkerGenTime;
 	m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
 	var clip:int = m_Stats["Clip_Size"];
-	GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+	m_Swarm = GameObject.Find("Swarm"+gameObject.name);
+	m_Swarm.GetComponent(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 	
 }
 
@@ -102,7 +103,8 @@ function Update()
 			// GetComponentInChildren(ParticleRenderer).animation.Play("BeeSwarmReload");
 			//GetComponentInChildren(ParticleRenderer).animation.Play();
 			var clip:int = m_Stats["Clip_Size"];
-			GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+			if(m_Swarm.active)
+				m_Swarm.GetComponent(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 		}
 	}
 	

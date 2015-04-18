@@ -36,6 +36,8 @@ var m_CurrXP : int = 0;
 var m_CurrLevel : int = 0;
 var m_NumUpgradesAvailable:int = 0; //does the bee have a level upgrade available?
 var m_XPToLevel : float[];
+
+var m_MatchPoints:int = 0;
 var m_Kills:int = 0;
 var m_Deaths:int = 0;
 var m_LongestChain:int = 0;

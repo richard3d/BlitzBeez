@@ -1,4 +1,5 @@
 #pragma strict
+import System.Collections.Generic;
 //THIS CLASS IS WACK
 var m_ReadySound:AudioClip = null;
 var m_ReadySetSound:AudioClip = null;
@@ -59,8 +60,33 @@ function SetState(state:int)
 		MatchTickCoroutine(numTicks, ticksPerSec);
 } 
 
+static function CompareWinners(a:GameObject, b:GameObject)
+{
+	return b.GetComponent(BeeScript).m_Honey.CompareTo(a.GetComponent(BeeScript).m_Honey);
+}
+
 @RPC function EndMatch(winner:int)
 {
+
+	//give players their scores based on
+	var playerList = new List.<GameObject>();
+	var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+	for(var player:GameObject in players)
+	{
+		playerList.Add(player);
+	}
+	
+	playerList.Sort(CompareWinners); 
+	for(var i:int = 0; i <playerList.Count; i++)
+	{
+		var beeScript:BeeScript = playerList[i].GetComponent(BeeScript);
+		if( i <= 2)
+		{
+			beeScript.m_MatchPoints = 500- i*200 + Mathf.Max(beeScript.m_Kills - beeScript.m_Deaths, 0)*10 + beeScript.m_LongestChain * 25;
+		}
+		else
+			break;
+	}
 
 	var flash:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"));
 		// GameObject.Find("Flash").animation.Stop("FlashIntro");
@@ -99,7 +125,8 @@ function SetState(state:int)
 	
 	
 	SetState(MATCH_OVER);
-	m_WinningPlayer = winner;
+	m_WinningPlayer = NetworkUtils.GetClientFromGameObject(playerList[0]);
+	
 	
 }
 

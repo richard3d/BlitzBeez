@@ -53,7 +53,7 @@ function Update () {
 					m_Bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  10;
 					m_Bee.transform.localScale= Vector3(0,0,0);
 					m_Bee.transform.eulerAngles.x = 300;
-					
+					m_Bee.renderer.enabled = true;
 					var parts:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SunrayParticles"));
 					parts.transform.position = m_Bee.transform.position+ Camera.main.transform.forward *  50;
 					parts.transform.LookAt(Camera.main.transform.position);
@@ -161,7 +161,6 @@ function ShowWinnerText()
 	GameObject.Destroy(txt);
 	while(m_Bee != null && m_Bee.transform.localEulerAngles.x > 0.01 && m_Bee.transform.localEulerAngles.y > 0.01)
 	{
-		Debug.Log("Slerpin");
 		m_Bee.transform.rotation = Quaternion.Slerp(m_Bee.transform.rotation, Quaternion.identity, 15/60.0);
 		yield WaitForSeconds(1/60.0);
 	}
@@ -208,9 +207,18 @@ function OnGUI()
 		//m_GUISkin.label.margin= new RectOffset(0,0,0,0);
 		//m_GUISkin.label.fontSize = 24;
 		GUI.backgroundColor = new Color(1,0.75,0,0.5);
+		
+		
 		if(m_Players != null)
 		{
-			for(var p:int = 0; p < m_Players.length; p++)
+			var players = new List.<GameObject>();
+			for(var player:GameObject in m_Players)
+			{
+				players.Add(player);
+			}
+			players.Sort(GameStateManager.CompareWinners);
+			
+			for(var p:int = 0; p < players.Count; p++)
 			{
 				//GUILayout.BeginHorizontal();
 				
@@ -221,18 +229,18 @@ function OnGUI()
 				//GUILayout.Label("8", m_GUISkin.label);
 				var y:float = (p+1) * m_GUISkin.label.fontSize*1.1;
 				
-				if(NetworkUtils.GetClientFromGameObject(m_Players[p]) == GameStateManager.m_WinningPlayer)
+				if(NetworkUtils.GetClientFromGameObject(players[p]) == GameStateManager.m_WinningPlayer)
 				{
-					GUI.Label(Rect(0,y,width, 32),"       "+NetworkUtils.GetClientObjectFromGameObject(m_Players[p]).m_Name, m_GUISkin.label);
+					GUI.Label(Rect(0,y,width, 32),"       "+NetworkUtils.GetClientObjectFromGameObject(players[p]).m_Name, m_GUISkin.label);
 					var scale = Mathf.Sin(Time.time*8)*8;
 					GUI.DrawTexture(Rect(4-scale*0.5,y-scale*0.5,32+scale, 32+scale),m_CrownTexture);
 				}
 				else
-					GUI.Label(Rect(0,y,width, 32),"       "+NetworkUtils.GetClientObjectFromGameObject(m_Players[p]).m_Name, m_GUISkin.label);
-				GUI.Label(Rect(width,y,width, 32),"1000", m_GUISkin.label);
-				GUI.Label(Rect(width*2,y,width, 32)," "+m_Players[p].GetComponent(BeeScript).m_Kills, m_GUISkin.label);
-				GUI.Label(Rect(width*3,y,width, 32)," "+m_Players[p].GetComponent(BeeScript).m_Deaths, m_GUISkin.label);
-				GUI.Label(Rect(width*4,y,width, 32)," "+m_Players[p].GetComponent(BeeScript).m_LongestChain, m_GUISkin.label);
+					GUI.Label(Rect(0,y,width, 32),"       "+NetworkUtils.GetClientObjectFromGameObject(players[p]).m_Name, m_GUISkin.label);
+				GUI.Label(Rect(width,y,width, 32)," "+players[p].GetComponent(BeeScript).m_MatchPoints, m_GUISkin.label);
+				GUI.Label(Rect(width*2,y,width, 32)," "+players[p].GetComponent(BeeScript).m_Kills, m_GUISkin.label);
+				GUI.Label(Rect(width*3,y,width, 32)," "+players[p].GetComponent(BeeScript).m_Deaths, m_GUISkin.label);
+				GUI.Label(Rect(width*4,y,width, 32)," "+players[p].GetComponent(BeeScript).m_LongestChain, m_GUISkin.label);
 				//GUI.color = Color.white;
 				//GUILayout.EndHorizontal();
 			}
