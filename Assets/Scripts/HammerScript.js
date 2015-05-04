@@ -79,19 +79,7 @@ function OnTriggerEnter(other: Collider)
 			}
 		
 		}
-	else if( other.gameObject.tag == "Flowers")
-		{
-			if(other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner != m_Owner)
-			{
-				Debug.Log(other.gameObject .name);
-				m_ImpactTimer = 0.5;
-				m_Owner.GetComponent(HammerDecorator).m_MovementEnabled = false;
-				
-				go = gameObject.Instantiate(m_CollisionEffect);
-				go.transform.position = other.gameObject.transform.position;
-			}
-			
-		}
+	
 }
 
 function OnCollisionEnter(coll : Collision)
@@ -109,7 +97,7 @@ function OnCollisionEnter(coll : Collision)
 	else if(other.gameObject != m_Owner)
 	{
 		if(other.gameObject.tag == "Player" ||
-		/*other.gameObject.tag == "ItemBoxes" ||*/
+		   other.gameObject.tag == "Flowers" ||
 		   other.gameObject.tag == "Rocks"|| other.gameObject.tag == "Bears")
 		{
 			Debug.Log(other.gameObject .name);
@@ -120,5 +108,7 @@ function OnCollisionEnter(coll : Collision)
 			go.transform.position = other.gameObject.transform.position;
 			//go.transform.position.y = 1;
 		}
+		
 	}
+	
 }

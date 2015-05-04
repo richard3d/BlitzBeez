@@ -764,7 +764,7 @@ function OnPlayerLookAt(at : Vector3)
 		AudioSource.PlayClipAtPoint(m_PickupSound, Camera.main.transform.position);
 		gameObject.AddComponent(FlowerDecorator);
 		var pollinationTime:int = m_Stats["Pollination_Time"];
-		gameObject.GetComponent(FlowerDecorator).SetLifetime(3-(pollinationTime+1)*0.5);
+		gameObject.GetComponent(FlowerDecorator).SetLifetime(1-(pollinationTime+1)*0.5);
 		var flower:GameObject = gameObject.Find(name);
 		if(flower != null)
 		{

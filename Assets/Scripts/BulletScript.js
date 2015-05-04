@@ -122,7 +122,7 @@ function Start () {
 		if(Network.isServer)
 		{
 			var gos : GameObject[];
-			gos = gameObject.FindGameObjectsWithTag("Bears");
+			gos = gameObject.FindGameObjectsWithTag("Player");
 			
 			for(go in gos)
 			{
@@ -221,6 +221,7 @@ function Update () {
 						var homing :float = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.15;
 						
 						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+						up.m_Vel.y = 0;
 						transform.LookAt(transform.position+up.m_Vel);
 						//up.m_Vel += diff.normalized * homing ;
 					}
@@ -230,6 +231,7 @@ function Update () {
 						diff = m_Tgt.transform.position - transform.position+Vector3(0,10,0);
 						homing = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.15;
 						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+						up.m_Vel.y = 0;
 						transform.LookAt(transform.position+up.m_Vel);
 						//up.m_Vel += diff.normalized * homing ;
 				}
@@ -420,12 +422,31 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 					return true;
 				}
 			break;
-			
-			default:
+			case 2:
 				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
 				  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
 				  (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null))
 				  {
+					
+						RemoveBullet(coll.hit.point);
+						return true;
+					}	
+					else if(tag == "Shield" )
+					{
+						if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
+						{
+							RemoveBullet(coll.hit.point);
+							return true;
+						}
+					}
+			break;
+			default:
+		
+				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
+				  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
+				  (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null))
+				  {
+					
 						RemoveBullet(coll.hit.point);
 						return true;
 					}	

@@ -88,15 +88,18 @@ function Start () {
 
 function OnGUI()
 { 
-	if(NetworkUtils.IsControlledGameObject(gameObject) && GetComponent(BeeScript).m_DrawGUI)
+	if(NetworkUtils.IsLocalGameObject(gameObject) && GetComponent(BeeScript).m_DrawGUI)
 	{
+		Debug.Log(gameObject.name);
 		var cam:GameObject = GetComponent(BeeScript).m_Camera;
 		var camWidth = cam.camera.rect.width;
 		var camScale = cam.camera.rect.width;
-		var camPos:Vector2 = Vector2(cam.camera.rect.x*Screen.width,Mathf.Abs(cam.camera.rect.y - 0.5)*Screen.height);
+		var camPos:Vector2 = Vector2(cam.camera.rect.x*Screen.width,Mathf.Abs(1.0-(cam.camera.rect.y+cam.camera.rect.height))*Screen.height);
 		
-		if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
-			camPos.y = 0;
+		
+		
+		// if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
+			// camPos.y = 0;
 		
 		var bottom:float = camPos.y +cam.camera.rect.height*Screen.height;		
 			

@@ -138,7 +138,7 @@ function Explode()
 
 @RPC function KillBomb()
 {
-	AudioSource.PlayClipAtPoint(m_ExplosionSound, Camera.main.transform.position);
+	AudioSource.PlayClipAtPoint(m_ExplosionSound, m_Owner.GetComponent(BeeScript).m_Camera.transform.position);
 	GetComponent(SphereCollider).enabled = false;
 	
 	//if(m_Owner != null && m_Owner.GetComponent(ItemDecorator) != null)

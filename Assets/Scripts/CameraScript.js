@@ -134,7 +134,8 @@ function Update () {
 		else
 		{
 			//m_Pitch = m_DefaultPitch;
-			m_Offset = m_DefaultOffset;
+			if(m_Target.GetComponent(HammerDecorator) == null)
+				m_Offset = m_DefaultOffset;
 		}
 		
 		

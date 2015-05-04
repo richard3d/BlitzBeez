@@ -12,7 +12,7 @@ function Start () {
 	
 	GetComponent(BeeControllerScript).m_ControlEnabled = false;
 	GetComponent(BeeControllerScript).m_LookEnabled = false;
-	m_MovementSpeed = GetComponent(UpdateScript).m_MaxSpeed = 75;
+	m_MovementSpeed = GetComponent(UpdateScript).m_MaxSpeed = 100;
 	GameObject.Find(gameObject.name+"/Bee").transform.localEulerAngles.z = 0;
 	var zDot = Vector3.Dot(transform.forward, Vector3.forward);
 	var xDot = Vector3.Dot(transform.forward, Vector3.right);

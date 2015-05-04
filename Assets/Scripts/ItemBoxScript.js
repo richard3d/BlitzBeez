@@ -7,7 +7,7 @@ var m_Bounce : boolean = true;
 var m_HP:int = 3;
 private var m_RespawnTimer : float;
 
-private var m_OriginalPos : Vector3;
+public var m_OriginalPos : Vector3;
 
 function Awake()
 {

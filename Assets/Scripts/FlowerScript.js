@@ -138,7 +138,28 @@ function OnGUI()
 }
 
 
-
+function OnCollisionEnter(coll : Collision)
+{
+	if(!Network.isServer)
+		return;
+	if (coll.gameObject.tag == "Explosion" && coll.gameObject.GetComponent(BombExplosionScript).m_Owner != m_Owner)
+	{
+		if(Network.isServer && m_HP > 0)
+		{	
+			m_HP -= m_BaseHP;
+			ServerRPC.Buffer(networkView, "SetHP",RPCMode.All, m_HP);
+		}
+	}
+	else if (coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != m_Owner)
+	{
+		Debug.Log("Smash");
+		if(Network.isServer && m_HP > 0)
+		{	
+			m_HP -= m_BaseHP;
+			ServerRPC.Buffer(networkView, "SetHP",RPCMode.All, m_HP);
+		}
+	}
+}
 
 function OnTriggerEnter(other : Collider)
 {
@@ -167,22 +188,7 @@ function OnTriggerEnter(other : Collider)
 			}
 		}
 	}
-	else if (other.gameObject.tag == "Explosion" && other.gameObject == m_Owner)
-	{
-		if(Network.isServer && m_HP > 0)
-		{	
-			m_HP -= m_BaseHP;
-			ServerRPC.Buffer(networkView, "SetHP",RPCMode.All, m_HP);
-		}
-	}
-	else if (other.gameObject.tag == "Hammer" && other.gameObject == m_Owner)
-	{
-		if(Network.isServer && m_HP > 0)
-		{	
-			m_HP -= m_BaseHP;
-			ServerRPC.Buffer(networkView, "SetHP",RPCMode.All, m_HP);
-		}
-	}
+	
 }
 
 function OnBulletCollision(coll:BulletCollision)
@@ -194,8 +200,8 @@ function OnBulletCollision(coll:BulletCollision)
 			
 			//make sure we arent shooting our own bees
 			var bs:BulletScript =coll.bullet.GetComponent(BulletScript);
-			//if(bs.m_Owner != m_Owner)
-			//{
+			if(bs.m_Owner != m_Owner)
+			{
 				//Handle power shot
 				if(bs.m_PowerShot)
 				{
@@ -206,7 +212,7 @@ function OnBulletCollision(coll:BulletCollision)
 				{
 					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-1);					
 				}
-			//}
+			}
 		}
 	}
 }
@@ -336,4 +342,5 @@ function OnTriggerExit(other : Collider)
 			txt.GetComponent(GUITexture).enabled = false;
 		}
 	}
+	
 }
