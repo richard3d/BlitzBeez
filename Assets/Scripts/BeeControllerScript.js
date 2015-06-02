@@ -228,8 +228,8 @@ function OnNetworkInput(IN : InputState)
 				Updater.m_Accel += Vector3.right *m_MovementSpeed*IN.m_XAxisVal;
 			m_MovementKeyPressed = true;
 		}
-		//TODO: Tiltling for strafing		
-		transform.GetChild(0).localEulerAngles.z = -25*IN.m_XAxisVal;
+		//TODO: Tiltling for strafing	
+		transform.GetChild(0).localEulerAngles.z = Mathf.LerpAngle(transform.GetChild(0).localEulerAngles.z,-35*IN.m_XAxisVal, Time.deltaTime*4);//*IN.m_XAxisVal;
 	}	
 	//handle dash button
 	if(IN.GetActionBuffered(IN.DASH) && GetComponent(TreeHideDecorator) == null)

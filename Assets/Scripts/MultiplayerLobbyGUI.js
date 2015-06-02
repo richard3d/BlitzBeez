@@ -194,7 +194,7 @@ function Update () {
 				{
 					pColorIndices[i] -= 14;
 				}
-				bee.renderer.material.color = m_ColorStripTexture.GetPixel(pColorIndices[i],10);
+				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color = m_ColorStripTexture.GetPixel(pColorIndices[i],10);
 				AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);				
 				if(Network.isServer)
 				{
@@ -203,7 +203,7 @@ function Update () {
 						if(GetComponent(ServerScript).GetClient(k) != null)
 						{
 							if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
-								GetComponent(ServerScript).GetClient(k).m_Color = bee.renderer.material.color;
+								GetComponent(ServerScript).GetClient(k).m_Color = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color;
 						}
 					}
 				}
@@ -312,7 +312,7 @@ function OnGUI()
 		GUILayout.BeginHorizontal();
 			for(var p:int = 0; p < 4; p++)
 			{
-				if(!GameObject.Find("Bee"+(p+1)).renderer.enabled )
+				if(!GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled )
 					GUI.color.a = 0.5;
 				GUILayout.Label("P "+(p+1), m_GUISkin.GetStyle("Heading"));
 				GUI.color.a = 1;
@@ -327,12 +327,12 @@ function OnGUI()
 		{
 			if(GetComponent(ServerScript).GetClient(p) != null)
 			{
-				GameObject.Find("Bee"+(p+1)).renderer.material.color = GetComponent(ServerScript).GetClient(p).m_Color;
+				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(p).m_Color;
 				//GUI.color.a = 0.25;
 				//GUI.DrawTexture(Rect(p*Screen.width*0.25, 34 ,Screen.width*0.25, Screen.height*0.5),m_WhitePix);
 				//GUI.color = Color.white;
 				GameObject.Find("Bee"+(p+1)).animation.enabled = true;
-				GameObject.Find("Bee"+(p+1)).renderer.enabled = true;
+				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled = true;
 				GUI.DrawTexture(Rect(0, 0 ,Screen.width, Screen.height),m_BeeTexture);
 				GUI.backgroundColor = Color(0,0,0,0.5);
 				GUI.Label(Rect(p*Screen.width*0.25, Screen.height*0.5 - 32,Screen.width*0.25, 32),"<- Select Color ->",m_GUISkin.label);

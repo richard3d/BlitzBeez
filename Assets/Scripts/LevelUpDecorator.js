@@ -3,26 +3,25 @@ private var m_Lifetime: float = 1.5;
 private var m_LightEffect:GameObject = null;
 private var m_LightSpot:GameObject = null;
 private var m_PlayerCam:GameObject = null;
+private var m_OrigCamOffset : Vector3;
 function Start () {
 
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		m_PlayerCam = gameObject.GetComponent(BeeScript).m_Camera;
-		m_PlayerCam.animation["CameraDramaticZoom"].time = 0;
-		m_PlayerCam.animation["CameraDramaticZoom"].speed = 1;
-		m_PlayerCam.animation.Play("CameraDramaticZoom");
 		
-		m_PlayerCam.GetComponent(CameraScript).Shake(1.5, 1.5);
+		m_OrigCamOffset = m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset;
+		m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,23,-26);
+		m_PlayerCam.GetComponent(CameraScript).m_Pitch = 30;
 		m_PlayerCam.GetComponent(MotionBlur).enabled = true;
+		m_PlayerCam.GetComponent(DepthOfFieldScatter).enabled = false;
+		m_PlayerCam.GetComponent(CameraScript).Shake(1.5,0.35);
 	}
-	Destroy(GameObject.Find(gameObject.name+"/Bee"));
-	var newBee:GameObject = GameObject.Instantiate(GetComponent(BeeScript).m_Meshes[GetComponent(BeeScript).m_CurrLevel-1]);
-	newBee.name = "Bee";
-	newBee.transform.parent = gameObject.transform;//.GetComponent(MeshFilter).mesh;
-	newBee.transform.eulerAngles = gameObject.transform.eulerAngles;
+
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("celebrate");
+	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 90;
 	
-	//transform.GetChild(0).renderer.materials = GetComponent(BeeScript).m_Meshes[0].renderer.materials;
-	//transform.GetChild(0).localScale = GetComponent(BeeScript).m_Meshes[0].transform.localScale;
 	
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
 	m_LightEffect.animation.Play();
@@ -42,7 +41,7 @@ function Start () {
 }
 
 function Update () {
-	GetComponent(BeeScript).SetColor(GetComponent(BeeScript).m_Color);
+	//GetComponent(BeeScript).SetColor(GetComponent(BeeScript).m_Color);
 	if(m_Lifetime > 0)
 	{
 		m_Lifetime -= Time.deltaTime;
@@ -61,11 +60,18 @@ function OnDestroy()
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		m_PlayerCam.animation["CameraDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-		m_PlayerCam.animation["CameraDramaticZoom"].speed = -1;
-		m_PlayerCam.animation.Play("CameraDramaticZoom");
 		m_PlayerCam.GetComponent(MotionBlur).enabled = false;
+		m_PlayerCam.GetComponent(DepthOfFieldScatter).enabled = true;
+		m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = m_OrigCamOffset;
+		m_PlayerCam.GetComponent(CameraScript).m_Pitch = m_PlayerCam.GetComponent(CameraScript).m_DefaultPitch;
+		
 	}
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("fly");
+	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 0;
+	//
+	
+	
 	GetComponent(BeeControllerScript).m_ControlEnabled = true;
 	//Destroy(GetComponent(PauseDecorator));
 	GetComponent(UpdateScript).enabled = true;

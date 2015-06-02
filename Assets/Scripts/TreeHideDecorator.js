@@ -26,6 +26,7 @@ function Start () {
 		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
 		m_Camera.animation.Play("CameraLessDramaticZoom");
 	}
+	GetComponent(BeeScript).Show(false);
 }
 
 function Update () {
@@ -148,6 +149,7 @@ function OnDestroy()
 	if(GetComponentInChildren(ParticleRenderer) != null)
 		GetComponentInChildren(ParticleRenderer).enabled = true;
 	GetComponent(BeeControllerScript).m_ControlEnabled = true;
+	GetComponent(BeeScript).Show(true);
 	//(GetComponent(ControlDisablerDecorator));
 	
 }

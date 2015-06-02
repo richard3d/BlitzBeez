@@ -114,7 +114,9 @@ function GetCurrentLevel() : int
 
 function SetColor(c:Color)
 {
-	var go:GameObject = GameObject.Find(gameObject.name+"/Bee");
+	var go:GameObject = GameObject.Find(gameObject.name+"/Bee/NewBee/NewBee");
+	
+	
 	for(var mat:Material in go.renderer.materials)
 	{
 		if(mat.name.Contains("HiveYellow"))
@@ -787,6 +789,7 @@ function Show(show:boolean)
 		{
 			child.gameObject.renderer.enabled = false;
 		}
+		GameObject.Find(gameObject.name+"/Bee/NewBee/NewBee").renderer.enabled = false;
 	}
 	else
 	{	
@@ -794,6 +797,7 @@ function Show(show:boolean)
 		{
 			child.gameObject.renderer.enabled = true;
 		}
+		GameObject.Find(gameObject.name+"/Bee/NewBee/NewBee").renderer.enabled = true;
 	}
 }
 
