@@ -567,7 +567,7 @@ function HandleShotLogic()
 	//if(go.GetComponent(TrailRenderer)
 	if(go.GetComponent(TrailRenderer))
 	{
-	go.GetComponent(TrailRenderer).startWidth = go.transform.localScale.x;
+	//go.GetComponent(TrailRenderer).startWidth = go.transform.localScale.x;
 	
 	go.GetComponent(TrailRenderer).material.color = color;
 	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
@@ -645,6 +645,23 @@ function OnPlayerLookAt(at : Vector3)
 	powerShot.transform.position = transform.position;
 	powerShot.transform.parent = transform;
 	audio.PlayClipAtPoint(m_PowerShotEffectSound, transform.position);
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("charge_powershot");
+}
+
+function PowershotAnim()
+{
+	var bee:GameObject = GameObject.Find(gameObject.name+"/Bee/NewBee");
+	bee.animation.Stop();
+	bee.animation.Play("powershot");
+	
+	while(bee.animation["powershot"].time < bee.animation["powershot"].length)
+	{
+		yield WaitForSeconds(1.0/30.0);
+	}
+	
+	bee.animation.Stop("powershot");
+	bee.animation.Play("fly");
 }
 
 @RPC function PowerShot(bulletName : String)
@@ -653,7 +670,7 @@ function OnPlayerLookAt(at : Vector3)
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.25,3);
 	AudioSource.PlayClipAtPoint(m_PowerShotSound, Camera.main.transform.position);
-	
+	PowershotAnim();
 	
 	if(bulletName != "null")
 	{

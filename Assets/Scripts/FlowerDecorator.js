@@ -41,13 +41,12 @@ function Start () {
 	}
 
 	var color = NetworkUtils.GetColor(gameObject);
-	m_FlowerShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Flower.transform.position + Vector3.up * 6,Quaternion.identity);
+	m_FlowerShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Flower.transform.position + Vector3.up * 16,Quaternion.identity);
 	m_FlowerShieldEffect.name = "FlowerShield";
 	m_FlowerShieldEffect.transform.localEulerAngles = Vector3(0,180,0);
-	m_FlowerShieldEffect.GetComponent(ParticleSystem).startColor= color;
+	m_FlowerShieldEffect.animation.Play();
 	m_FlowerShieldEffect.GetComponent(FlowerShieldScript).m_Owner = gameObject;
 
-	
 }
 
 function SetLifetime(life:float)
@@ -99,8 +98,7 @@ GetComponent(UpdateScript).m_Vel = Vector3.zero;
 	if(m_FlowerShieldEffect != null)
 	{
 		m_FlowerShieldEffect.transform.rotation = transform.rotation;
-		m_FlowerShieldEffect.transform.localEulerAngles.y += 180;
-		m_FlowerShieldEffect.GetComponent(ParticleSystem).startRotation = Mathf.Deg2Rad*(transform.localEulerAngles.y+45);
+	//	m_FlowerShieldEffect.transform.localEulerAngles.y += 180;
 	}
 		
 	//GetComponent(BeeControllerScript).m_WorkerGenTimer = 	GetComponent(BeeControllerScript).m_WorkerGenTime;
@@ -257,6 +255,15 @@ function OnDestroy()
 	m_Flower.audio.Stop();
 	Destroy(m_FlowerShieldEffect);
 	m_Flower.GetComponent(FlowerScript).m_Occupied = false;
+	
+	if(m_Flower.GetComponent(FlowerScript).m_ShieldEffect != null)
+	{
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.renderer.enabled = true;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").renderer.enabled = true;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+	}
+	
 	if(!m_SwarmCreated)
 	{
 		
@@ -275,42 +282,38 @@ function OnDestroy()
 	else
 	{
 		m_Flower.GetComponent(FlowerScript).m_Owner = gameObject;
-		if(gameObject.Find(m_Flower.name+"/Shield") == null)
+		if(m_Flower.GetComponent(FlowerScript).m_ShieldEffect == null)
 		{
-			var color = NetworkUtils.GetColor(gameObject);
-			m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/Shield"));
-			m_ShieldEffect.name = "Shield";
-			m_ShieldEffect.transform.position = m_Flower.transform.position;
-			m_ShieldEffect.transform.parent = m_Flower.transform;
-			m_ShieldEffect.GetComponent(ParticleSystem).renderer.material.SetColor("_TintColor", color);
+			var color = NetworkUtils.GetColor(gameObject);	
+			var shield:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Shield"));
+		
+			shield.name = "Shield";
+			shield.transform.position = m_Flower.transform.position;
+			color.a  = 0.5;
+			shield.renderer.material.SetColor("_TintColor", color);
+			color*=0.5;
+			color.a = 0.392*0.5;
+			shield.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
+			m_Flower.GetComponent(FlowerScript).m_ShieldEffect = shield;
+			m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+			//m_ShieldEffect.transform.parent = m_Flower.transform;
+			
 			
 			// m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"));
 			// m_ShieldEffect.name = "Shield";
 			// m_ShieldEffect.transform.position = m_Flower.transform.position;
 			// m_ShieldEffect.transform.parent = m_Flower.transform;
 			
-			var LightspotEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/LightSpot"));
-			LightspotEffect.name = "LightSpot";
-			LightspotEffect.transform.position = m_Flower.transform.position + Vector3.up*0.1;
-			LightspotEffect.transform.parent = m_Flower.transform;
-			LightspotEffect.transform.localScale = Vector3(1.3,1.3,0.0001);
-			LightspotEffect.renderer.material.SetColor("_TintColor", color);
+			// var LightspotEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/LightSpot"));
+			// LightspotEffect.name = "LightSpot";
+			// LightspotEffect.transform.position = m_Flower.transform.position + Vector3.up*0.1;
+			// LightspotEffect.transform.parent = m_Flower.transform;
+			// LightspotEffect.transform.localScale = Vector3(1.3,1.3,0.0001);
+			// LightspotEffect.renderer.material.SetColor("_TintColor", color);
 		}
 		
-		if(gameObject.Find(m_Flower.name+"/Shield") == null)
-		{
-			
-			//m_ShieldEffect.GetComponent(ParticleSystem).renderer.material.SetColor("_EmisColor", renderer.material.color);
-		}
-		// m_ShieldEffect.GetComponent(ParticleSystem).startColor = gameObject.renderer.material.color;
-		// // m_PollenParticles = gameObject.Instantiate(Resources.Load("GameObjects/PollenParticles"));
-		// // m_PollenParticles.transform.position = m_Flower.transform.position;
-		// // m_PollenParticles.name = "PollenParticles";
-		// // m_PollenParticles.transform.parent = m_Flower.transform;
-		// m_Flower.GetComponent(PollenNetworkScript).m_Owner = gameObject;
 		
-		// m_Flower.animation.Play("Flower");
-		// AudioSource.PlayClipAtPoint(m_Flower.GetComponent(FlowerScript).m_BuildComplete, transform.position);
+		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{	
 			//AudioSource.PlayClipAtPoint(m_Flower.GetComponent(FlowerScript).m_StopwatchDing, transform.position);
@@ -344,23 +347,12 @@ function OnDestroy()
 function SetFlower(flower : GameObject)
 {
 	m_Flower = flower;
-	if(m_Flower.transform.Find("Shield") == null)
+	if(m_Flower.GetComponent(FlowerScript).m_ShieldEffect != null)
 	{
-		// m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/Shield"));
-		// m_ShieldEffect.name = "Shield";
-		// m_ShieldEffect.transform.position = m_Flower.transform.position;
-		// m_ShieldEffect.transform.parent = m_Flower.transform;
-		
-		// var parts : ParticleSystem.Particle[] = new ParticleSystem.Particle[m_ShieldEffect.GetComponent(ParticleSystem).particleCount];
-		// var numParts : int = m_ShieldEffect.GetComponent(ParticleSystem).GetParticles(parts);
-		// //Debug.Log("particle" + parts.length);
-		// for(var i : int = 0; i < numParts; i++)
-		// {
-			// parts[i].color = gameObject.renderer.material.color;
-		// }
-		// m_ShieldEffect.GetComponent(ParticleSystem).SetParticles(parts, i);
-		// m_ShieldEffect.GetComponent(ParticleSystem).startColor = gameObject.renderer.material.color;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.renderer.enabled = false;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").renderer.enabled = false;
 	}
+	
 }
 
 function GetFlower() : GameObject

@@ -7,6 +7,9 @@ ModelImporter:
     7400000: idle //// NewBee
     7400002: fly //// NewBee
     7400004: celebrate //// NewBee
+    7400006: dance //// NewBee
+    7400008: charge_powershot //// NewBee
+    7400010: powershot //// NewBee
   serializedVersion: 10
   materials:
     importMaterials: 0
@@ -34,8 +37,23 @@ ModelImporter:
       loop: 1
     - name: celebrate
       firstFrame: 42
-      lastFrame: 52
+      lastFrame: 50
       wrapMode: 0
+      loop: 0
+    - name: dance
+      firstFrame: 42
+      lastFrame: 60
+      wrapMode: 2
+      loop: 1
+    - name: charge_powershot
+      firstFrame: 63
+      lastFrame: 83
+      wrapMode: 2
+      loop: 1
+    - name: powershot
+      firstFrame: 83
+      lastFrame: 99
+      wrapMode: 8
       loop: 0
   meshes:
     lODScreenPercentages: []
@@ -167,3 +185,10 @@ ModelImporter:
       data:
         first: 4
         second: 961a0600
+    torso:
+      data:
+        first: 1
+        second: be860100
+      data:
+        first: 4
+        second: 9e1a0600

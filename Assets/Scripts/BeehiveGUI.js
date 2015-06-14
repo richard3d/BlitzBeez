@@ -271,22 +271,22 @@ function OnGUI()
 			//var camPixWidth = m_Camera.camera.rect.width*
 			//draw background
 			GUI.color = Color(1,1,1,1);
-			GUI.DrawTexture(Rect(camPos.x,camPos.y, camWidth*m_BGOffset ,camHeight), m_BGTexture);
+			//GUI.DrawTexture(Rect(camPos.x,camPos.y, camWidth*m_BGOffset ,camHeight), m_BGTexture);
 			GUI.color = Color.white;
 			//display directions
-			GUI.Label(Rect(camPos.x,camPos.y, camWidth,32), "Hold Direction and Press Fire to Make a Selection", m_GUISkin.label);
+			//GUI.Label(Rect(camPos.x,camPos.y, camWidth,32), "Hold Direction and Press Fire to Make a Selection", m_GUISkin.label);
 			
 			
 			
 			//display info for the current selection
-			var hexCenterPoint:Vector2 = Vector2(camPos.x+camWidth*0.25,camPos.y+camHeight*0.5);
+			var hexCenterPoint:Vector2 = Vector2(camPos.x+camWidth*0.5,camPos.y+camHeight*0.5);
 			if(m_CurrSelIndex != -1)
 			{	
 				var t:Talent = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;
-				GUI.Label(Rect(camPos.x,camPos.y+camHeight*0.25, camWidth,camHeight*0.5), " ", m_GUISkin.label);
+				//GUI.Label(Rect(camPos.x,camPos.y+camHeight*0.25, camWidth,camHeight*0.5), " ", m_GUISkin.label);
 				GUI.Label(Rect(hexCenterPoint.x-64,hexCenterPoint.y-16, 128,32), t.m_Name, m_GUISkin.GetStyle("MenuHeading"));
-				GUI.Label(Rect(camPos.x,camBottom-30.0, camWidth,30), "", m_GUISkin.label);
-				GUI.Label(Rect(camPos.x+camWidth*0.60+50,camPos.y+camHeight*0.70, 256,32), t.m_Desc, m_GUISkin.GetStyle("MenuText"));
+				//GUI.Label(Rect(camPos.x,camBottom-30.0, camWidth,30), "", m_GUISkin.label);
+				//GUI.Label(Rect(camPos.x+camWidth*0.60+50,camPos.y+camHeight*0.70, 256,32), t.m_Desc, m_GUISkin.GetStyle("MenuText"));
 			}
 			
 			

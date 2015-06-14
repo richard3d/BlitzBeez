@@ -41,10 +41,10 @@ function Start () {
 	}
 	
 	var color = NetworkUtils.GetColor(gameObject);
-	m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Pedestal.transform.position + Vector3.up * 6,Quaternion.identity);
+	m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Pedestal.transform.position + Vector3.up * 16,Quaternion.identity);
 	m_ShieldEffect.name = "FlowerShield";
 	m_ShieldEffect.transform.localEulerAngles = Vector3(0,180,0);
-	m_ShieldEffect.GetComponent(ParticleSystem).startColor= color;
+	m_ShieldEffect.animation.Play();
 	m_ShieldEffect.GetComponent(FlowerShieldScript).m_Owner = gameObject;
 }
 
@@ -110,7 +110,7 @@ function Update () {
 	{
 		m_ShieldEffect.transform.rotation = transform.rotation;
 		m_ShieldEffect.transform.localEulerAngles.y += 180;
-		m_ShieldEffect.GetComponent(ParticleSystem).startRotation = Mathf.Deg2Rad*(transform.localEulerAngles.y+45);
+		
 	}	
 		
 	GetComponent(UpdateScript).m_Vel = Vector3.zero;

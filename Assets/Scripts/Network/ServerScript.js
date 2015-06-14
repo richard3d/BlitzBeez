@@ -680,6 +680,20 @@ function GetGameObject() : GameObject
 		}
 		//set the client gameObejct color			
 		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).SetColor(m_Clients[clientID].m_Color);
+		if(m_Clients[clientID].m_Swag != "")
+		{
+			Debug.Log("SWAGGING "+m_Clients[clientID].m_Swag);
+			var swag:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Swag"));
+			var swagPiece:GameObject = swag.transform.Find(m_Clients[clientID].m_Swag).gameObject;
+			var head:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/body/head").gameObject;
+			swagPiece.transform.parent = head.transform;
+			swagPiece.transform.position = head.transform.position;
+			swagPiece.transform.rotation = head.transform.rotation;
+			swagPiece.transform.localEulerAngles.x = 270;
+			swagPiece.transform.localScale = Vector3(1,1,1);
+			Destroy(swag);
+			
+		}
 		if(NetworkUtils.IsControlledGameObject(m_Clients[clientID].m_GameObject))
 		{
 			Camera.main.GetComponent(CameraScript).SetFocalPosition(m_Clients[clientID].m_GameObject.transform.position);

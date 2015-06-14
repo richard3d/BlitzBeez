@@ -29,7 +29,9 @@ function Update () {
 	transform.position.x = Mathf.Min(Mathf.Max(transform.position.x, -25), 27) ;
 	transform.position.z = -22;//Mathf.Sin(Time.time*6)*8-22;
 	transform.position.y = Mathf.Min(Mathf.Max(m_Pos.y, -25), 27)  + (Mathf.Sin(Time.time*26)+2)*0.5;
-	transform.LookAt(Camera.main.transform.position);
-	transform.localEulerAngles.x += -90;
+	
+	if(gameObject.name == "MainBee")
+		transform.LookAt(Camera.main.transform.position);
+	//transform.localEulerAngles.x += -90;
 
 }

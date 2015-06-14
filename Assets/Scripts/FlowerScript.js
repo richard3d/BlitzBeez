@@ -24,8 +24,7 @@ var m_AssignmentFlasherTexture : Texture2D = null;
 var m_DeathSound : AudioClip = null; 
 var m_HurtSound : AudioClip = null; 
 var m_DeathEffect : GameObject = null;
-var m_PollenItem : GameObject = null;
-var m_PollenParticles : GameObject = null;
+var m_ShieldEffect: GameObject = null;
 var m_LifebarTimer : float = 1;
 var m_ProgressEffectInstance : GameObject = null;
 
@@ -105,7 +104,7 @@ function OnGUI()
 			{
 				var height = 12;
 				var width = 48;
-				if(transform.Find("Shield") != null)
+				if(m_ShieldEffect != null)
 				var percent:float = m_HP;
 				percent /= (m_NumBees * m_BaseHP);
 				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
@@ -117,25 +116,6 @@ function OnGUI()
 
 
 
-@RPC function SpawnPollen()
-{
-	var pollen:GameObject = gameObject.Instantiate(m_PollenItem);
-	pollen.transform.parent = gameObject.transform;
-	pollen.transform.position = transform.position + Vector3(0,22,0);
-	gameObject.Destroy(gameObject.Find("/"+gameObject.name+"/PollenParticles"));
-}
-
-@RPC function GivePollen(player:String)
-{
-	m_PollinationTimer = 0;
-	var bee:GameObject = GameObject.Find(player);
-	m_PollenParticles = gameObject.Instantiate(Resources.Load("GameObjects/PollenParticles"));
-	m_PollenParticles.transform.position = gameObject.transform.position;
-	m_PollenParticles.name = "PollenParticles";
-	m_PollenParticles.transform.parent = gameObject.transform;
-	gameObject.Find("/"+gameObject.name+"/Pollen").animation.Stop();
-	gameObject.Find("/"+gameObject.name+"/Pollen").GetComponent(PollenScript).m_Owner = bee;
-}
 
 
 function OnCollisionEnter(coll : Collision)
@@ -180,11 +160,18 @@ function OnTriggerEnter(other : Collider)
 		if(m_Owner == other.gameObject)
 		{
 			collider.isTrigger = true;
-			if(gameObject.Find(gameObject.name+"/Shield"))
+			if(m_ShieldEffect != null)
 			{
-				Debug.Log("Here");
-				gameObject.Find(gameObject.name+"/Shield").renderer.enabled = false;
-				gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = false;
+			
+				var color = NetworkUtils.GetColor(m_Owner);	
+				color.a = 0.5;
+				m_ShieldEffect.renderer.material.SetColor("_TintColor", color);
+				color*=0.5;
+				color.a = 0.392*0.5;
+				m_ShieldEffect.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
+			//	m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
+			//	m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+				//transform.Find("LightSpot").renderer.enabled = false;
 			}
 		}
 	}
@@ -195,7 +182,7 @@ function OnBulletCollision(coll:BulletCollision)
 {
 	if(Network.isServer)
 	{	
-		if(GameObject.Find(gameObject.name+"/Shield")!= null)
+		if(m_ShieldEffect != null)
 		{
 			
 			//make sure we arent shooting our own bees
@@ -220,7 +207,19 @@ function OnBulletCollision(coll:BulletCollision)
 function OnTriggerStay(coll : Collider)
 {
 	var player:GameObject = null;
-
+	//coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
+	if(m_ShieldEffect != null)
+	{
+		var color = NetworkUtils.GetColor(m_Owner);	
+		color.a = 0.5;
+		m_ShieldEffect.renderer.material.SetColor("_TintColor", color);
+		color*=0.5;
+		color.a = 0.392*0.5;
+		m_ShieldEffect.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
+		collider.isTrigger = true;
+		//gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
+	}
+	
 	if(NetworkUtils.IsControlledGameObject(coll.gameObject))
 	{	
 		
@@ -284,6 +283,8 @@ function OnTriggerStay(coll : Collider)
 			else
 				Destroy(transform.GetChild(i).gameObject);
 		}
+		Destroy(m_ShieldEffect);
+		m_ShieldEffect = null;
 		
 		//this object has essentially been reset
 		if(Network.isServer)
@@ -305,7 +306,7 @@ function OnTriggerStay(coll : Collider)
 	}
 	else
 	{
-		if(gameObject.Find(gameObject.name+"/Shield"))
+		if(m_ShieldEffect != null)
 		{
 			m_LifebarTimer = 2;
 			AudioSource.PlayClipAtPoint(m_HurtSound, Camera.main.transform.position);
@@ -314,8 +315,8 @@ function OnTriggerStay(coll : Collider)
 				gameObject.AddComponent(FlasherDecorator);
 				GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
 				GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
-				transform.Find("LightSpot").animation.Stop();
-				transform.Find("LightSpot").animation.Play();
+				//transform.Find("LightSpot").animation.Stop();
+				//transform.Find("LightSpot").animation.Play();
 			}
 			//GetComponent(FlasherDecorato
 		}
@@ -329,11 +330,17 @@ function OnTriggerExit(other : Collider)
 	{
 				
 		other.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
-		if(gameObject.Find(gameObject.name+"/Shield"))
+		if(m_ShieldEffect != null)
 		{
 			collider.isTrigger = false;
-			gameObject.Find(gameObject.name+"/Shield").renderer.enabled = true;
-			gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
+			m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
+			m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+			var color = NetworkUtils.GetColor(m_Owner);	
+			m_ShieldEffect.renderer.material.SetColor("_TintColor", color);
+			color*=0.5;
+			color.a = 0.392;
+			m_ShieldEffect.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
+			//gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
 		}
 		
 		if(NetworkUtils.IsControlledGameObject(other.gameObject))

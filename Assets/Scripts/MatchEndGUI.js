@@ -49,8 +49,12 @@ function Update () {
 					Camera.main.fov = 60;
 					m_Bee = GameObject.Instantiate(GameObject.Find(player.name+"/Bee"));
 					m_Bee.animation.Stop();
+					GameObject.Find(m_Bee.name+"/NewBee").animation.Stop();
+					GameObject.Find(m_Bee.name+"/NewBee").animation.Play("dance");
+					GameObject.Find(m_Bee.name+"/NewBee").animation["dance"].speed = 0.75;
+					GameObject.Find(m_Bee.name+"/NewBee/NewBee").layer = LayerMask.NameToLayer("FullScreenGUI");
 					m_Bee.layer = LayerMask.NameToLayer("FullScreenGUI");
-					m_Bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  10;
+					m_Bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  15;
 					m_Bee.transform.localScale= Vector3(0,0,0);
 					m_Bee.transform.eulerAngles.x = 300;
 					m_Bee.renderer.enabled = true;
