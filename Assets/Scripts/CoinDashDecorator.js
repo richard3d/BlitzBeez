@@ -63,7 +63,8 @@ function FindCoin(lastCoin:GameObject)
 	if(closestCoin != null)
 	{
 		//gameObject.GetComponent(BeeDashDecorator).Disable(); 
-		DestroyImmediate(gameObject.GetComponent(BeeDashDecorator));
+		//was destroy immediate
+		Destroy(gameObject.GetComponent(BeeDashDecorator));
 		var vel = (closestCoin.transform.position - gameObject.transform.position);
 		vel.y = 0;
 		gameObject.GetComponent(UpdateScript).m_Vel = vel.normalized * gameObject.GetComponent(UpdateScript).m_DefaultMaxSpeed;

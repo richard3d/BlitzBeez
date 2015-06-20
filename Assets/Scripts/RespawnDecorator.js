@@ -95,6 +95,7 @@ function OnGUI()
 		var tempMinItemWidth:float;
 		var tempMaxItemWidth:float;
 		style.CalcMinMaxWidth(GUIContent("Respawning in  "), tempMinItemWidth, tempMaxItemWidth);
+		GUI.backgroundColor.a = 0;
 		GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempMinItemWidth*0.5,camPos.y,256,512), "Respawning in "+time, style);
 		
 	}

@@ -84,11 +84,15 @@ function OnNetworkInput(IN : InputState)
 function Update () {
 
 
-GetComponent(UpdateScript).m_Vel = Vector3.zero;
+	GetComponent(UpdateScript).m_Vel = Vector3.zero;
 	GetComponent(UpdateScript).m_Accel = Vector3.zero;
 	if(Network.isServer && GetComponent(BeeScript).m_WorkerBees == 0)
 	{
-		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
+		//ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
+		transform.position +=   (m_Flower.transform.position + Vector3(0,12,0) - transform.position) * Time.deltaTime * 20;
+		transform.position. y = m_Flower.transform.position.y + 12;
+		if(!GetComponent(BeeControllerScript).m_LookEnabled)
+			transform.eulerAngles = Vector3(0,0,0);
 		return;
 	}
 
@@ -150,8 +154,8 @@ GetComponent(UpdateScript).m_Vel = Vector3.zero;
 			if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
 			{
 				
-				ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
-				return;
+				//ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
+				//return;
 			}
 			else
 			{
@@ -207,7 +211,8 @@ function Reset()
 
 function OnGUI()
 {
-	if(m_Flower == null)
+	var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);
+	if(m_Flower == null || GetComponent(BeeScript).m_WorkerBees == 0)
 		return;
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))

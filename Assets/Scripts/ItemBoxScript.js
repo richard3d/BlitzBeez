@@ -5,6 +5,8 @@ var m_RespawnTime : float = 10;
 var m_PoofParticles : GameObject = null;
 var m_Bounce : boolean = true;
 var m_HP:int = 3;
+var m_Box:GameObject = null;
+var m_OrigBoxPos : Vector3; 
 private var m_RespawnTimer : float;
 
 public var m_OriginalPos : Vector3;
@@ -12,6 +14,8 @@ public var m_OriginalPos : Vector3;
 function Awake()
 {
 	m_RespawnTimer = -1;
+	m_Box = transform.Find("Box").gameObject;
+	m_OrigBoxPos = m_Box.transform.position;
 }
 
 function Start () {
@@ -84,7 +88,7 @@ function OpenEffect()
 	renderer.enabled = false;
 	if(Network.isServer)
 	{
-		var InstType : GameObject = GetComponent(ItemDropScript).DropItem();
+		var InstType : GameObject = m_Box.GetComponent(ItemDropScript).DropItem();
 		if(InstType != null)
 		{
 			var count : int =1;
@@ -119,11 +123,11 @@ function OpenEffect()
 				//vel.z = vel.y;
 				vel.y= 50;
 				var viewID : NetworkViewID= Network.AllocateViewID();
-				var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(InstType.name,"", vel.normalized * 5 + transform.position + Vector3(0,transform.localScale.y, 0), Quaternion.identity, viewID ,  0);
+				var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(InstType.name,"", vel.normalized * 5 + m_Box.transform.position + Vector3(0,m_Box.transform.localScale.y, 0), Quaternion.identity, viewID ,  0);
 				
 				go1.GetComponent(UpdateScript).m_Vel = vel;
 				
-				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, InstType.name,go1.name, transform.position+ Vector3(0,transform.localScale.y, 0), Quaternion.identity, viewID, 0);
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, InstType.name,go1.name, m_Box.transform.position+ Vector3(0,m_Box.transform.localScale.y, 0), Quaternion.identity, viewID, 0);
 				go1.GetComponent(UpdateScript).MakeNetLive(); 
 			}
 		}
@@ -153,32 +157,52 @@ function OpenEffect()
 {
 	GetComponent(BoxCollider).enabled = false;
 	
-	for (var child : Transform in transform)
-	{
-		child.gameObject.active = false;
-	}
+	// for (var child : Transform in transform)
+	// {
+		// child.gameObject.active = false;
+	// }
 	
 	m_RespawnTimer = m_RespawnTime;
 	m_Bounce = false;
-	animation.Play("ItemBoxOpen");
+	
+	//animation.Play("ItemBoxOpen");
+	transform.Find("QMark").active = false;
+	var box:Transform = transform.Find("Box");
+	box.parent.renderer.enabled = false;
+	box.parent = null;
+	DropAnimation();
 	AudioSource.PlayClipAtPoint(m_DestroySound, Camera.main.transform.position);
 	//renderer.material.shader = Shader.Find("Particles/Additive");
+}
+
+function DropAnimation()
+{
+	while(m_Box.transform.position.y > 6)
+	{
+		m_Box.transform.position.y = Mathf.Lerp(m_Box.transform.position.y , 0, Time.deltaTime * 9.8);
+		yield WaitForSeconds(0.033);
+	}
+	m_Box.renderer.enabled = false;
+	OpenEffect();
 }
 
 @RPC function RespawnItem()
 {
 	GetComponent(BoxCollider).enabled = true;
+	m_Box.renderer.enabled = true;
 	m_Bounce = true;
 	m_HP = 3;
 	var go : GameObject = gameObject.Instantiate(m_PoofParticles);
 	go.transform.position = transform.position;
 	go.transform.position.y = m_OriginalPos.y ;
-	transform.localScale = Vector3(8,8,8);
+	m_Box.transform.parent = transform;
+	m_Box.transform.position = m_OrigBoxPos;
+	//transform.localScale = Vector3(8,8,8);
 	renderer.enabled = true;
 	for (var child : Transform in transform)
 	{
 		child.gameObject.active = true;
 	}
 	//renderer.material.shader = Shader.Find("Unlit/Texture");
-	animation.Play("ItemBoxRespawn");
+	//animation.Play("ItemBoxRespawn");
 }

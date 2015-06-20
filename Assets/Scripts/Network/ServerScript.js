@@ -691,6 +691,7 @@ function GetGameObject() : GameObject
 			swagPiece.transform.rotation = head.transform.rotation;
 			swagPiece.transform.localEulerAngles.x = 270;
 			swagPiece.transform.localScale = Vector3(1,1,1);
+			swagPiece.name = "swag";
 			Destroy(swag);
 			
 		}

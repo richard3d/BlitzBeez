@@ -38,7 +38,7 @@ function Awake()
 function Start () {
 
 m_PollinationTimer = 0;
-var m_PollinationTime = 15;
+m_PollinationTime = 0.5;
 
 //m_ProgressEffect = gameObject.Instantiate(m_ProgressEffectInstance);
 //m_ProgressEffect.active = false;
@@ -47,37 +47,18 @@ var m_PollinationTime = 15;
 
 function Update () {
 
-	if(transform.Find("Swarm"+gameObject.name) != null)
+	if(m_Owner != null)
 	{
 		if(m_PollinationTimer < m_PollinationTime)
 		{
 			m_PollinationTimer += Time.deltaTime;
 			
-			var width : float = 32;
-			var pos : Vector3 = Camera.main.WorldToScreenPoint(transform.position+Vector3(0,1,0));
-			// m_ProgressEffect = gameObject.Instantiate(m_ProgressEffectInstance);
-			// m_ProgressEffect.transform.position = transform.position + Vector3.up * 6;
-			// m_ProgressEffect.transform.localScale = Vector3(23,0,23);
-			// m_ProgressEffect.renderer.material.SetFloat("_Cutoff", 1-Mathf.Min(m_PollinationTimer/m_PollinationTime,1));
-			
-			
 		}
 		else
 		{
-			//m_ProgressEffect.active = false;
-			var go = gameObject.Find("/"+gameObject.name+"/Pollen");
-			if( go == null)
-			{
-				if(Network.isServer)
-				{
-					//ServerRPC.Buffer(networkView,"SpawnPollen", RPCMode.All);
-				}
-			}		
+			m_PollinationTimer = 0;
+			m_Owner.GetComponent(BeeScript).m_Honey += 0.01;
 		}
-	}
-	else
-	{
-		//m_ProgressEffect.active = false;
 	}
 
 }
@@ -98,7 +79,7 @@ function OnGUI()
 			if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
 				camPos.y = 0;
 			var bottom:float = camPos.y +cam.rect.height*Screen.height;
-			var scrPos:Vector3 = cam.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.y * 1.25);
+			var scrPos:Vector3 = cam.WorldToScreenPoint(transform.position+ Vector3.up * 24);
 			
 			if((Screen.height - scrPos.y > camPos.y) && (Screen.height - scrPos.y < bottom))
 			{
@@ -108,7 +89,11 @@ function OnGUI()
 				var percent:float = m_HP;
 				percent /= (m_NumBees * m_BaseHP);
 				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
+				GUI.color = Color(0.2,0.2,0.2,1.0);
+				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeTexture);
+				GUI.color = Color.red;
 				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width*percent, height), m_LifeTexture);
+				GUI.color = Color.white;
 			}
 		}
 	}
@@ -200,6 +185,11 @@ function OnBulletCollision(coll:BulletCollision)
 					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-1);					
 				}
 			}
+			else
+			{
+				m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
+				m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+			}
 		}
 	}
 }
@@ -262,11 +252,11 @@ function OnTriggerStay(coll : Collider)
 		//spawn effects
 		var deathEffect : GameObject = gameObject.Instantiate(m_DeathEffect);
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
-		deathEffect.renderer.material.color = m_Owner.renderer.material.color;
+		deathEffect.renderer.material.color = NetworkUtils.GetColor(m_Owner);
 		
 		deathEffect = gameObject.Instantiate(Resources.Load("GameObjects/ExplosionParticles"));
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
-		deathEffect.renderer.material.color = m_Owner.renderer.material.color;
+		//deathEffect.renderer.material.color = m_Owner.renderer.material.color;
 		
 		//CLEAN UP
 		//if(m_Owner != null)
@@ -315,8 +305,13 @@ function OnTriggerStay(coll : Collider)
 				gameObject.AddComponent(FlasherDecorator);
 				GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
 				GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
-				//transform.Find("LightSpot").animation.Stop();
-				//transform.Find("LightSpot").animation.Play();
+				
+				var shieldSphere:GameObject = m_ShieldEffect.transform.Find("ShieldSphere").gameObject;
+				shieldSphere.AddComponent(FlasherDecorator);
+				shieldSphere.GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
+				shieldSphere.GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+				shieldSphere.animation.Stop();
+				shieldSphere.animation.Play("Shield");
 			}
 			//GetComponent(FlasherDecorato
 		}

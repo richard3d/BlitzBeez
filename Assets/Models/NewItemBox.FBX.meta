@@ -3,9 +3,10 @@ guid: f67c1d1aba3594d488ddd9ddbfdee544
 ModelImporter:
   fileIDToRecycleName:
     4300000: NewItemBox
+    4300002: ItemBalloon
   serializedVersion: 10
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:
@@ -53,3 +54,16 @@ ModelImporter:
       data:
         first: 111
         second: 605fa900
+    NewItemBox:
+      data:
+        first: 1
+        second: a2860100
+      data:
+        first: 4
+        second: 821a0600
+      data:
+        first: 23
+        second: 62182300
+      data:
+        first: 33
+        second: a25a3200

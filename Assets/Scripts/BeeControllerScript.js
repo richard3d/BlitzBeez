@@ -127,10 +127,8 @@ function Update()
 	
 	var maxWorkers:int = m_Stats["Max_Workers"];
 	maxWorkers+=1;
-	if(GetComponent(BeeScript).HasHive() &&
-		m_WorkerGenTimer > 0 && 
-		GetComponent(BeeScript).m_WorkerBees < GetComponent(BeeScript).m_MaxWorkerBees+maxWorkers && 
-	    GetComponent(FlowerDecorator) == null)
+	if(	m_WorkerGenTimer > 0 && 
+		GetComponent(BeeScript).m_WorkerBees == 0 )
 	{
 		m_WorkerGenTimer -= Time.deltaTime;
 		if(m_WorkerGenTimer <= 0)
@@ -140,22 +138,37 @@ function Update()
 		}
 	}
 	
-	if(m_DashTimer > 0)
-		m_DashTimer -= Time.deltaTime;
+//	if(m_DashTimer > 0)
+//		m_DashTimer -= Time.deltaTime;
 	
 	if(m_StaminaTimer > 0)
 	{
 		m_StaminaTimer -= Time.deltaTime;
 		if(m_StaminaTimer <= 0)
 		{
-			if(m_NumDashes < 3)
-			{
-				m_NumDashes++;
-				var stam:float = m_Stats["Stamina"];
-				m_StaminaTimer = 1/(1.0 + (stam+1.0)*0.35);
-			}
+			StaminaRecharge();
 		}
 	}
+}
+
+function StaminaRecharge()
+{
+	var recharge:float = 0.33;
+	
+	while(recharge > 0)
+	{
+		if(m_StaminaTimer > 0)
+			return;
+		recharge -= 0.015;
+		yield WaitForSeconds(0.015);
+		
+		if(recharge <= 0 && m_NumDashes < 3)
+		{
+			recharge = 0.33;
+			m_NumDashes++;
+		}
+	}
+	
 }
 
 function OnNetworkInput(IN : InputState)
@@ -240,8 +253,10 @@ function OnNetworkInput(IN : InputState)
 			{
 				var stam:float = m_Stats["Stamina"];
 				var dashTime : float = 2;
-				m_StaminaTimer = 1/(1.0 + (stam+1.0)*0.35);
-				m_DashTimer = 1/dashTime;
+				
+				
+				m_StaminaTimer = 1/(0.65 + (stam+1.0)*0.35);
+				//m_DashTimer = 1/dashTime;
 				networkView.RPC("Dash", RPCMode.All);
 				
 			}
@@ -371,7 +386,7 @@ function OnNetworkInput(IN : InputState)
 			if(m_NearestObject.tag == "Flowers")
 			{
 				
-				if(GetComponent(ItemDecorator) == null && beeScript.m_WorkerBees > 0 &&
+				if(GetComponent(ItemDecorator) == null /*&& beeScript.m_WorkerBees > 0*/ &&
 					m_NearestObject.GetComponent(FlowerScript).m_Occupied == false)
 				{						
 					//if(m_NearestObject.GetComponentInChildren(BeeParticleScript) == null)

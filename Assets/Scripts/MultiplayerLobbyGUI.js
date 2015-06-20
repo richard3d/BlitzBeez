@@ -13,7 +13,7 @@ class LocalPlayerLobbyState
 	var m_ColorChosen : boolean = false;
 	var m_Ready : boolean = false;
 	var m_Swag : String = null;
-	var m_SwagIndex : int = 0;
+	var m_SwagIndex : int = -1;
 	var m_Color:Color;
 }
 
@@ -61,13 +61,42 @@ function Start () {
 	{
 		GetHosts();		
 	}
+	
+	
 	for(var i:int = 0; i < 4; i++)
 	{
 		pColorIndices[i] = 7;
 	}
 	m_PlayerStates[0].m_Joined = true;
-	
-	
+
+}
+
+function OnEnable()
+{
+	for(var i:int = 0; i < 4; i++)
+	{	
+		if(m_PlayerStates[i].m_Ready)
+		{
+			if(Network.isServer)
+			{
+				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color = GetComponent(ServerScript).GetClient(i).m_Color;
+				var swag:GameObject = GameObject.Find("Swag");
+
+				if(m_PlayerStates[i].m_SwagIndex != -1)
+				{
+					var currSwag:GameObject = GameObject.Instantiate(swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject);
+					m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
+					currSwag.name = "swag";
+					currSwag.transform.parent = null;
+					currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
+					currSwag.transform.position = currSwag.transform.parent.position;
+					currSwag.transform.rotation = currSwag.transform.parent.rotation;
+					currSwag.transform.localEulerAngles.x = 270;
+					currSwag.transform.localScale = Vector3(1,1,1);
+				}
+			}
+		}
+	}
 }
 
 function ResetMenu(left:boolean)
@@ -191,7 +220,7 @@ function Update () {
 				}
 			}
 			
-			
+			//player is choosing color
 			if(m_PlayerStates[i].m_Joined)
 			{
 				var bee:GameObject = GameObject.Find("Bee"+(i+1));
@@ -230,9 +259,22 @@ function Update () {
 					if(Input.GetButtonDown("Joy"+i+" OK"))
 					{
 						m_PlayerStates[i].m_ColorChosen = true;
+						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+					}
+					
+					if(Input.GetButtonDown("Joy"+i+" Cancel"))
+					{
+							if( i == 0)
+							{
+								AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
+								MenuExit(false);
+								CameraOutro();
+							}
 					}
 	
-				}//player is choosing color
+				}
+				
+				//player chooses swag
 				else if(!m_PlayerStates[i].m_Ready)
 				{
 					//player is selecting swag
@@ -241,32 +283,40 @@ function Update () {
 					{
 						var currSwag:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag");
 						var swag:GameObject = GameObject.Find("Swag");
+						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);	
 						if(currInput > 0)
 						{
 							m_PlayerStates[i].m_SwagIndex++;
 							if(m_PlayerStates[i].m_SwagIndex >= swag.transform.childCount)
-								m_PlayerStates[i].m_SwagIndex = 0;
+								m_PlayerStates[i].m_SwagIndex = -1;
 							
 						}
 						else
 						{
 							m_PlayerStates[i].m_SwagIndex--;
-							if(m_PlayerStates[i].m_SwagIndex < 0)
+							if(m_PlayerStates[i].m_SwagIndex < -1)
 								m_PlayerStates[i].m_SwagIndex = swag.transform.childCount-1;
 						}
 						
 						if(currSwag != null)
 							Destroy(currSwag);
 						
-						currSwag = GameObject.Instantiate(swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject);
-						m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
-						currSwag.name = "swag";
-						currSwag.transform.parent = null;
-						currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
-						currSwag.transform.position = currSwag.transform.parent.position;
-						currSwag.transform.rotation = currSwag.transform.parent.rotation;
-						currSwag.transform.localEulerAngles.x = 270;
-						currSwag.transform.localScale = Vector3(1,1,1);
+						if(m_PlayerStates[i].m_SwagIndex != -1)
+						{							
+							currSwag = GameObject.Instantiate(swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject);
+							m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
+							currSwag.name = "swag";
+							currSwag.transform.parent = null;
+							currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
+							currSwag.transform.position = currSwag.transform.parent.position;
+							currSwag.transform.rotation = currSwag.transform.parent.rotation;
+							currSwag.transform.localEulerAngles.x = 270;
+							currSwag.transform.localScale = Vector3(1,1,1);
+						}
+						else
+						{
+							m_PlayerStates[i].m_Swag = "";
+						}
 						
 						if(Network.isServer)
 						{
@@ -290,6 +340,15 @@ function Update () {
 					else if(Input.GetButtonDown("Joy"+i+" Cancel"))
 					{
 						m_PlayerStates[i].m_ColorChosen = false;
+						AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
+					}
+				}
+				else if(m_PlayerStates[i].m_Ready)
+				{
+					if(Input.GetButtonDown("Joy"+i+" Cancel"))
+					{
+						m_PlayerStates[i].m_Ready = false;
+						AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
 					}
 				}
 				
@@ -331,9 +390,7 @@ function Update () {
 	{
 		if(m_LocalPlayerScreen)
 		{
-			AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
-			MenuExit(false);
-			CameraOutro();
+		
 		}
 		else
 		{
@@ -437,7 +494,7 @@ function OnGUI()
 					if(m_PlayerStates[p].m_Swag == "")
 						GUI.Label(Rect(p*Screen.width*0.25, Screen.height*0.5 - 32,Screen.width*0.25, 32),"<- Get Yo Swag On ->",m_GUISkin.label);
 					else
-						GUI.Label(Rect(p*Screen.width*0.25, Screen.height*0.5 - 32,Screen.width*0.25, 32),"<- "+m_PlayerStates[p].m_Swag+" ->",m_GUISkin.label);
+						GUI.Label(Rect(p*Screen.width*0.25, Screen.height*0.5 - 32,Screen.width*0.25, 32),m_PlayerStates[p].m_Swag,m_GUISkin.label);
 				}
 				else
 					GUI.Label(Rect(p*Screen.width*0.25, Screen.height*0.5 - 32,Screen.width*0.25, 32),"Ready",m_GUISkin.label);

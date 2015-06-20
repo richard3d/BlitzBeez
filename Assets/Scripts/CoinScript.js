@@ -58,7 +58,10 @@ function GetCoin(name : String)
 	bee.GetComponent(BeeScript).m_CurrXP +=1;
 	
 	if(NetworkUtils.IsLocalGameObject(bee) && bee.GetComponent(BeeScript).m_XPMeterFlashTimer <= 0)
-			bee.GetComponent(BeeScript).m_XPMeterFlashTimer = 0.25;
+	{
+		bee.GetComponent(BeeScript).FadeOutXPMeter(2);
+		bee.GetComponent(BeeScript).m_XPMeterFlashTimer = 0.25;
+	}
 	
 	if(bee.GetComponent(BeeScript).m_CurrXP >= bee.GetComponent(BeeScript).m_XPToLevel[currLevel])
 	{

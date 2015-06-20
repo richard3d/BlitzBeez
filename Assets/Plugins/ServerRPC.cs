@@ -67,7 +67,7 @@ public class ServerRPC
 		{ 
 			if( rpcs[i].view == view)
 			{
-				Debug.Log("Removing RPC:" + " "+rpcs[i].func);
+				//Debug.Log("Removing RPC:" + " "+rpcs[i].func);
 				rpcs.RemoveAt(i);
 				continue;
 			}
@@ -89,7 +89,7 @@ public class ServerRPC
 		{ 
 			if( rpcs[i].view != null && rpcs[i].view.group == group )
 			{
-				Debug.Log("Removing RPC:"+  " "+rpcs[i].func);
+				//Debug.Log("Removing RPC:"+  " "+rpcs[i].func);
 				rpcs.RemoveAt(i);
 				continue;
 			}
@@ -113,7 +113,7 @@ public class ServerRPC
 			//	Debug.Log(i);
 			if( rpcs[i].view == null || rpcs[i].view.gameObject.name == go.name)
 			{
-				Debug.Log("Removing "+go.name + " " +rpcs[i].func);
+			//	Debug.Log("Removing "+go.name + " " +rpcs[i].func);
 				rpcs.RemoveAt(i);
 				continue;
 			}
@@ -124,7 +124,7 @@ public class ServerRPC
 				{
 					if(rpcs[i].args[k].ToString().IndexOf(go.name) > -1 || (go.GetComponent("NetworkView")!= null && go.networkView.viewID.ToString() == rpcs[i].args[k].ToString()))
 					{
-						Debug.Log("Removing "+go.name + " " + rpcs[i].args[k].ToString() + " "+rpcs[i].func);
+					//	Debug.Log("Removing "+go.name + " " + rpcs[i].args[k].ToString() + " "+rpcs[i].func);
 						rpcs.RemoveAt(i);
 						found = true;
 						break;

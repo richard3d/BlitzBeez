@@ -86,7 +86,7 @@ function OnGUI()
 			 if(!m_HiveCreated)
 			 {
 				var pos : Vector3 = m_Camera.camera.WorldToScreenPoint(m_Pedestal.transform.position + Vector3.up * transform.localScale.z*6);
-				GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +50, 200, 55), m_Pedestal.GetComponent(HivePedestalScript).m_BuildingTexture);
+				GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Pedestal.GetComponent(HivePedestalScript).m_BuildingTexture);
 				// //GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y, width, 10), m_Pedestal.GetComponent(HivePedestalScript).BaseTexture);
 				// //GUI.DrawTexture(Rect(pos.x- width* 0.5,Screen.height-pos.y,perc,10), m_Pedestal.GetComponent(HivePedestalScript).LifeTexture);
 				
