@@ -20,8 +20,8 @@ function Start () {
 
 	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
 	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("celebrate");
-	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 90;
-	
+	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
+	transform.GetChild(0).localEulerAngles.z = 0;
 	
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
 	m_LightEffect.animation.Play();
@@ -70,7 +70,8 @@ function OnDestroy()
 	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("fly");
 	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 0;
 	//
-	
+	GetComponent(BeeScript).m_CurrXP = 0;
+	GetComponent(BeeScript).m_CurrLevel++;
 	
 	GetComponent(BeeControllerScript).m_ControlEnabled = true;
 	//Destroy(GetComponent(PauseDecorator));

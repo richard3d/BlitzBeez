@@ -37,7 +37,7 @@ function Start () {
 		m_ProgressEffect = GameObject.Instantiate(m_Flower.GetComponent(FlowerScript).m_ProgressEffectInstance);
 		m_ProgressEffect.transform.position = m_Flower.transform.position + Vector3.up * 6;
 		m_ProgressEffect.transform.localScale = Vector3(25,0,25);
-		m_ProgressEffect.renderer.material.SetColor("_Emission", NetworkUtils.GetColor(gameObject));
+		m_ProgressEffect.renderer.material.SetColor("_Emission", NetworkUtils.GetColor(gameObject)*0.5);
 	}
 
 	var color = NetworkUtils.GetColor(gameObject);
@@ -93,6 +93,9 @@ function Update () {
 		transform.position. y = m_Flower.transform.position.y + 12;
 		if(!GetComponent(BeeControllerScript).m_LookEnabled)
 			transform.eulerAngles = Vector3(0,0,0);
+			
+		if(m_ProgressEffect != null)
+			m_ProgressEffect.renderer.material.SetFloat("_Cutoff", 1.0);
 		return;
 	}
 
@@ -258,6 +261,7 @@ function OnGUI()
 function OnDestroy()
 {
 	m_Flower.audio.Stop();
+	m_Flower.collider.enabled = true;
 	Destroy(m_FlowerShieldEffect);
 	m_Flower.GetComponent(FlowerScript).m_Occupied = false;
 	
@@ -352,6 +356,8 @@ function OnDestroy()
 function SetFlower(flower : GameObject)
 {
 	m_Flower = flower;
+	
+	m_Flower.collider.enabled = false;
 	if(m_Flower.GetComponent(FlowerScript).m_ShieldEffect != null)
 	{
 		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.renderer.enabled = false;

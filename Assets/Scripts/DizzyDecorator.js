@@ -19,9 +19,9 @@ function Start () {
 function Update () {
 
 	m_Effect.transform.position = transform.position + Vector3(0,6,0);
-	if(!m_EnableVel)
-		GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
-	GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
+	//if(!m_EnableVel)
+	//	GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
+	//GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
 	transform.eulerAngles.x = Mathf.Sin(Time.time *9 ) * 25;	
 	transform.eulerAngles.z = Mathf.Sin((Time.time +1.57) * 9) * 25;
 	
@@ -36,8 +36,11 @@ function Update () {
 
 function OnDestroy()
 {
+	transform.eulerAngles.x = 0;	
+	transform.eulerAngles.z = 0;
 	gameObject.Destroy(m_Effect);
 	Destroy(GetComponent(ControlDisablerDecorator));
 	GetComponent(BeeScript).m_Bounce = true;
 	GetComponent(UpdateScript).m_NetUpdateRotation = true;
+	
 }

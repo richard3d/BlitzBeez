@@ -4,6 +4,7 @@ ModelImporter:
   fileIDToRecycleName:
     4300000: Plane06
     4300002: NewBee
+    4300004: BeeBody
     7400000: idle //// NewBee
     7400002: fly //// NewBee
     7400004: celebrate //// NewBee
@@ -12,7 +13,7 @@ ModelImporter:
     7400010: powershot //// NewBee
   serializedVersion: 10
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:
@@ -27,32 +28,27 @@ ModelImporter:
     clipAnimations:
     - name: idle
       firstFrame: 0
-      lastFrame: 20
-      wrapMode: 2
-      loop: 1
-    - name: fly
-      firstFrame: 21
-      lastFrame: 41
-      wrapMode: 2
-      loop: 1
-    - name: celebrate
-      firstFrame: 42
-      lastFrame: 50
-      wrapMode: 0
-      loop: 0
-    - name: dance
-      firstFrame: 42
-      lastFrame: 60
+      lastFrame: 19
       wrapMode: 2
       loop: 1
     - name: charge_powershot
-      firstFrame: 63
-      lastFrame: 83
+      firstFrame: 20
+      lastFrame: 39
       wrapMode: 2
       loop: 1
     - name: powershot
-      firstFrame: 83
-      lastFrame: 99
+      firstFrame: 40
+      lastFrame: 55
+      wrapMode: 8
+      loop: 0
+    - name: fly
+      firstFrame: 60
+      lastFrame: 79
+      wrapMode: 2
+      loop: 1
+    - name: celebrate
+      firstFrame: 80
+      lastFrame: 110
       wrapMode: 8
       loop: 0
   meshes:
@@ -84,34 +80,13 @@ ModelImporter:
       data:
         first: 111
         second: 605fa900
-    Dummy01:
+    BeeBody:
       data:
         first: 1
-        second: a2860100
+        second: a4860100
       data:
         first: 4
-        second: 821a0600
-    Dummy02:
-      data:
-        first: 1
-        second: ac860100
-      data:
-        first: 4
-        second: 8c1a0600
-    Dummy03:
-      data:
-        first: 1
-        second: aa860100
-      data:
-        first: 4
-        second: 8a1a0600
-    Dummy04:
-      data:
-        first: 1
-        second: a8860100
-      data:
-        first: 4
-        second: 881a0600
+        second: 841a0600
     NewBee:
       data:
         first: 1
@@ -122,20 +97,27 @@ ModelImporter:
       data:
         first: 137
         second: a00bd100
-    body:
-      data:
-        first: 1
-        second: a4860100
-      data:
-        first: 4
-        second: 841a0600
-    eyes:
+    antenna:
       data:
         first: 1
         second: bc860100
       data:
         first: 4
         second: 9c1a0600
+    btmleft_wing:
+      data:
+        first: 1
+        second: b2860100
+      data:
+        first: 4
+        second: 921a0600
+    btmright_wing:
+      data:
+        first: 1
+        second: b6860100
+      data:
+        first: 4
+        second: 961a0600
     head:
       data:
         first: 1
@@ -143,48 +125,76 @@ ModelImporter:
       data:
         first: 4
         second: 9a1a0600
-    left_antenna:
+    l_arm:
       data:
         first: 1
-        second: b8860100
+        second: a8860100
       data:
         first: 4
-        second: 981a0600
-    left_arm:
+        second: 881a0600
+    l_hand:
       data:
         first: 1
-        second: b4860100
+        second: a2860100
       data:
         first: 4
-        second: 941a0600
-    left_leg:
+        second: 821a0600
+    l_leg:
+      data:
+        first: 1
+        second: c0860100
+      data:
+        first: 4
+        second: a01a0600
+    l_shoulder:
+      data:
+        first: 1
+        second: aa860100
+      data:
+        first: 4
+        second: 8a1a0600
+    r_arm:
       data:
         first: 1
         second: ae860100
       data:
         first: 4
         second: 8e1a0600
-    right_antenna:
+    r_hand:
+      data:
+        first: 1
+        second: ac860100
+      data:
+        first: 4
+        second: 8c1a0600
+    r_leg:
+      data:
+        first: 1
+        second: c2860100
+      data:
+        first: 4
+        second: a21a0600
+    r_shoulder:
       data:
         first: 1
         second: b0860100
       data:
         first: 4
         second: 901a0600
-    right_arm:
+    topleft_wing:
       data:
         first: 1
-        second: b2860100
+        second: b4860100
       data:
         first: 4
-        second: 921a0600
-    right_leg:
+        second: 941a0600
+    topright_wing:
       data:
         first: 1
-        second: b6860100
+        second: b8860100
       data:
         first: 4
-        second: 961a0600
+        second: 981a0600
     torso:
       data:
         first: 1

@@ -1,5 +1,6 @@
 #pragma strict
 var m_Owner:GameObject = null;
+var m_HP:int = 3;
 function Start () {
 
 }
@@ -14,46 +15,25 @@ function OnBulletCollision(coll:BulletCollision)
 	if(!Network.isServer)
 		return;
 	
-	if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
+	var bs:BulletScript = coll.bullet.GetComponent(BulletScript);
+	if(bs.m_Owner != m_Owner)
 	{
-		//hit by a powershot 
-		if(m_Owner.GetComponent(FlowerDecorator) != null)
+		m_Owner.GetComponent(UpdateScript).m_Vel = coll.bullet.GetComponent(UpdateScript).m_Vel.normalized* 50;
+		if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
 		{
-			//knock us off the flower
-			ServerRPC.Buffer(m_Owner.networkView, "RemoveComponent", RPCMode.All, "FlowerDecorator");
-		}
-		if(m_Owner.GetComponent(BeeScript).m_HP - 3 <= 0)
-		{
-			m_Owner.GetComponent(BeeScript).KillAndRespawn(true);
+		
+			m_Owner.networkView.RPC("SetShieldHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_ShieldHP - 3);
 		}
 		else
-			m_Owner.networkView.RPC("SetHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_HP - 3);
+		{
+			m_Owner.networkView.RPC("SetShieldHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_ShieldHP - 1);
+
+		}
 	}
-	
 }
 
-function OnCollisionEnter(other : Collision)
+//this gets called from the bee script actually in SetShieldHP
+function OnHit()
 {
-	// if(!Network.isServer)
-		// return;
-	// if(other.gameObject.tag == "Bullets")
-	// {
-		// if(other.gameObject.GetComponent(BulletScript).m_PowerShot)
-		// {
-			// Debug.Log("fuck");
-			// //hit by a powershot 
-			// if(m_Owner.GetComponent(FlowerDecorator) != null)
-			// {
-				// //knock us off the flower
-				// ServerRPC.Buffer(m_Owner.networkView, "RemoveComponent", RPCMode.All, "FlowerDecorator");
-			// }
-			// if(m_Owner.GetComponent(BeeScript).m_HP - 3 <= 0)
-			// {
-				// m_Owner.GetComponent(BeeScript).KillAndRespawn(true);
-			// }
-			// else
-				// m_Owner.networkView.RPC("SetHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_HP - 3);
-			
-		// }
-	// }
+	
 }

@@ -50,11 +50,11 @@ function Update () {
 					m_Bee = GameObject.Instantiate(GameObject.Find(player.name+"/Bee"));
 					m_Bee.animation.Stop();
 					GameObject.Find(m_Bee.name+"/NewBee").animation.Stop();
-					GameObject.Find(m_Bee.name+"/NewBee").animation.Play("dance");
-					GameObject.Find(m_Bee.name+"/NewBee").animation["dance"].speed = 0.75;
+					GameObject.Find(m_Bee.name+"/NewBee").animation.Play("celebrate");
+					GameObject.Find(m_Bee.name+"/NewBee").animation["celebrate"].speed = 0.75;
 					GameObject.Find(m_Bee.name+"/NewBee/NewBee").layer = LayerMask.NameToLayer("FullScreenGUI");
-					if(GameObject.Find(m_Bee.name+"/NewBee/body/head/swag") != null)
-						GameObject.Find(m_Bee.name+"/NewBee/body/head/swag").layer = LayerMask.NameToLayer("FullScreenGUI");
+					if(GameObject.Find(m_Bee.name+"/NewBee/NewBee/head/swag") != null)
+						GameObject.Find(m_Bee.name+"/NewBee/NewBee/head/swag").layer = LayerMask.NameToLayer("FullScreenGUI");
 					m_Bee.layer = LayerMask.NameToLayer("FullScreenGUI");
 					m_Bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  15;
 					m_Bee.transform.localScale= Vector3(0,0,0);

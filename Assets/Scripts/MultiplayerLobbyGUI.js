@@ -88,10 +88,10 @@ function OnEnable()
 					m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
 					currSwag.name = "swag";
 					currSwag.transform.parent = null;
-					currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
+					currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee/head").transform;
 					currSwag.transform.position = currSwag.transform.parent.position;
 					currSwag.transform.rotation = currSwag.transform.parent.rotation;
-					currSwag.transform.localEulerAngles.x = 270;
+					currSwag.transform.localEulerAngles.z = 180;
 					currSwag.transform.localScale = Vector3(1,1,1);
 				}
 			}
@@ -281,7 +281,7 @@ function Update () {
 					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
-						var currSwag:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag");
+						var currSwag:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee/head/swag");
 						var swag:GameObject = GameObject.Find("Swag");
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);	
 						if(currInput > 0)
@@ -307,10 +307,10 @@ function Update () {
 							m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
 							currSwag.name = "swag";
 							currSwag.transform.parent = null;
-							currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
+							currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee/head").transform;
 							currSwag.transform.position = currSwag.transform.parent.position;
 							currSwag.transform.rotation = currSwag.transform.parent.rotation;
-							currSwag.transform.localEulerAngles.x = 270;
+							currSwag.transform.localEulerAngles.z = 180;
 							currSwag.transform.localScale = Vector3(1,1,1);
 						}
 						else
@@ -478,12 +478,12 @@ function OnGUI()
 				//GameObject.Find("Bee"+(p+1)).transform.parent.position.z = 5;
 				//GameObject.Find("Bee"+(p+1)).transform.position.z = 
 				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled = true;
-				if(GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag") != null)
-					GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag").renderer.enabled = true;
+				if(GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag") != null)
+					GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag").renderer.enabled = true;
 				gameObject.Find("BeeCamera").camera.Render();
 				GUI.DrawTexture(Rect(p*Screen.width*0.25 + m_GUISkin.label.margin.right, 0 ,Screen.width*0.25 - m_GUISkin.label.margin.right*2, Screen.height*0.5),m_BeeTexture, ScaleMode.ScaleToFit);
-				if(GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag") != null)
-					GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag").renderer.enabled = false;
+				if(GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag") != null)
+					GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag").renderer.enabled = false;
 				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled = false;
 				
 				GUI.backgroundColor = Color(0,0,0,0.5);

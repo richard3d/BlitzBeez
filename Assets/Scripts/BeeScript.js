@@ -23,6 +23,7 @@ var m_GroundPositionVel:Vector3;
 var m_Bounce : boolean = true;
 var m_CanTeleport : boolean = false;
 var m_HP : int = 3;
+var m_ShieldHP : int = 3;
 var m_WorkerBees:int = 3;
 var m_MaxWorkerBees:int = 3;
 var m_Money : int = 0;
@@ -123,7 +124,7 @@ function SetColor(c:Color)
 	
 	for(var mat:Material in go.renderer.materials)
 	{
-		if(mat.name.Contains("HiveYellow"))
+		if(mat.name.Contains("BeeSkin"))
 		{
 			mat.color = c;
 			m_Color = c;
@@ -637,7 +638,7 @@ function DrawGUI()
 		GameEventMessenger.DrawMessages(relPos.x-32,(bottom- 48),SmallFontStyle);
 			
 		//draw the actual honey meter that shows the race for the crown
-		GUI.BeginGroup(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.5,bottom-128* camScale, 512*camScale, 512*camScale));
+		GUI.BeginGroup(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.7,bottom-128* camScale, 512*camScale, 512*camScale));
 		
 		
 		
@@ -1331,6 +1332,40 @@ function Hurt()
 	
 	Destroy(gui);
 	m_Camera.GetComponent(MotionBlur).enabled = false;
+	
+}
+
+@RPC function SetShieldHP(hp:int)
+{
+	m_ShieldHP = hp;
+	if(hp <= 0)
+	{
+		
+		if(GetComponent(FlowerDecorator) != null)
+		{
+			//knock us off the flower
+			Destroy(GetComponent(FlowerDecorator));
+		}
+		gameObject.AddComponent(DizzyDecorator);
+		m_ShieldHP = 3;
+	}
+	else
+	{
+		if(GetComponent(FlowerDecorator) != null)
+		{
+			var shield:GameObject = GetComponent(FlowerDecorator).m_FlowerShieldEffect;
+			shield.transform.localScale *= .8;
+			var parts :ParticleSystem.Particle[] = new ParticleSystem.Particle[shield.GetComponent(ParticleSystem).particleCount];
+			shield.GetComponent(ParticleSystem).startSize *= 0.8;
+			shield.GetComponent(ParticleSystem).GetParticles(parts);
+			for(var i = 0; i < parts.length; i++)
+			{
+				parts[i].size *= 0.8;
+			}
+			shield.GetComponent(ParticleSystem).SetParticles(parts, parts.length);
+		}
+	}
+
 	
 }
 

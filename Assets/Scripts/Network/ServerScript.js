@@ -685,11 +685,11 @@ function GetGameObject() : GameObject
 			Debug.Log("SWAGGING "+m_Clients[clientID].m_Swag);
 			var swag:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Swag"));
 			var swagPiece:GameObject = swag.transform.Find(m_Clients[clientID].m_Swag).gameObject;
-			var head:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/body/head").gameObject;
+			var head:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/NewBee/head").gameObject;
 			swagPiece.transform.parent = head.transform;
 			swagPiece.transform.position = head.transform.position;
 			swagPiece.transform.rotation = head.transform.rotation;
-			swagPiece.transform.localEulerAngles.x = 270;
+			swagPiece.transform.localEulerAngles.z = 180;
 			swagPiece.transform.localScale = Vector3(1,1,1);
 			swagPiece.name = "swag";
 			Destroy(swag);

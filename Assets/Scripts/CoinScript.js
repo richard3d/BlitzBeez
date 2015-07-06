@@ -54,6 +54,11 @@ function GetCoin(name : String)
 	var bee:GameObject = gameObject.Find(name);
 	bee.GetComponent(BeeScript).m_Money+= 10;
 	
+	if(bee.GetComponent(LevelUpDecorator) != null)
+	{
+		return;
+	}
+	
 	var currLevel:int = bee.GetComponent(BeeScript).m_CurrLevel;
 	bee.GetComponent(BeeScript).m_CurrXP +=1;
 	
@@ -66,10 +71,9 @@ function GetCoin(name : String)
 	if(bee.GetComponent(BeeScript).m_CurrXP >= bee.GetComponent(BeeScript).m_XPToLevel[currLevel])
 	{
 		//notify of level up
-		bee.GetComponent(BeeScript).m_CurrXP = 0;
-		bee.GetComponent(BeeScript).m_CurrLevel++;
+		
 		bee.GetComponent(BeeScript).m_NumUpgradesAvailable++;
-		bee.AddComponent("LevelUpDecorator");
+		bee.AddComponent(LevelUpDecorator);
 		AudioSource.PlayClipAtPoint(bee.GetComponent(BeeScript).m_LevelUpSound, Camera.main.transform.position);
 		GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(bee).m_Name+ " leveled up");
 		if(NetworkUtils.IsLocalGameObject(bee))

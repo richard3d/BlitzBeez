@@ -378,6 +378,14 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 					RemoveBullet(coll.hit.point);
 					return true;
 				}
+				else if(tag == "Shield" )
+					{
+						if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
+						{
+							RemoveBullet(coll.hit.point);
+							return true;
+						}
+					}
 			break;
 		}
 	}

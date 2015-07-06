@@ -78,7 +78,7 @@ function Start () {
 	m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
 	var clip:int = m_Stats["Clip_Size"];
 	m_Swarm = GameObject.Find("Swarm"+gameObject.name);
-	m_Swarm.GetComponent(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+	//m_Swarm.GetComponent(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 	
 }
 
@@ -578,7 +578,7 @@ function HandleShotLogic()
 	//go.transform.localScale.x = 0.3;
 	//go.transform.localScale.z = 0.3;
 	var color = NetworkUtils.GetColor(gameObject);
-	Debug.Log(color);
+	//Debug.Log(color);
 	//if(go.GetComponent(TrailRenderer)
 	if(go.GetComponent(TrailRenderer))
 	{
@@ -631,12 +631,12 @@ function OnPlayerLookAt(at : Vector3)
 @RPC function ReloadJammed()
 {
 	m_ReloadJam = true;
-	Debug.Log("Jammed");
+	//Debug.Log("Jammed");
 }
 
 @RPC function Reload()
 {
-	Debug.Log("Reload Standard");
+	//Debug.Log("Reload Standard");
 	m_ReloadTimer = m_Stats["Reload_Speed"];
 	m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
