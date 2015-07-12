@@ -103,6 +103,7 @@ function Awake()
 function Start () {
 	m_Money = 0;
 	m_CurrXP = 0;
+
 }
 
 function GetCurrentLevel() : int
@@ -178,6 +179,7 @@ function FadeOutXPMeter(time:float)
 	}
 	m_XPMeterFade = 0;
 }
+
 
 function Update() {
 	
@@ -946,6 +948,7 @@ function Show(show:boolean)
 			child.gameObject.renderer.enabled = false;
 		}
 		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = false;
+		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = false;
 		if(transform.Find("Bee/NewBee/body/head/swag") != null)
 			transform.Find("Bee/NewBee/body/head/swag").gameObject.renderer.enabled = false;
 	}
@@ -956,6 +959,7 @@ function Show(show:boolean)
 			child.gameObject.renderer.enabled = true;
 		}
 		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = true;
+		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = true;
 		if(transform.Find("Bee/NewBee/body/head/swag") != null)
 			transform.Find("Bee/NewBee/body/head/swag").gameObject.renderer.enabled = true;
 	}

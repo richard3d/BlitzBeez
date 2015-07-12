@@ -19,7 +19,7 @@ function Start () {
 	}
 
 	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("celebrate");
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("levelup");
 	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
 	transform.GetChild(0).localEulerAngles.z = 0;
 	

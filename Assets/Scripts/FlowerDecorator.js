@@ -186,7 +186,9 @@ function Update () {
 								//go1.GetComponent(UpdateScript).m_Vel.z = vel.y;
 								go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);
 								ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, "Coin",go1.name, transform.position + Vector3.up *transform.localScale.magnitude*4, Quaternion.identity, viewID, 0);
-								go1.GetComponent(UpdateScript).MakeNetLive(); 	
+								go1.GetComponent(CoinScript).m_Owner = gameObject;
+								//go1.collider.enabled = false;
+								//go1.GetComponent(UpdateScript).MakeNetLive(); 	
 							}
 						}
 					}

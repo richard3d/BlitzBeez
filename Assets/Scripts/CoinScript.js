@@ -1,6 +1,9 @@
 #pragma strict
 var m_PickupSound : AudioClip = null;
+var m_Owner :GameObject = null;
 private static var m_InstanceID : int = 0;
+
+
 function Awake()
 {
 	gameObject.name = "Coin"+ ++m_InstanceID;
@@ -14,7 +17,10 @@ function Start () {
 
 function Update () {
 
-	
+	if(m_Owner != null)
+	{
+		GetComponent(UpdateScript).m_Vel += (m_Owner.transform.position - transform.position).normalized * 10;
+	}
 
 	
 }

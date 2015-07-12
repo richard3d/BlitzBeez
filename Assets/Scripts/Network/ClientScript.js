@@ -240,11 +240,12 @@ function OnDisconnectedFromServer()
 	}
 }
 
-@RPC function RegisterPlayer(name : String, color:Vector3, clientID : int)
+@RPC function RegisterPlayer(name : String, skinColor:Vector3, color:Vector3, clientID : int)
 {
 	Debug.Log("Client " + clientID + " registered name: "+name);
 	m_Clients[clientID].m_Name = name;
 	m_Clients[clientID].m_Color = Color(color.x,color.y,color.z,1);
+	m_Clients[clientID].m_SkinColor = Color(skinColor.x,skinColor.y,skinColor.z,1);
 }
 
 function GetNumClients() : int
@@ -319,7 +320,7 @@ function GetGameObject() : GameObject
 			
 			
             //set the client gameObejct color			
-			m_Clients[clientID].m_GameObject.renderer.material.color = m_Clients[clientID].m_Color;
+			m_Clients[clientID].m_GameObject.renderer.material.color = m_Clients[clientID].m_SkinColor;
 					
 		
 			m_Clients[clientID].m_GameObject.name = go;

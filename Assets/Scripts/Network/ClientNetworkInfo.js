@@ -8,6 +8,7 @@ class ClientNetworkInfo
 	var m_LocalClient:boolean = false;	
 	var m_JoyNum : int = -1;
 	var m_Name : String;
+	var m_SkinColor: Color = Color.yellow;
 	var m_Color: Color = Color.yellow;
 	var m_Swag: String = "";
 	var m_Side:int = 0;

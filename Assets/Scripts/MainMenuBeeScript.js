@@ -7,6 +7,7 @@ var m_Timer : float = -1;
 function Start () {
 		
 		m_Pos = transform.position;
+
 		
 }
 
@@ -35,3 +36,4 @@ function Update () {
 	//transform.localEulerAngles.x += -90;
 
 }
+

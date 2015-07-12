@@ -556,6 +556,12 @@ function HandleShotLogic()
 
 @RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3, decrementAmmo:boolean)
 {
+	//transform.Find("Bee/NewBee").animation.Stop();
+	transform.Find("Bee/NewBee").animation.Stop("flyandshoot");
+	transform.Find("Bee/NewBee").animation["flyandshoot"].layer = 2;
+	transform.Find("Bee/NewBee").animation["flyandshoot"].AddMixingTransform(transform.Find("Bee/NewBee/body/r_shoulder"));
+	transform.Find("Bee/NewBee").animation.Play("flyandshoot");
+	
 	AudioSource.PlayClipAtPoint(m_ShootSound, Camera.main.transform.position);
 	var go : GameObject = gameObject.Find(bulletName);
 	go.GetComponent(BulletScript).m_Owner = gameObject;

@@ -32,6 +32,7 @@ private var m_MenuPos:Vector2;
 
 public var m_BeeTexture:RenderTexture;
 public var m_ColorStripTexture:Texture2D = null;
+public var m_TeamColorTexture:Texture2D = null;
 public var m_WhitePix:Texture2D = null;
 
 public var m_StartMatch:boolean = false;
@@ -40,6 +41,7 @@ public var m_LocalPlayerScreen:boolean = true;
 
 var pLastInput:float[] = new float[4];
 var pColorIndices:int[] = new int[4];
+var TeamColorIndex:int = 0;
 public var m_IsAnimating:boolean = false;
 
 
@@ -65,10 +67,10 @@ function Start () {
 	
 	for(var i:int = 0; i < 4; i++)
 	{
-		pColorIndices[i] = 7;
+		pColorIndices[i] = 1;
 	}
 	m_PlayerStates[0].m_Joined = true;
-
+	TeamColorIndex = Random.Range(0,8);
 }
 
 function OnEnable()
@@ -79,7 +81,7 @@ function OnEnable()
 		{
 			if(Network.isServer)
 			{
-				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color = GetComponent(ServerScript).GetClient(i).m_Color;
+				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
 				var swag:GameObject = GameObject.Find("Swag");
 
 				if(m_PlayerStates[i].m_SwagIndex != -1)
@@ -88,7 +90,7 @@ function OnEnable()
 					m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
 					currSwag.name = "swag";
 					currSwag.transform.parent = null;
-					currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee/head").transform;
+					currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
 					currSwag.transform.position = currSwag.transform.parent.position;
 					currSwag.transform.rotation = currSwag.transform.parent.rotation;
 					currSwag.transform.localEulerAngles.z = 180;
@@ -234,13 +236,13 @@ function Update () {
 					{
 						if(currInput > 0)
 						{
-							pColorIndices[i] += 14;
+							pColorIndices[i] += 1;
 						}
 						else
 						{
-							pColorIndices[i] -= 14;
+							pColorIndices[i] -= 1;
 						}
-						GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color = m_ColorStripTexture.GetPixel(pColorIndices[i],10);
+						GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);				
 						if(Network.isServer)
 						{
@@ -249,7 +251,7 @@ function Update () {
 								if(GetComponent(ServerScript).GetClient(k) != null)
 								{
 									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
-										GetComponent(ServerScript).GetClient(k).m_Color = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color;
+										GetComponent(ServerScript).GetClient(k).m_SkinColor = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color;
 								}
 							}
 						}
@@ -281,7 +283,7 @@ function Update () {
 					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
-						var currSwag:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee/head/swag");
+						var currSwag:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag");
 						var swag:GameObject = GameObject.Find("Swag");
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);	
 						if(currInput > 0)
@@ -307,7 +309,7 @@ function Update () {
 							m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
 							currSwag.name = "swag";
 							currSwag.transform.parent = null;
-							currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee/head").transform;
+							currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
 							currSwag.transform.position = currSwag.transform.parent.position;
 							currSwag.transform.rotation = currSwag.transform.parent.rotation;
 							currSwag.transform.localEulerAngles.z = 180;
@@ -336,6 +338,19 @@ function Update () {
 					if(Input.GetButtonDown("Joy"+i+" OK"))
 					{
 						m_PlayerStates[i].m_Ready = true;
+					
+						//client is readied
+						if(Network.isServer)
+						{
+							for(k =0 ; k < 4; k++)
+							{
+								if(GetComponent(ServerScript).GetClient(k) != null)
+								{
+									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
+										GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex,1);
+								}
+							}
+						}
 					}
 					else if(Input.GetButtonDown("Joy"+i+" Cancel"))
 					{
@@ -358,31 +373,44 @@ function Update () {
 	
 	if(Input.GetButtonDown("Joy0 OK") && !m_IsAnimating && m_PlayerStates[0].m_Ready)
 	{
-		if(m_LocalPlayerScreen)
+		var allJoined:boolean = true;
+		for(i = 0; i < m_PlayerStates.length; i++)
 		{
-			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-			go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-			go.animation.Stop("FlashIntro");
-			go.animation["FlashIntro"].time = 2.35;
-			go.animation.Play("FlashIntro");
-			MenuExit(true);
-			MenuEnter(true);
-			if(Network.isServer)
+			if(m_PlayerStates[i].m_Joined && !m_PlayerStates[i].m_Ready)
 			{
-				MasterServer.RegisterHost("BeeHappy", SystemInfo.deviceName, "Bzzz death to all!");
+				allJoined = false;
+				break;
 			}
-			
 		}
-		else
+		
+		if(allJoined)
 		{
-			AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-			go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-			go.animation.Stop("FlashIntro");
-			go.animation["FlashIntro"].time = 2.35;
-			go.animation.Play("FlashIntro");
-			MenuExit(true);
-			CameraStart();
-			
+			if(m_LocalPlayerScreen)
+			{
+				AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+				go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
+				go.animation.Stop("FlashIntro");
+				go.animation["FlashIntro"].time = 2.35;
+				go.animation.Play("FlashIntro");
+				MenuExit(true);
+				MenuEnter(true);
+				if(Network.isServer)
+				{
+					MasterServer.RegisterHost("BeeHappy", SystemInfo.deviceName, "Bzzz death to all!");
+				}
+				
+			}
+			else
+			{
+				AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+				go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
+				go.animation.Stop("FlashIntro");
+				go.animation["FlashIntro"].time = 2.35;
+				go.animation.Play("FlashIntro");
+				MenuExit(true);
+				CameraStart();
+				
+			}
 		}		
 	}
 	
@@ -468,7 +496,7 @@ function OnGUI()
 		{
 			if(GetComponent(ServerScript).GetClient(p) != null)
 			{
-				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(p).m_Color;
+				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(p).m_SkinColor;
 				//GUI.color.a = 0.25;
 				//GUI.DrawTexture(Rect(p*Screen.width*0.25, 34 ,Screen.width*0.25, Screen.height*0.5),m_WhitePix);
 				//GUI.color = Color.white;
@@ -478,12 +506,12 @@ function OnGUI()
 				//GameObject.Find("Bee"+(p+1)).transform.parent.position.z = 5;
 				//GameObject.Find("Bee"+(p+1)).transform.position.z = 
 				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled = true;
-				if(GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag") != null)
-					GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag").renderer.enabled = true;
+				if(GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag") != null)
+					GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag").renderer.enabled = true;
 				gameObject.Find("BeeCamera").camera.Render();
 				GUI.DrawTexture(Rect(p*Screen.width*0.25 + m_GUISkin.label.margin.right, 0 ,Screen.width*0.25 - m_GUISkin.label.margin.right*2, Screen.height*0.5),m_BeeTexture, ScaleMode.ScaleToFit);
-				if(GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag") != null)
-					GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee/head/swag").renderer.enabled = false;
+				if(GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag") != null)
+					GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag").renderer.enabled = false;
 				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled = false;
 				
 				GUI.backgroundColor = Color(0,0,0,0.5);

@@ -5,12 +5,15 @@ ModelImporter:
     4300000: Plane06
     4300002: NewBee
     4300004: BeeBody
+    4300006: BeeArmor
     7400000: idle //// NewBee
     7400002: fly //// NewBee
     7400004: celebrate //// NewBee
     7400006: dance //// NewBee
     7400008: charge_powershot //// NewBee
     7400010: powershot //// NewBee
+    7400012: levelup //// NewBee
+    7400014: flyandshoot //// NewBee
   serializedVersion: 10
   materials:
     importMaterials: 1
@@ -49,7 +52,17 @@ ModelImporter:
     - name: celebrate
       firstFrame: 80
       lastFrame: 110
+      wrapMode: 2
+      loop: 1
+    - name: levelup
+      firstFrame: 80
+      lastFrame: 95
       wrapMode: 8
+      loop: 0
+    - name: flyandshoot
+      firstFrame: 115
+      lastFrame: 134
+      wrapMode: 1
       loop: 0
   meshes:
     lODScreenPercentages: []
@@ -80,13 +93,16 @@ ModelImporter:
       data:
         first: 111
         second: 605fa900
-    BeeBody:
+    BeeArmor:
       data:
         first: 1
         second: a4860100
       data:
         first: 4
         second: 841a0600
+      data:
+        first: 137
+        second: a20bd100
     NewBee:
       data:
         first: 1
@@ -104,6 +120,13 @@ ModelImporter:
       data:
         first: 4
         second: 9c1a0600
+    body:
+      data:
+        first: 1
+        second: c4860100
+      data:
+        first: 4
+        second: a41a0600
     btmleft_wing:
       data:
         first: 1

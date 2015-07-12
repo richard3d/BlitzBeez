@@ -290,7 +290,7 @@ function OnLocalPlayerConnected(player:NetworkPlayer, joyNum:int)
 	PlayerProfile.m_PlayerTag = "Player";
 		PlayerProfile.m_PlayerTag += m_ClientCount.ToString();
 	var clr:Vector3 = Vector3(PlayerProfile.m_PlayerColor.r, PlayerProfile.m_PlayerColor.g,PlayerProfile.m_PlayerColor.b);
-	RegisterPlayer(PlayerProfile.m_PlayerTag,clr, m_ClientCount-1);
+	RegisterPlayer(PlayerProfile.m_PlayerTag,clr,clr, m_ClientCount-1);
 	//return;
 	
 	//ServerRPC.Buffer(m_ConnectMsgsView, "ClientConnected", RPCMode.Others, player);
@@ -348,7 +348,7 @@ function OnPlayerConnected(player: NetworkPlayer) {
 		PlayerProfile.m_PlayerTag = "Player";
 			PlayerProfile.m_PlayerTag += m_ClientCount.ToString();
 		var clr:Vector3 = Vector3(PlayerProfile.m_PlayerColor.r, PlayerProfile.m_PlayerColor.g,PlayerProfile.m_PlayerColor.b);
-		RegisterPlayer(PlayerProfile.m_PlayerTag,clr, m_ClientCount-1);
+		RegisterPlayer(PlayerProfile.m_PlayerTag,clr,clr, m_ClientCount-1);
 		return;
 	}
 	ServerRPC.Buffer(m_ConnectMsgsView, "ClientConnected", RPCMode.Others, player);
@@ -555,14 +555,15 @@ function GetGameObject() : GameObject
 }
 
 //This RPC is calld from clients on the server and then the server publishes the same RPC to clients
-@RPC function RegisterPlayer(name : String, color:Vector3, clientID : int)
+@RPC function RegisterPlayer(name : String, skinColor:Vector3, color:Vector3, clientID : int)
 {
 	if(clientID < 0)
 		return;
 	Debug.Log("Client " + clientID + " registered name " +name);
 	m_Clients[clientID].m_Name = name;
+	m_Clients[clientID].m_SkinColor = Color(skinColor.x,skinColor.y,skinColor.z,1);
 	m_Clients[clientID].m_Color = Color(color.x,color.y,color.z,1);
-	ServerRPC.Buffer(m_ConnectMsgsView, "RegisterPlayer", RPCMode.Others, name,color, clientID);
+	ServerRPC.Buffer(m_ConnectMsgsView, "RegisterPlayer", RPCMode.Others, name, skinColor, color, clientID);
 	
 	//if a game is already in progress we should send the level to the client
 	if(m_GameInProgress && !Application.isLoadingLevel && m_Clients[clientID].m_Player.ToString() != "0")
@@ -679,13 +680,18 @@ function GetGameObject() : GameObject
 			}
 		}
 		//set the client gameObejct color			
-		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).SetColor(m_Clients[clientID].m_Color);
+		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).SetColor(m_Clients[clientID].m_SkinColor);
+		var armor:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/BeeArmor").gameObject;
+		armor.renderer.materials[0].color = m_Clients[clientID].m_Color;
+		var body:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/NewBee");
+		
+
 		if(m_Clients[clientID].m_Swag != "")
 		{
 			Debug.Log("SWAGGING "+m_Clients[clientID].m_Swag);
 			var swag:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Swag"));
 			var swagPiece:GameObject = swag.transform.Find(m_Clients[clientID].m_Swag).gameObject;
-			var head:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/NewBee/head").gameObject;
+			var head:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/body/head").gameObject;
 			swagPiece.transform.parent = head.transform;
 			swagPiece.transform.position = head.transform.position;
 			swagPiece.transform.rotation = head.transform.rotation;
