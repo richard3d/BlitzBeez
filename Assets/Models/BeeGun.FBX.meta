@@ -5,7 +5,7 @@ ModelImporter:
     4300000: BeeGun
   serializedVersion: 10
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:

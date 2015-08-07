@@ -103,7 +103,7 @@ function OnGUI()
 		var bottom:float = camPos.y +cam.camera.rect.height*Screen.height;		
 			
 		var scale:float = 26+2*Mathf.Sin(Time.time*16);
-		GUI.DrawTexture(Rect(camPos.x+m_CursorScreenPosition.x-scale*0.5,bottom-m_CursorScreenPosition.y-scale*0.5,scale,scale), m_CursorTexture);
+	//	GUI.DrawTexture(Rect(camPos.x+m_CursorScreenPosition.x-scale*0.5,bottom-m_CursorScreenPosition.y-scale*0.5,scale,scale), m_CursorTexture);
 		//GUI.color = Color.white;
 	}
 }
@@ -207,19 +207,16 @@ function Update () {
 		
 		//ORIGINAL
 		var Sensitivity = 7;
-		var LookDiff :Vector3 = transform.forward;
+		var LookAt :Vector3 = transform.forward;
 		m_CursorDist = 100;// += Input.GetAxis("Look Up/Down")*(Sensitivity+5);
 		m_CursorDist = Mathf.Max(10,Mathf.Min(m_CursorDist, 200));
 		
-		LookDiff =  Quaternion.AngleAxis(Input.GetAxis(joyStr+"Look Left/Right")*(200.0/m_CursorDist)*Sensitivity, Vector3.up)*LookDiff;
+		var rotAng:float = Input.GetAxis(joyStr+"Look Left/Right")*(200.0/m_CursorDist)*Sensitivity;
+		Debug.Log(rotAng);
+		LookAt =  Quaternion.AngleAxis(rotAng, Vector3.up)*LookAt;
+		LookAt.Normalize();
 		
-		// var vPos : Vector3 = Camera.main.GetComponent(CameraScript).m_Target.transform.position;
-		// var LookDiff = Input.mousePosition-Camera.main.WorldToScreenPoint(vPos);
-		// if(LookDiff.y < 0)
-			// LookDiff.y *=-1;
-		// LookDiff.z = LookDiff.y;
-		//LookDiff.y = 0;
-		LookDiff.Normalize();
+		
 		////var client : ClientScript = GameObject.Find("GameClient").GetComponent(ClientScript) as ClientScript;
 		////make this happen on the client immediately, any fixes will come from the server via the RPC
 		//END ORIG
@@ -228,16 +225,16 @@ function Update () {
 		m_CursorScreenPosition = GetComponent(BeeScript).m_Camera.camera.WorldToScreenPoint(m_CursorPosition);
 		if(GetComponent(BeeControllerScript).m_LookEnabled)
 		{
-			if(NetworkUtils.IsControlledGameObject(gameObject))
-				gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + LookDiff);
+			//if(NetworkUtils.IsControlledGameObject(gameObject))
+			//	gameObject.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Target.transform.LookAt(transform.position + LookAt);
 			
 			if(!m_LocalClient)//if(m_ClientOwner != 0)
 			{
-				networkView.RPC("PlayerLookat", RPCMode.Server, m_ClientOwner,   LookDiff);
+				networkView.RPC("PlayerLookat", RPCMode.Server, m_ClientOwner,   LookAt, rotAng);
 			}
 			else
 			{
-				PlayerLookat(m_ClientOwner,  LookDiff);
+				PlayerLookat(m_ClientOwner,  LookAt, rotAng);
 			}
 		}
 	}
@@ -424,7 +421,7 @@ function Update () {
 
 
 
-@RPC function PlayerLookat(clientID : int, lookPt : Vector3)
+@RPC function PlayerLookat(clientID : int, lookPt : Vector3, ang:float)
 {
 	//no need to do anythign if we are the client, its the server who should be handling the calls
 	if(Network.isClient )
@@ -449,7 +446,7 @@ function Update () {
 	
 	//var vPos : Vector3 = client.m_GameObject.transform.position;
 	//client.m_GameObject.transform.LookAt(vPos + lookPt);
-	SendMessage("OnPlayerLookAt", lookPt, SendMessageOptions.DontRequireReceiver);
+	SendMessage("OnPlayerLookAt", lookPt* ang, SendMessageOptions.DontRequireReceiver);
 }
 
 @RPC function RecordInput()

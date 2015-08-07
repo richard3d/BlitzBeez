@@ -9,11 +9,13 @@
 // static var USE : int = 64;
 // static var DASH : int = 128;
 // var m_CurrentActions : int = 0;
-
+var m_PlayerMask:LayerMask;
 private var m_MovementKeyPressed : boolean = false;
 private var m_MovementSpeed : float = 240;
 var m_ShootButtonHeld : boolean = false;
 var m_ShootButtonTimeHeld : float = 0.0;
+var m_AimTarget:GameObject = null;
+var m_AimOffset:float = 0;
 private var m_DashButtonHeld : boolean = false;
 private var m_DashButtonTimeHeld : float = 0.0;
 private static var m_RTBRequiredHoldTime = 0.5;	//return to base required time
@@ -468,7 +470,51 @@ function OnNetworkInput(IN : InputState)
 				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
 				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 0);	
 			}
+			else
+			{
+				var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+				var closestDot = 99999;
+				
+				for(i = 0; i < players.length; i++)
+				{
+					if(players[i] != gameObject)
+					{
+						//if(Physics.Linecast(transform.position, players[i].transform.position, LayerMask.NameToLayer("Terrain")))
+						//	continue;
+						
+						var dot:float = Vector3.Angle(transform.forward.normalized, (players[i].transform.position - transform.position));
+					//	Debug.Log("Dot ")+dot;
+						if(dot < 45 && dot < closestDot)
+						{
+						
+							closestDot = dot;
+							m_AimTarget = players[i];
+						}
+						//gameObject.transform.LookAt(players[i].transform.position);
+					}
+				}
+			}
+			
 		}
+	}
+	
+
+	
+	//handle aiming
+	if(IN.GetAction(IN.USE))
+	{
+		if(m_AimTarget != null)
+		{
+			
+			gameObject.transform.LookAt(m_AimTarget.transform.position);
+			gameObject.transform.Rotate(m_AimOffset*Vector3.up);
+		}
+	
+	}
+	else
+	{
+		if(m_AimTarget != null)
+			m_AimTarget = null;
 	}
 	
 	if(IN.GetActionBuffered(IN.RELOAD) /*&& !m_ShootButtonHeld*/)
@@ -614,7 +660,18 @@ function OnPlayerLookAt(at : Vector3)
 {
 	if(m_LookEnabled)
 	{
-		transform.LookAt(transform.position+at);
+		if(m_AimTarget)
+		{
+			m_AimOffset = at.magnitude;
+			if(Vector3.Dot(at, transform.forward) < 0)
+				m_AimOffset = -m_AimOffset;
+		}
+		else
+		{
+			if(Vector3.Dot(at, transform.forward) < 0)
+				at = -at;
+			transform.LookAt(transform.position+at.normalized);
+		}
 	}
 }
 

@@ -76,6 +76,7 @@ var HiveTexture:Texture2D = null;
 var FlowerTexture:Texture2D = null;
 var CaptureRingTexture:Texture2D = null;
 var NodeLineTexture:Texture2D = null;
+var m_AimTargetTexture : Texture2D = null;
 
 var m_FocusedGroupNum:int = -1;
 var m_FocusedObject:GameObject = null;
@@ -548,6 +549,8 @@ function DrawGUI()
 	// {
 		var beeCtrlScript:BeeControllerScript = GetComponent(BeeControllerScript);
 		
+	
+		
 		//draw XPBar
 		var camWidth = m_Camera.camera.rect.width;
 		var camScale = m_Camera.camera.rect.width;
@@ -556,6 +559,9 @@ function DrawGUI()
 		if(m_Camera.camera.rect.y == 0.0 &&  m_Camera.camera.rect.height == 1)
 			camPos.y = 0;
 		var relPos:Vector2 = Vector2(camPos.x+83*camScale, camPos.y+16*camScale);
+		
+		
+		
 		//var relPos:Vector2 = Vector2(83, 16);
 		// if(m_XPMeterFlashTimer > 0)
 		// {
@@ -728,6 +734,17 @@ function DrawGUI()
 	
 		
 		// GUI.EndGroup();
+		if(beeCtrlScript.m_AimTarget != null)
+		{
+			var tgt:Vector3 = m_Camera.camera.WorldToScreenPoint(beeCtrlScript.m_AimTarget.transform.position);
+			var dist = Vector3.Dot(beeCtrlScript.m_AimTarget.transform.position - transform.position,transform.forward);
+			var aimPt:Vector3 = m_Camera.camera.WorldToScreenPoint(transform.position+transform.forward*dist);
+			tgt.y = Screen.height-tgt.y;
+			aimPt.y = Screen.height - aimPt.y;
+			GUI.DrawTexture(Rect(tgt.x-16*camScale,tgt.y-16*camScale, 32*camScale, 32*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+			GUI.DrawTexture(Rect(aimPt.x-8*camScale,aimPt.y-8*camScale, 16*camScale, 16*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+		}
+		
 		
 		var screenPos:Vector3 = m_Camera.camera.WorldToScreenPoint(gameObject.transform.position);
 		screenPos.y = Screen.height-screenPos.y;
@@ -1571,6 +1588,7 @@ function Hurt()
 	go.GetComponent(BeeParticleScript).m_Owner = gameObject;
 	var color = NetworkUtils.GetColor(gameObject);
 	go.renderer.material.color= color;
+	go.renderer.material.SetColor("_TintColor", color);
 	//Debug.Log("adding swarm to "+tgt);
 	if(tgt != "")
 	{

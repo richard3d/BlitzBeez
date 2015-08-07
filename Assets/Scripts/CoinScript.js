@@ -2,7 +2,8 @@
 var m_PickupSound : AudioClip = null;
 var m_Owner :GameObject = null;
 private static var m_InstanceID : int = 0;
-
+var m_Timer:float = 0;
+var m_Time:float = 1;
 
 function Awake()
 {
@@ -12,6 +13,7 @@ function Awake()
 function Start () {
 
 	GetComponent(UpdateScript).m_NetUpdateRotation = false;
+	m_Timer = -0.5;
 
 }
 
@@ -19,7 +21,20 @@ function Update () {
 
 	if(m_Owner != null)
 	{
-		GetComponent(UpdateScript).m_Vel += (m_Owner.transform.position - transform.position).normalized * 10;
+		gameObject.collider.enabled = false;
+		//GetComponent(UpdateScript).m_Vel += (m_Owner.transform.position - transform.position).normalized * 10;
+		
+		if(m_Timer < m_Time)
+		{
+			m_Timer += Time.deltaTime;
+			if(m_Timer > 0)
+				transform.position += (m_Owner.transform.position - transform.position)*  (m_Timer/m_Time);
+		}
+		if((m_Timer >= m_Time || (m_Owner.transform.position - transform.position).magnitude < 4) && m_Time > 0)
+		{
+			m_Time = 0;
+			OnTriggerEnter(m_Owner.collider);
+		}
 	}
 
 	
@@ -154,10 +169,6 @@ function KillCoin()
 		ServerRPC.Buffer(server.m_SyncMsgsView, "NetworkDestroy", RPCMode.All, gameObject.name);
 		ServerRPC.DeleteFromBuffer(gameObject);	
 	}	
-		// for(var child : Transform in transform)
-		// {
-			// gameObject.Destroy(child.gameObject);
-		// }
 }
 
 function OnDestroy()

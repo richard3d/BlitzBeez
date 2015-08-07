@@ -69,8 +69,11 @@ function Start () {
 	{
 		pColorIndices[i] = 1;
 	}
-	m_PlayerStates[0].m_Joined = true;
+	//m_PlayerStates[0].m_Joined = true;
+	
 	TeamColorIndex = Random.Range(0,8);
+	//var armor:GameObject = GameObject.Find("Bee1/NewBee/BeeArmor").gameObject;
+	//armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,1);
 }
 
 function OnEnable()
@@ -83,7 +86,8 @@ function OnEnable()
 			{
 				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[2].color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
 				var swag:GameObject = GameObject.Find("Swag");
-
+				var armor:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
+				armor.renderer.materials[0].color = GetComponent(ServerScript).GetClient(i).m_Color;
 				if(m_PlayerStates[i].m_SwagIndex != -1)
 				{
 					var currSwag:GameObject = GameObject.Instantiate(swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject);
@@ -202,12 +206,19 @@ function Update () {
 	{
 		for(var i:int = 0; i < m_PlayerStates.length; i++)
 		{
-			if(Input.GetButtonDown("Joy"+i+" Start") && !m_PlayerStates[i].m_Joined)
+			if(Input.GetButtonDown("Joy"+i+" OK") && !m_PlayerStates[i].m_Joined)
 			{
 				if(Network.isServer)
 				{
 					var plr : NetworkPlayer;
 					GetComponent(ServerScript).OnLocalPlayerConnected(plr, i);
+					
+					var armor:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
+					
+					if(i%2 == 0)
+						armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
+					else
+						armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
 					
 			
 					m_PlayerStates[i].m_Joined = true;
@@ -347,7 +358,12 @@ function Update () {
 								if(GetComponent(ServerScript).GetClient(k) != null)
 								{
 									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
-										GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex,1);
+									{
+										if(i%2 == 0)
+											GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
+										else
+											GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
+									}
 								}
 							}
 						}
@@ -466,7 +482,7 @@ function StartMatch()
 	if(Network.isServer)
 	{
 		GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
-		GetComponent(ServerScript).LoadLevel("Scene2");
+		GetComponent(ServerScript).LoadLevel("Scene1");
 	}
 	
 }
@@ -494,7 +510,7 @@ function OnGUI()
 		GUILayout.BeginHorizontal();
 		for(p = 0; p < 4; p++)
 		{
-			if(GetComponent(ServerScript).GetClient(p) != null)
+			if(GetComponent(ServerScript).GetClient(p) != null && GetComponent(ServerScript).GetClient(p).m_JoyNum == p && m_PlayerStates[p].m_Joined )
 			{
 				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(p).m_SkinColor;
 				//GUI.color.a = 0.25;
@@ -508,11 +524,13 @@ function OnGUI()
 				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled = true;
 				if(GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag") != null)
 					GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag").renderer.enabled = true;
-				gameObject.Find("BeeCamera").camera.Render();
+				GameObject.Find("Bee"+(p+1)+"/NewBee/BeeArmor").renderer.enabled = true;
+				//gameObject.Find("BeeCamera").camera.Render();
 				GUI.DrawTexture(Rect(p*Screen.width*0.25 + m_GUISkin.label.margin.right, 0 ,Screen.width*0.25 - m_GUISkin.label.margin.right*2, Screen.height*0.5),m_BeeTexture, ScaleMode.ScaleToFit);
 				if(GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag") != null)
 					GameObject.Find("Bee"+(p+1)+"/NewBee/body/head/swag").renderer.enabled = false;
 				GameObject.Find("Bee"+(p+1)+"/NewBee/NewBee").renderer.enabled = false;
+				GameObject.Find("Bee"+(p+1)+"/NewBee/BeeArmor").renderer.enabled = false;
 				
 				GUI.backgroundColor = Color(0,0,0,0.5);
 				if(!m_PlayerStates[p].m_ColorChosen)

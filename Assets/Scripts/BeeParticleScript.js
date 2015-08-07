@@ -81,12 +81,12 @@ function Update () {
 			parts[i].position += (parts[i].velocity+transform.parent.GetComponent(UpdateScript).m_Vel * 0.75) * fDelta;
 		else
 			parts[i].position += parts[i].velocity * fDelta;
-		
+		parts[i].rotation = Mathf.Rad2Deg*Vector3.Dot(parts[i].velocity.normalized, Vector3.up);
 		//HAXE
 		if((parts[i].position-transform.position).magnitude > m_MaxDist)
 				parts[i].position = transform.position+(transform.position-parts[i].position).normalized*m_MaxDist;
 		
-		parts[i].size = 1.0;
+		//parts[i].size = 1.0;
 	
 	}
 	

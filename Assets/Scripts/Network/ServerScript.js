@@ -225,7 +225,7 @@ function OnServerInitialized() {
 	Debug.Log("Registering host with master server...");
 	
 	var plr : NetworkPlayer;
-	OnLocalPlayerConnected(plr, 0);
+  // OnLocalPlayerConnected(plr, 0);
 	// OnPlayerConnected(plr);
 	 //OnPlayerConnected(plr);
 	// OnPlayerConnected(plr);
@@ -403,7 +403,7 @@ function GetNumClients() : int
 
 function GetClient(index : int) : ClientNetworkInfo
 {
-	if(m_Clients.length <= index)
+	if(m_Clients == null || m_Clients.length <= index)
 		return null;
 	return m_Clients[index];
 }
@@ -684,8 +684,13 @@ function GetGameObject() : GameObject
 		var armor:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/BeeArmor").gameObject;
 		armor.renderer.materials[0].color = m_Clients[clientID].m_Color;
 		var body:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/NewBee");
+		var hand:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand");
 		
-
+		var gun:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/BeeGun"));
+		gun.transform.parent = hand;
+		gun.transform.position = hand.position;
+		gun.transform.localScale = Vector3(1,1,1);
+		gun.transform.localEulerAngles.z = -90;
 		if(m_Clients[clientID].m_Swag != "")
 		{
 			Debug.Log("SWAGGING "+m_Clients[clientID].m_Swag);
