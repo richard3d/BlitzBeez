@@ -7,6 +7,7 @@ class Inventory
 }
 var m_Camera:GameObject = null;
 var m_Color:Color = Color.yellow;
+var m_Team:int = 0;
 var m_Meshes:GameObject[] = null;
 var m_SwarmInstance : GameObject = null;
 var m_WorkerBeeInstance : GameObject = null;
@@ -47,6 +48,8 @@ var m_XPMeterFlashTimer:float = 0;
 var m_XPMeterFade :float = 0;
 var m_LifeMeterFlashTimer:float = 0;
 var m_LifeMeterFade :float = 0;
+var m_HitTargetFade : float = 0;
+private var m_HitTargetEntity : GameObject = null; //the last entity we hit with a buller
 
 // var m_CurrSwmXP : float = 0;
 // var m_CurrSwmLevel : int = 0;
@@ -77,6 +80,7 @@ var FlowerTexture:Texture2D = null;
 var CaptureRingTexture:Texture2D = null;
 var NodeLineTexture:Texture2D = null;
 var m_AimTargetTexture : Texture2D = null;
+var m_HitTargetTexture:Texture2D = null;
 
 var m_FocusedGroupNum:int = -1;
 var m_FocusedObject:GameObject = null;
@@ -335,6 +339,20 @@ function Update() {
 	}
 }
 
+function HitTargetFade(hit:GameObject)
+{
+	m_HitTargetEntity = hit;
+	var timer:float = 0.5;
+	m_HitTargetFade = 1;
+	while (timer > 0)
+	{
+		m_HitTargetFade -= 0.066;
+		timer -= 0.033;
+		yield WaitForSeconds(0.033);
+	}
+	
+}
+
 function OnGUI()
 {	
 	//only draw our client info
@@ -349,6 +367,66 @@ function OnGUI()
 		if(m_DrawGUI)
 			DrawGUI();
 	}
+}
+
+public var lineCount: int = 100;
+private var radius: float = 999.0f;
+static var lineMaterial: Material;
+static function CreateLineMaterial() {
+	 if( !lineMaterial ) {
+        lineMaterial = new Material( "Shader \"Lines/Colored Blended\" {" +
+            "SubShader { Pass { " +
+            "    Blend SrcAlpha OneMinusSrcAlpha " +
+            "    ZWrite Off Cull Off Fog { Mode Off } " +
+            "    BindChannels {" +
+            "      Bind \"vertex\", vertex Bind \"color\", color }" +
+            "} } }" );
+        lineMaterial.hideFlags = HideFlags.HideAndDontSave;
+        lineMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
+    }
+}
+// Will be called after all regular rendering is done
+public function OnRenderObject() {
+
+if(GetComponent(BeeControllerScript).m_AimTarget != null)
+	return;
+	CreateLineMaterial();
+	// Apply the line material
+	lineMaterial.SetPass(0);
+	GL.PushMatrix();
+	// match our transform
+	GL.MultMatrix(transform.localToWorldMatrix);
+	// Draw lines
+	// GL.Begin(GL.TRIANGLES);
+	// //for (var i: int = 0; i < lineCount; ++i) {
+		// var a: float = lineCount;
+		// //a =i / a;
+		// var angle: float = 0.5*Mathf.Deg2Rad;//a * Mathf.PI * 2;
+		// // Vertex colors change from red to green
+		// GL.Color(new Color(1, 1, 1, 0.15F));
+		// // One vertex at transform position
+		// GL.Vertex3(0, 0, 10);
+		 // //Another vertex at edge of circle
+		// GL.Vertex3(Mathf.Sin(-angle) * radius, 4, Mathf.Cos(-angle) * radius);
+		// GL.Vertex3(Mathf.Sin(angle) * radius, 4, Mathf.Cos(angle) * radius);
+	// //}
+	// GL.End();
+	// GL.Begin(GL.LINES);
+	// //for (var i: int = 0; i < lineCount; ++i) {
+	
+		// // Vertex colors change from red to green
+		// GL.Color(new Color(1, 1, 1, 0.35F));
+		// // One vertex at transform position
+		// GL.Vertex3(0, 0, 10);
+		// // Another vertex at edge of circle
+		// GL.Vertex3(Mathf.Sin(-angle) * radius, 4, Mathf.Cos(-angle) * (radius+10));
+		// GL.Vertex3(0, 0, 10);
+		// GL.Vertex3(Mathf.Sin(angle) * radius, 4, Mathf.Cos(angle) * (radius+10));
+		// //GL.Vertex3(0, 0, 0);
+		// //GL.Vertex3(0, 0, radius);
+	// //}
+	// GL.End();
+	GL.PopMatrix();
 }
 
 
@@ -666,55 +744,52 @@ function DrawGUI()
 			// }
 		// }
 		
-		for(var i:int = 0; i < NetworkUtils.GetNumClients(); i++)
-		{
-			var player:GameObject = NetworkUtils.GetGameObjectFromClient(i);
-			if(player == null)
-				continue;
-			var honeyPerc :float = NetworkUtils.GetGameObjectFromClient(i).GetComponent(BeeScript).m_Honey;
-			//var fD:float = GameStateManager.m_PointsToWin;
-			//honeyPerc/= fD;
-			//honeyPerc = Mathf.Min(honeyPerc, 1);
+		
 			
 		
-			GUI.color  = NetworkUtils.GetColor(player);
-			GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotTexture, ScaleMode.ScaleToFit, true);
-			GUI.color = Color.white;
-				GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotOutlineTexture, ScaleMode.ScaleToFit, true);
-			GUI.backgroundColor = Color.black;
-			GUI.Label(Rect(164*camScale*i+96*camScale, 0, 128*camScale, 32*camScale),  (honeyPerc).ToString("F2")+"%",FontStyle);
-			// if(NetworkUtils.IsLocalGameObject(player) && player == gameObject)
-			// {
-				// m_HoneyInterpolator = Mathf.Lerp(m_HoneyInterpolator, honeyPerc, Time.deltaTime);
-				// //Debug.Log(NetworkUtils.GetClientObject(i).m_Name);
-				// GUI.DrawTexture(Rect(12*camScale,46*camScale, 200*camScale, 32*camScale), MeterBarBGTexture, ScaleMode.StretchToFill, true);
-				// GUI.color = Color(0.2,0.2,0.2,0.75);
-				// GUI.DrawTexture(Rect(12*camScale,46*camScale, 200*camScale, 32*camScale), MeterBarTexture, ScaleMode.StretchToFill, true);
-				// GUI.color  = Color.white;
-				// GUI.DrawTexture(Rect(12*camScale, 46*camScale, m_HoneyInterpolator*200*camScale, 32*camScale), HiveBarTexture, ScaleMode.StretchToFill, true);
-				// //GUI.DrawTexture(Rect(Screen.width - 356,90, 256, 32), HiveBarBGTexture, ScaleMode.ScaleToFit, true);
-				// GUI.color = color;
-				// GUI.DrawTexture(Rect(m_HoneyInterpolator*200*camScale, 24*camScale, 24*camScale, 24*camScale), BeeTexture, ScaleMode.ScaleToFit, true);
-				// GUI.color = Color.white;
-				// GUI.DrawTexture(Rect(m_HoneyInterpolator*200*camScale, 24*camScale, 24*camScale, 24*camScale), BeeWingsTexture, ScaleMode.ScaleToFit, true);
-				// var place = CalculateRank();
-				// var strPlace:String = place == 1 ? "st" : place == 2 ? "nd" : place == 3 ? "rd" : "th";
-				// GUI.Label(Rect(m_HoneyInterpolator*200*camScale, 0, 128*camScale, 128*camScale), place+strPlace, SmallFontStyle);
-			// }
-			// else
-			// {
-				// GUI.color = NetworkUtils.GetColor(player);
-				// GUI.color.a = 0.8;
-				// GUI.DrawTexture(Rect(honeyPerc*200*camScale, 24*camScale, 24*camScale, 24*camScale), BeeTexture, ScaleMode.ScaleToFit, true);
-				// GUI.color = Color.white;
-				// GUI.color.a = 0.8;
-				// GUI.DrawTexture(Rect(honeyPerc*200*camScale, 24*camScale, 24*camScale, 24*camScale), BeeWingsTexture, ScaleMode.ScaleToFit, true);
-				// GUI.color = Color.white;
-			// }
-		}
+			for(var i:int = 0; i < NetworkUtils.GetNumClients(); i++)
+			{	
+				var player:GameObject = NetworkUtils.GetGameObjectFromClient(i);
+				if(player == null)
+					continue;
+				
+				if(gameObject == NetworkUtils.GetGameObjectFromClient(0))
+				{
+					var honeyPerc :float = NetworkUtils.GetGameObjectFromClient(i).GetComponent(BeeScript).m_Honey;
+					//var fD:float = GameStateManager.m_PointsToWin;
+					//honeyPerc/= fD;
+					//honeyPerc = Mathf.Min(honeyPerc, 1);
+					
+				
+					GUI.color  = NetworkUtils.GetColor(player);
+					GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotTexture, ScaleMode.ScaleToFit, true);
+					GUI.color = Color.white;
+						GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotOutlineTexture, ScaleMode.ScaleToFit, true);
+					GUI.backgroundColor = Color.black;
+					GUI.Label(Rect(164*camScale*i+96*camScale, 0, 128*camScale, 32*camScale),  (honeyPerc).ToString("F2")+"%",FontStyle);
+				
+				}
+			}
 		GUI.EndGroup();
 		
-		
+		//draw other player labels
+		GUI.color = Color.red;
+		for(i= 0; i < NetworkUtils.GetNumClients(); i++)
+		{	
+			player = NetworkUtils.GetGameObjectFromClient(i);
+			
+			if(player == null || player.GetComponent(RespawnDecorator) != null)
+				continue;
+			
+			if(player != gameObject && Vector3.Dot((player.transform.position - transform.position).normalized, transform.forward) > 0.1)
+			{
+				var pt:Vector3 = m_Camera.camera.WorldToScreenPoint(player.transform.position+Vector3.up *20);
+				pt.y = Screen.height-pt.y;
+				var rt:Rect = GUILayoutUtility.GetRect(new GUIContent(player.name), SmallFontStyle);
+				GUI.Label(Rect(pt.x-rt.width*0.5*camScale,pt.y-rt.height*0.5*camScale, rt.width*camScale, rt.height*camScale), player.name,SmallFontStyle);
+			}
+		}
+		GUI.color = Color.white;
 		//draw flower counter 
 		 // GUI.BeginGroup(Rect(right-324*camScale, camPos.y+102*camScale, 512*camScale, 512*camScale));
 		// // GUI.Label(Rect(42*camScale, 0, 256*camScale, 48*camScale), GetNumFlowers()+"x Chain", SmallFontStyle);
@@ -734,15 +809,38 @@ function DrawGUI()
 	
 		
 		// GUI.EndGroup();
+		
+		//draw aim target
 		if(beeCtrlScript.m_AimTarget != null)
 		{
 			var tgt:Vector3 = m_Camera.camera.WorldToScreenPoint(beeCtrlScript.m_AimTarget.transform.position);
-			var dist = Vector3.Dot(beeCtrlScript.m_AimTarget.transform.position - transform.position,transform.forward);
+			var dist = (beeCtrlScript.m_AimTarget.transform.position - transform.position).magnitude;
 			var aimPt:Vector3 = m_Camera.camera.WorldToScreenPoint(transform.position+transform.forward*dist);
 			tgt.y = Screen.height-tgt.y;
 			aimPt.y = Screen.height - aimPt.y;
-			GUI.DrawTexture(Rect(tgt.x-16*camScale,tgt.y-16*camScale, 32*camScale, 32*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
-			GUI.DrawTexture(Rect(aimPt.x-8*camScale,aimPt.y-8*camScale, 16*camScale, 16*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+			GUI.DrawTexture(Rect(tgt.x-24*camScale,tgt.y-24*camScale, 48*camScale, 48*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+			
+			GUI.color.a = m_HitTargetFade;
+			GUI.DrawTexture(Rect(tgt.x-48*camScale,tgt.y-48*camScale, 96*camScale, 96*camScale), m_HitTargetTexture, ScaleMode.ScaleToFit, true);
+			GUI.color.a = 1;
+			GUI.DrawTexture(Rect(aimPt.x-12*camScale,aimPt.y-12*camScale, 24*camScale, 24*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+		}
+		else
+		{
+			dist = 200;
+			aimPt = m_Camera.camera.WorldToScreenPoint(transform.position+transform.forward*dist);
+			aimPt.y = Screen.height-aimPt.y;
+			GUI.DrawTexture(Rect(aimPt.x-12*camScale,aimPt.y-12*camScale, 24*camScale, 24*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+			if(m_HitTargetEntity)
+			{
+				
+				
+				tgt = m_Camera.camera.WorldToScreenPoint(m_HitTargetEntity.transform.position);
+				tgt.y = Screen.height-tgt.y;	
+				GUI.color.a = m_HitTargetFade;
+				GUI.DrawTexture(Rect(tgt.x-48*camScale,tgt.y-48*camScale, 96*camScale, 96*camScale), m_HitTargetTexture, ScaleMode.ScaleToFit, true);
+				}
+			// }
 		}
 		
 		
@@ -966,6 +1064,7 @@ function Show(show:boolean)
 		}
 		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = false;
 		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = false;
+		transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand/gun").gameObject.renderer.enabled = false;
 		if(transform.Find("Bee/NewBee/body/head/swag") != null)
 			transform.Find("Bee/NewBee/body/head/swag").gameObject.renderer.enabled = false;
 	}
@@ -977,6 +1076,7 @@ function Show(show:boolean)
 		}
 		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = true;
 		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = true;
+		transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand/gun").gameObject.renderer.enabled = true;
 		if(transform.Find("Bee/NewBee/body/head/swag") != null)
 			transform.Find("Bee/NewBee/body/head/swag").gameObject.renderer.enabled = true;
 	}
@@ -1043,28 +1143,39 @@ function OnBulletCollision(coll:BulletCollision)
 		else
 		if(coll.bullet.GetComponent(BulletScript).m_PowerShot )
 		{
-			//hit by a powershot 
-			//we got hit by a bullet
-			if(GetComponent(ItemDecorator) != null)
+			if(coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team)
 			{
-				//drop item if we have it out
-				ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
-			}
-			if(m_HP - 3 <= 0)
-			{
-				networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
-				coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
-				KillAndRespawn(true);
-			}
-			else
-			{
-				
-				networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
+				//hit by a powershot 
+				//we got hit by a bullet
+				if(GetComponent(ItemDecorator) != null)
+				{
+					//drop item if we have it out
+					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+				}
+				if(m_HP - 3 <= 0)
+				{
+					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
+					KillAndRespawn(true);
+					CoinScript.SpawnCoins(transform.position, 3, coll.bullet.GetComponent(BulletScript).m_Owner);
+					//notify shooting player of contact
+					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
+				}
+				else
+				{
+					
+					networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
+					
+					//notify shooting player of contact
+					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
+				}
 			}
 		}
 		else
 		{
-			if(coll.bullet.GetComponent(BulletScript).m_Owner != gameObject)
+			
+			if(coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team)
+			//if(coll.bullet.GetComponent(BulletScript).m_Owner != gameObject)
 			{
 				//we got hit by a bullet
 				if(GetComponent(ItemDecorator) != null)
@@ -1077,12 +1188,19 @@ function OnBulletCollision(coll:BulletCollision)
 				{
 					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
+					CoinScript.SpawnCoins(transform.position, 3, coll.bullet.GetComponent(BulletScript).m_Owner);
 					KillAndRespawn(true);
+					
+					//notify shooting player of contact
+					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
 				}
 				else
 				{
 				
 					networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+					
+					//notify shooting player of contact
+					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
 				}
 			}
 		}
@@ -1158,10 +1276,26 @@ function OnNetworkInstantiate (info : NetworkMessageInfo)
 
 function FindRespawnLocation() : Vector3
 {
-		var locs:GameObject[] = gameObject.FindGameObjectsWithTag("Respawn");
-		var index:int = Random.Range(0, locs.length-1);
-		var pos:Vector3 = locs[index].transform.position;
-		pos.y = 350;
+		var locs:GameObject[] = gameObject.FindGameObjectsWithTag("Hives");
+		var pos:Vector3;
+		var clientInfo:ClientNetworkInfo = NetworkUtils.GetClientObjectFromGameObject(gameObject);
+		for(var i:int = 0; i < locs.length; i++)
+		{
+			
+			if(locs[i].GetComponent(RespawnScript).m_TeamOwner == clientInfo.m_Side)
+			{
+				locs[i].renderer.material.color = clientInfo.m_Color;
+				locs[i].transform.Find("Swarm").gameObject.renderer.material.SetColor("_TintColor", clientInfo.m_Color);
+				var offset:Vector3 = Vector3(Random.Range(-1,1), 0, Random.Range(-1,1));
+				offset = offset.normalized *locs[i].GetComponent(RespawnScript).m_Radius;
+				pos= locs[i].transform.position+offset;
+				pos.y = 350;
+				return pos;
+			}
+		}
+		// var index:int = Random.Range(0, locs.length-1);
+		// var pos:Vector3 = locs[index].transform.position;
+		// pos.y = 350;
 		return pos;
 }
 
@@ -1705,7 +1839,7 @@ function Hurt()
 	go.name = go.name+gameObject.name;
 	go.renderer.material.color = m_Color;
 	go.transform.position = pos; 
-	go.transform.localScale *= 20;
+	//go.transform.localScale *= 20;
 	go.GetComponent(HiveScript).m_Owner = gameObject;
 	go.GetComponent(HiveScript).m_Pedestal = GetComponent(PedestalDecorator).m_Pedestal;
 	go.GetComponent(HiveScript).m_Pedestal.GetComponent(HivePedestalScript).m_Hive = go;

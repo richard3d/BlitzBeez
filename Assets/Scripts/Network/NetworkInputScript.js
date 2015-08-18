@@ -161,7 +161,8 @@ function Update () {
 	m_PrevActions = m_CurrentActions;
 	m_CurrentActions = 0;
 	
-	var joyStr = "Joy"+m_JoyOwner+" ";
+	var joyStr = "Joy"+0+" ";
+	//var joyStr = "Joy"+m_JoyOwner+" ";
 	
 	//handle movement keys
 	m_CurrInputState.m_XAxisVal = Input.GetAxis(joyStr+"Strafe Left/Right");
@@ -206,13 +207,13 @@ function Update () {
 		//END NEW
 		
 		//ORIGINAL
-		var Sensitivity = 7;
+		var Sensitivity = 14;
 		var LookAt :Vector3 = transform.forward;
 		m_CursorDist = 100;// += Input.GetAxis("Look Up/Down")*(Sensitivity+5);
 		m_CursorDist = Mathf.Max(10,Mathf.Min(m_CursorDist, 200));
 		
-		var rotAng:float = Input.GetAxis(joyStr+"Look Left/Right")*(200.0/m_CursorDist)*Sensitivity;
-		Debug.Log(rotAng);
+		//var rotAng:float = Input.GetAxis(joyStr+"Look Left/Right")*(200.0/m_CursorDist)*Sensitivity;
+		var rotAng:float = Input.GetAxis(joyStr+"Look Left/Right")*Sensitivity;
 		LookAt =  Quaternion.AngleAxis(rotAng, Vector3.up)*LookAt;
 		LookAt.Normalize();
 		

@@ -75,9 +75,10 @@ class LoadOut
 			case -1:
 				//| standard single fire shot
 				m_BaseClipSize = 30;
+				m_Pylons[0].m_BurstCount = 1;
 				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
-				m_Pylons[0].m_FireRate = 0.1;
-				m_Pylons[0].m_FireTime = 0.15;
+				m_Pylons[0].m_FireRate = 0.01;
+				m_Pylons[0].m_FireTime = 0.01;
 				
 			break;
 			case 0:

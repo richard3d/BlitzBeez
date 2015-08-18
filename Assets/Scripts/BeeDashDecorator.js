@@ -58,6 +58,11 @@ function Update () {
 		//Camera.main.fov = 45 + (1-Mathf.Abs(((m_Lifetime/0.25)*2-1)))*3;
 	}
 	
+	// if(Vector3.Dot(transform.right, GetComponent(UpdateScript).m_Vel.normalized) > 0.3)
+		// transform.eulerAngles.z = m_Lifetime / 0.25 * 359;
+	// else if(Vector3.Dot(transform.right, GetComponent(UpdateScript).m_Vel.normalized) < -0.3)
+		// transform.eulerAngles.z = m_Lifetime / 0.25 * -359;
+	
 	if(m_Lifetime <= 0.0)
 	{
 		

@@ -9,7 +9,7 @@
 // static var USE : int = 64;
 // static var DASH : int = 128;
 // var m_CurrentActions : int = 0;
-var m_PlayerMask:LayerMask;
+var m_TerrainMask:LayerMask;
 private var m_MovementKeyPressed : boolean = false;
 private var m_MovementSpeed : float = 240;
 var m_ShootButtonHeld : boolean = false;
@@ -477,22 +477,35 @@ function OnNetworkInput(IN : InputState)
 				
 				for(i = 0; i < players.length; i++)
 				{
-					if(players[i] != gameObject)
+					if(players[i] != gameObject && players[i].GetComponent(BeeScript).m_Team != beeScript.m_Team)
 					{
-						//if(Physics.Linecast(transform.position, players[i].transform.position, LayerMask.NameToLayer("Terrain")))
-						//	continue;
-						
+						if(Physics.Linecast(transform.position, players[i].transform.position, m_TerrainMask))
+							continue;
+						if(players[i].GetComponent(RespawnDecorator) != null)
+							continue;
 						var dot:float = Vector3.Angle(transform.forward.normalized, (players[i].transform.position - transform.position));
-					//	Debug.Log("Dot ")+dot;
 						if(dot < 45 && dot < closestDot)
 						{
-						
 							closestDot = dot;
 							m_AimTarget = players[i];
 						}
-						//gameObject.transform.LookAt(players[i].transform.position);
 					}
 				}
+				// closestDot = 99999;
+				// //no player found, try flowers next
+				// if(m_AimTarget == null)
+				// {
+					// var flowers:GameObject[] = GameObject.FindGameObjectsWithTag("Flowers");
+					// for(i = 0; i < flowers.length; i++)
+					// {
+						// dot = Vector3.Angle(transform.forward.normalized, (flowers[i].transform.position - transform.position));
+						// if(dot < 45 && dot < closestDot)
+						// {
+							// closestDot = dot;
+							// m_AimTarget = flowers[i];
+						// }
+					// }
+				// }
 			}
 			
 		}
@@ -506,8 +519,18 @@ function OnNetworkInput(IN : InputState)
 		if(m_AimTarget != null)
 		{
 			
-			gameObject.transform.LookAt(m_AimTarget.transform.position);
-			gameObject.transform.Rotate(m_AimOffset*Vector3.up);
+			var ang:float = Vector3.Angle((m_AimTarget.transform.position - transform.position).normalized, transform.forward);
+			if(Vector3.Dot((m_AimTarget.transform.position - transform.position).normalized, transform.right) < 0)
+			{
+				ang = -ang;
+			}
+			
+			if(Mathf.Abs(m_AimOffset) < 0.1)
+				gameObject.transform.Rotate(ang*Vector3.up * Time.deltaTime*4);
+			gameObject.transform.Rotate(m_AimOffset*0.5*Vector3.up);
+		
+			if(m_AimTarget.GetComponent(RespawnDecorator) != null)
+				m_AimTarget = null;
 		}
 	
 	}
@@ -586,17 +609,17 @@ function HandleShotLogic()
 @RPC function DecrementAmmo()
 {
 	
-	if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
-	{
-		m_ReloadTimer = m_Stats["Reload_Speed"];
-		m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
-	}
+	// if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
+	// {
+		// m_ReloadTimer = m_Stats["Reload_Speed"];
+		// m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+	// }
 	
-	if(NetworkUtils.IsLocalGameObject(gameObject))
-	{
-		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.5, 0.5);
-	}
-	GetComponentInChildren(BeeParticleScript).RemoveParticle();
+	// if(NetworkUtils.IsLocalGameObject(gameObject))
+	// {
+		// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.5, 0.5);
+	// }
+	// GetComponentInChildren(BeeParticleScript).RemoveParticle();
 	
 }
 
@@ -663,6 +686,7 @@ function OnPlayerLookAt(at : Vector3)
 		if(m_AimTarget)
 		{
 			m_AimOffset = at.magnitude;
+			//Debug.Log(m_AimOffset);
 			if(Vector3.Dot(at, transform.forward) < 0)
 				m_AimOffset = -m_AimOffset;
 		}

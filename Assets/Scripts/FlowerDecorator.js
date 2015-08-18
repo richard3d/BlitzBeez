@@ -13,6 +13,10 @@ private var m_PollenParticles : GameObject = null;
 var m_ProgressEffect : GameObject = null;
 var m_FlashTimer : float = -1;
 private var m_Camera:GameObject = null;
+
+
+
+
 function Start () {
 
 	m_Camera = GetComponent(BeeScript).m_Camera;
@@ -27,13 +31,18 @@ function Start () {
 		//m_Flower.audio.Play();
 		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
 		m_Camera.animation.Play("CameraLessDramaticZoom");
+		
+		m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(6, 25, -75);
+		m_Camera.GetComponent(CameraScript).m_Pitch = 15;
 	}
 	
 	//don't show progress meter if the flower is already completely occupied
 	if(m_Flower.GetComponent(FlowerScript).m_NumBees < m_Flower.GetComponent(FlowerScript).m_MaxBees)
 	{
 		if(NetworkUtils.IsLocalGameObject(gameObject))
+		{
 			m_Flower.audio.Play();
+		}
 		m_ProgressEffect = GameObject.Instantiate(m_Flower.GetComponent(FlowerScript).m_ProgressEffectInstance);
 		m_ProgressEffect.transform.position = m_Flower.transform.position + Vector3.up * 6;
 		m_ProgressEffect.transform.localScale = Vector3(25,0,25);
@@ -167,31 +176,32 @@ function Update () {
 					offset  = Vector3(0,200,0);
 					ServerRPC.Buffer(networkView,"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
 					m_NumWorkersAdded++;
-					if(Network.isServer)
-					{
-						//Since the rock is destroying there is no reason to keep its messages in the buffer up to this point
-						//hence we clear them out
+					CoinScript.SpawnCoins(transform.position + Vector3.up *transform.localScale.magnitude*4 ,m_NumWorkersAdded * 3,gameObject);
+					// if(Network.isServer)
+					// {
+						// //Since the rock is destroying there is no reason to keep its messages in the buffer up to this point
+						// //hence we clear them out
 						
-						var InstType : GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Coin"));
-						if(InstType != null)
-						{
-							var count : int = m_NumWorkersAdded * 3;
-							for(var i : int = 0; i < count; i++)
-							{
-								var Quat = Quaternion.AngleAxis(360.0/count * i, Vector3.up);
-								var vel =  Quat*Vector3(0,0,1) ;//: Vector2 = Random.insideUnitCircle.normalized*50;
-								var viewID : NetworkViewID= Network.AllocateViewID();
-								var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate("Coin","", transform.position + Vector3.up *transform.localScale.magnitude*4, Quaternion.identity, viewID ,  0);
-								go1.GetComponent(UpdateScript).m_Vel = vel.normalized * Random.Range(20, 50);
-								//go1.GetComponent(UpdateScript).m_Vel.z = vel.y;
-								go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);
-								ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, "Coin",go1.name, transform.position + Vector3.up *transform.localScale.magnitude*4, Quaternion.identity, viewID, 0);
-								go1.GetComponent(CoinScript).m_Owner = gameObject;
-								//go1.collider.enabled = false;
-								//go1.GetComponent(UpdateScript).MakeNetLive(); 	
-							}
-						}
-					}
+						// //var InstType : GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Coin"));
+						// //if(InstType != null)
+						// //{
+							// var count : int = m_NumWorkersAdded * 3;
+							// for(var i : int = 0; i < count; i++)
+							// {
+								// var Quat = Quaternion.AngleAxis(360.0/count * i, Vector3.up);
+								// var vel =  Quat*Vector3(0,0,1) ;//: Vector2 = Random.insideUnitCircle.normalized*50;
+								// var viewID : NetworkViewID= Network.AllocateViewID();
+								// var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate("Coin","", transform.position + Vector3.up *transform.localScale.magnitude*4, Quaternion.identity, viewID ,  0);
+								// go1.GetComponent(UpdateScript).m_Vel = vel.normalized * Random.Range(20, 50);
+								// //go1.GetComponent(UpdateScript).m_Vel.z = vel.y;
+								// go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);
+								// ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, "Coin",go1.name, transform.position + Vector3.up *transform.localScale.magnitude*4, Quaternion.identity, viewID, 0);
+								// go1.GetComponent(CoinScript).m_Owner = gameObject;
+								// //go1.collider.enabled = false;
+								// //go1.GetComponent(UpdateScript).MakeNetLive(); 	
+							// }
+						// //}
+					// }
 				}
 			}
 		}
@@ -284,6 +294,9 @@ function OnDestroy()
 			m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 			m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
 			m_Camera.animation.Play("CameraLessDramaticZoom");
+			
+			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 35, -75);
+			m_Camera.GetComponent(CameraScript).m_Pitch = 20;
 		}
 		
 		if(Network.isServer)
@@ -338,6 +351,8 @@ function OnDestroy()
 			m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 			m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
 			m_Camera.animation.Play("CameraLessDramaticZoom");
+				m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 35, -75);
+			m_Camera.GetComponent(CameraScript).m_Pitch = 20;
 		}
 	}
 	Destroy(m_ProgressEffect);

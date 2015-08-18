@@ -18,6 +18,8 @@ var m_Owner : GameObject = null;
 var m_Tgt : GameObject = null;
 var m_Homing : float = 0;
 
+static var m_Pool:Array[] = null;
+
 
 class BulletCollision implements System.IComparable
 {

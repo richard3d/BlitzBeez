@@ -6,6 +6,7 @@ var m_CamDrag : float;
 
 var m_Offset:Vector3 = Vector3(0,0,200);
 var m_DefaultOffset:Vector3 = Vector3(0,-200,200);
+var m_FocalOffset:Vector3 = Vector3(0,0,0);
 var m_Pitch:float = 45;
 var m_DefaultPitch:float = 45;
 
@@ -99,7 +100,7 @@ function Update () {
 			//Debug.DrawRay(rays[i], -transform.forward*999, Color.red);
 			if(Physics.Raycast(rays[i], -transform.forward, r, Mathf.Infinity, m_TerrainLayer))
 			{
-				if(r.distance < dist)
+				if(r.distance < dist && r.distance < m_DefaultOffset.magnitude)
 				{
 					dist = r.distance;
 					point = r.point;
@@ -143,7 +144,7 @@ function Update () {
 		
 		m_CurrOffset = Vector3.Lerp(m_CurrOffset, m_Offset, Time.deltaTime*5);
 		
-		m_CamVel = m_Target.transform.position-m_CamPos;
+		m_CamVel = m_Target.transform.position+m_FocalOffset.x*m_Target.transform.right-m_CamPos;
 		m_CamPos += m_CamVel * Time.deltaTime*4;
 		
 		//New Shit

@@ -541,8 +541,7 @@ function GetGameObject() : GameObject
 	var viewID : NetworkViewID= Network.AllocateViewID();
 	Debug.Log("ViewID "+viewID);
 	var go : GameObject = NetworkInstantiate(m_PlayerPrefab.name,"", Vector3.up, Quaternion.identity, viewID ,  0);
-	go.transform.position = go.GetComponent(BeeScript).FindRespawnLocation();
-	go.transform.position.y = 7;
+	
 	//go.AddComponent(ControlDisablerDecorator);
 	ServerRPC.Buffer(m_SyncMsgsView, "NetworkInstantiate", RPCMode.Others, m_PlayerPrefab.name,"", go.transform.position, Quaternion.identity, viewID, 0);
 	go.name = "Bee" + clientID; 
@@ -578,7 +577,8 @@ function GetGameObject() : GameObject
 	{
 		m_Clients[clientID].m_GameObject = gameObject.Find(go);
 		m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_ClientOwner = clientID;
-		
+		m_Clients[clientID].m_GameObject.transform.position = m_Clients[clientID].m_GameObject.GetComponent(BeeScript).FindRespawnLocation();
+		m_Clients[clientID].m_GameObject.transform.position.y = 7;
 		if(m_Clients[clientID].m_Player.ToString() == "0")
 		{
 			//tell the input system it is dealing with a local client
@@ -610,7 +610,7 @@ function GetGameObject() : GameObject
 			}
 			playerCam.GetComponent(CameraScript).m_Target = m_Clients[clientID].m_GameObject;
 			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Camera = playerCam;
-			
+			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Team = m_Clients[clientID].m_Side;
 			//perform calculations for screen rects for each camera
 			var numLocalClients:int = 0;
 		
@@ -691,6 +691,7 @@ function GetGameObject() : GameObject
 		gun.transform.position = hand.position;
 		gun.transform.localScale = Vector3(1,1,1);
 		gun.transform.localEulerAngles.z = -90;
+		gun.name = "gun";
 		if(m_Clients[clientID].m_Swag != "")
 		{
 			Debug.Log("SWAGGING "+m_Clients[clientID].m_Swag);

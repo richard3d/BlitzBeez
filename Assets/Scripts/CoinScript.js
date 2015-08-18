@@ -17,6 +17,27 @@ function Start () {
 
 }
 
+static function SpawnCoins(pos:Vector3, num:int, owner:GameObject)
+{
+	if(Network.isServer)
+	{
+		for(var i : int = 0; i < num; i++)
+		{
+			var Quat = Quaternion.AngleAxis(360.0/num * i, Vector3.up);
+			var vel =  Quat*Vector3(0,0,1) ;//: Vector2 = Random.insideUnitCircle.normalized*50;
+			var viewID : NetworkViewID= Network.AllocateViewID();
+			var go1 : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate("Coin","", pos, Quaternion.identity, viewID ,  0);
+			go1.GetComponent(UpdateScript).m_Vel = vel.normalized * Random.Range(120, 50);
+			go1.GetComponent(UpdateScript).m_Vel.y = Random.Range(20, 100);
+			ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, "Coin",go1.name, pos, Quaternion.identity, viewID, 0);
+			
+			go1.GetComponent(CoinScript).m_Owner = owner;	
+			go1.GetComponent(TrailRenderer).enabled = true;
+		}
+
+	}
+}
+
 function Update () {
 
 	if(m_Owner != null)

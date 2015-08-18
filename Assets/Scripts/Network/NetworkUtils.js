@@ -83,6 +83,8 @@ public class NetworkUtils
 	public static function GetClientObjectFromGameObject(go:GameObject):ClientNetworkInfo
 	{
 		var clientID:int = GetClientFromGameObject(go);
+		if(clientID < 0)
+			return null;
 		if(Network.isServer)
 		{
 			return GameObject.Find("GameServer").GetComponent(ServerScript).GetClient(clientID);

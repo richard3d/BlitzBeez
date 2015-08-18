@@ -360,9 +360,15 @@ function Update () {
 									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
 									{
 										if(i%2 == 0)
+										{
+											GetComponent(ServerScript).GetClient(k).m_Side = 0;
 											GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
+										}
 										else
+										{
+											GetComponent(ServerScript).GetClient(k).m_Side = 1;
 											GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
+										}
 									}
 								}
 							}
@@ -482,7 +488,7 @@ function StartMatch()
 	if(Network.isServer)
 	{
 		GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
-		GetComponent(ServerScript).LoadLevel("Scene1");
+		GetComponent(ServerScript).LoadLevel("Scene2");
 	}
 	
 }

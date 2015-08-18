@@ -138,7 +138,7 @@ function Update () {
 	{
 		if(Network.isServer)
 		{
-			ServerRPC.Buffer(networkView, "CreateHive", RPCMode.All, transform.position + Vector3(0,16,0));
+			ServerRPC.Buffer(networkView, "CreateHive", RPCMode.All, transform.position + Vector3(0,32,0));
 			ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "PedestalDecorator");
 			return;
 		}

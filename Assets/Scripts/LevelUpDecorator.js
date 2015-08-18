@@ -10,18 +10,18 @@ function Start () {
 	{
 		m_PlayerCam = gameObject.GetComponent(BeeScript).m_Camera;
 		
-		m_OrigCamOffset = m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset;
-		m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,23,-26);
-		m_PlayerCam.GetComponent(CameraScript).m_Pitch = 30;
+		// m_OrigCamOffset = m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset;
+		// m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,23,-35);
+		// m_PlayerCam.GetComponent(CameraScript).m_Pitch = 30;
 		m_PlayerCam.GetComponent(MotionBlur).enabled = true;
-		m_PlayerCam.GetComponent(DepthOfFieldScatter).enabled = false;
+	
 		m_PlayerCam.GetComponent(CameraScript).Shake(1.5,0.35);
 	}
 
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("levelup");
-	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
-	transform.GetChild(0).localEulerAngles.z = 0;
+	//GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	//GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("levelup");
+	//GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
+	//transform.GetChild(0).localEulerAngles.z = 0;
 	
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
 	m_LightEffect.animation.Play();
@@ -61,14 +61,13 @@ function OnDestroy()
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		m_PlayerCam.GetComponent(MotionBlur).enabled = false;
-		m_PlayerCam.GetComponent(DepthOfFieldScatter).enabled = true;
-		m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = m_OrigCamOffset;
-		m_PlayerCam.GetComponent(CameraScript).m_Pitch = m_PlayerCam.GetComponent(CameraScript).m_DefaultPitch;
+	//	m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = m_OrigCamOffset;
+	//	m_PlayerCam.GetComponent(CameraScript).m_Pitch = m_PlayerCam.GetComponent(CameraScript).m_DefaultPitch;
 		
 	}
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("fly");
-	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 0;
+	//GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	//GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("fly");
+	//GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 0;
 	//
 	GetComponent(BeeScript).m_CurrXP = 0;
 	GetComponent(BeeScript).m_CurrLevel++;

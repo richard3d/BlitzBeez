@@ -62,7 +62,7 @@ function OnGUI()
 			
 				var maxHP:float = m_MaxHP;
 				var percent:float = m_HP/maxHP;
-				Debug.Log(percent);
+			
 				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
 				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width*percent, height), m_LifeTexture);
 			}
@@ -77,7 +77,7 @@ function OnBulletCollision(coll:BulletCollision)
 {
 	if(!Network.isServer)
 		return;
-	if(coll.bullet.GetComponent(BulletScript).m_Owner != m_Owner)
+	if(coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Team != GetComponent(RespawnScript).m_TeamOwner)
 	{
 		if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
 			coll.bullet.networkView.RPC("DamageHive", RPCMode.All,gameObject.name, 5);
