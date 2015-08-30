@@ -59,7 +59,7 @@ var m_NumDashes : int = 3;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":-1, "Clip_Size":-1, "Special_Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload_Speed":-1,"Powershot_Reload":-1,  "Fire_Rate" : -1, "Pollination_Time":-1, "Max_Workers":-1, "Worker_Generation":-1 };
+var m_Stats = {"Loadout":0, "Clip_Size":-1, "Special_Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload_Speed":-1,"Powershot_Reload":-1,  "Fire_Rate" : -1, "Pollination_Time":-1, "Max_Workers":-1, "Worker_Generation":-1 };
 
 
 private var m_Swarm:GameObject = null;
@@ -321,7 +321,8 @@ function OnNetworkInput(IN : InputState)
 				}
 				else
 				{
-					var go : GameObject = Network.Instantiate(m_PowerBulletInstance[powerShot+1], transform.position, transform.rotation, 0);
+					//var go : GameObject = Network.Instantiate(m_PowerBulletInstance[powerShot+1], transform.position, transform.rotation, 0);
+					var go : GameObject = BulletScript.SpawnBullet(m_PowerBulletInstance[powerShot+1], transform.position, Vector3.zero);
 					networkView.RPC("PowerShot", RPCMode.All, go.name);
 				}
 			//	}
@@ -585,14 +586,16 @@ function HandleShotLogic()
 			bulletPos.y = transform.position.y;
 			
 			
-			//viewID = Network.AllocateViewID();
-			//var go : GameObject = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(m_BulletInstance.name,"", transform.position, Quaternion.identity, viewID ,  0);
-			//ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, m_BulletInstance.name,go.name, transform.position, Quaternion.identity, viewID, 0);
+		
 			var go : GameObject = null;
-			if(m_LoadOut.m_Pylons[i].m_BulletInstance != null)
-				go  = Network.Instantiate(m_LoadOut.m_Pylons[i].m_BulletInstance, bulletPos , Quaternion.identity, 0);	
-			else
-				go  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
+			go = BulletScript.SpawnBullet(m_BulletInstance,bulletPos,Vector3.zero);
+			//Uncomment this later if not using pool!!!
+			// if(m_LoadOut.m_Pylons[i].m_BulletInstance != null)
+				// go  = Network.Instantiate(m_LoadOut.m_Pylons[i].m_BulletInstance, bulletPos , Quaternion.identity, 0);	
+			// else
+				// go  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
+			
+			
 			//go.GetComponent(BulletScript).m_BulletType = m_Stats["Special_Rounds"];
 			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
 		}
@@ -674,7 +677,7 @@ function HandleShotLogic()
 	// }
     go.renderer.material.SetColor("_Color",color);
 	go.renderer.material.SetColor("_Emission", color);
-	
+	go.GetComponent(BulletScript).Start();
 	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
 	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
 }

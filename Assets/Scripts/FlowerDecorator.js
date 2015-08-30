@@ -14,7 +14,8 @@ var m_ProgressEffect : GameObject = null;
 var m_FlashTimer : float = -1;
 private var m_Camera:GameObject = null;
 
-
+private var m_OrigOffset:Vector3;
+private var m_OrigPitch:float;
 
 
 function Start () {
@@ -29,9 +30,11 @@ function Start () {
 	{
 	
 		//m_Flower.audio.Play();
-		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
-		m_Camera.animation.Play("CameraLessDramaticZoom");
+		//m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
+		//m_Camera.animation.Play("CameraLessDramaticZoom");
 		
+		m_OrigOffset = m_Camera.GetComponent(CameraScript).m_DefaultOffset;
+		m_OrigPitch = m_Camera.GetComponent(CameraScript).m_Pitch;
 		m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(6, 25, -75);
 		m_Camera.GetComponent(CameraScript).m_Pitch = 15;
 	}
@@ -291,12 +294,12 @@ function OnDestroy()
 		gameObject.Destroy(m_ShieldEffect);
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
-			m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
-			m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
-			m_Camera.animation.Play("CameraLessDramaticZoom");
+			//m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+			//m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+		//	m_Camera.animation.Play("CameraLessDramaticZoom");
 			
-			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 35, -75);
-			m_Camera.GetComponent(CameraScript).m_Pitch = 20;
+			m_Camera.GetComponent(CameraScript).m_DefaultOffset = m_OrigOffset;
+			m_Camera.GetComponent(CameraScript).m_Pitch = m_OrigPitch;
 		}
 		
 		if(Network.isServer)
@@ -348,11 +351,11 @@ function OnDestroy()
 			// txt.GetComponent(GUIText).text = "+ $25";
 			// txt.GetComponent(GUIText).material.color = Color.yellow;
 			
-			m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
-			m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
-			m_Camera.animation.Play("CameraLessDramaticZoom");
-				m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 35, -75);
-			m_Camera.GetComponent(CameraScript).m_Pitch = 20;
+			//m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+			//m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
+			//m_Camera.animation.Play("CameraLessDramaticZoom");
+				m_Camera.GetComponent(CameraScript).m_DefaultOffset = m_OrigOffset;
+			m_Camera.GetComponent(CameraScript).m_Pitch = m_OrigPitch;
 		}
 	}
 	Destroy(m_ProgressEffect);

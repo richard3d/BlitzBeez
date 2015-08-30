@@ -1418,7 +1418,25 @@ function CalculateRank() : int
 		var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
 		splatter.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*01;
 		splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
-		splatter.renderer.material.color = color;
+		splatter.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
+		splatter.transform.localScale *= 1.5;
+		
+		var deathEffect:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/ExplosionParticles"));
+		deathEffect.transform.position = transform.position + Vector3(0,12,0);
+		deathEffect.transform.GetChild(0).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
+		deathEffect.transform.GetChild(1).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
+		// for(var i:int = 0; i < 6; i++)
+		// {
+			// var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
+			// var ray:Vector3 = Random.onUnitSphere;
+			// if(ray.y > 0)
+				// ray.y = -ray.y;
+			// var hit:RaycastHit;	
+			// Physics.Raycast(transform.position,ray,hit,Mathf.Infinity,GetComponent(TerrainCollisionScript).m_TerrainLayer);
+			// splatter.transform.position = hit.point + hit.normal*01;
+			// splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), hit.normal);
+			// splatter.renderer.material.color = color;
+		// }
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{

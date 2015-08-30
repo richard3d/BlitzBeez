@@ -177,13 +177,19 @@ function OnBulletCollision(coll:BulletCollision)
 				//Handle power shot
 				if(bs.m_PowerShot)
 				{
+					if(m_HP-5 <= 0)
+						CoinScript.SpawnCoins(transform.position + Vector3.up *transform.localScale.magnitude, m_NumBees*3, coll.bullet.GetComponent(BulletScript).m_Owner);
 					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-5);
 				}
 				//handle regular shot
 				else
 				{
+					if(m_HP-1 <= 0)
+						CoinScript.SpawnCoins(transform.position + Vector3.up *transform.localScale.magnitude, m_NumBees*3, coll.bullet.GetComponent(BulletScript).m_Owner);
 					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-1);					
 				}
+				
+				
 			}
 			else
 			{
@@ -248,6 +254,19 @@ function OnTriggerStay(coll : Collider)
 		m_HP = 0;
 		collider.isTrigger = true;
 		AudioSource.PlayClipAtPoint(m_DeathSound, Camera.main.transform.position);
+		
+		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+		for(var i:int = 0; i < players.length; i++)
+		{
+			var cam:GameObject = players[i].GetComponent(BeeScript).m_Camera;
+			if(cam != null)
+			{
+				if((cam.transform.position - transform.position).magnitude < 500)
+				{
+					cam.GetComponent(CameraScript).Shake(0.25,3);
+				}
+			}
+		}
 	
 		//spawn effects
 		var deathEffect : GameObject = gameObject.Instantiate(m_DeathEffect);
@@ -256,17 +275,20 @@ function OnTriggerStay(coll : Collider)
 		
 		deathEffect = gameObject.Instantiate(Resources.Load("GameObjects/ExplosionParticles"));
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
+		deathEffect.transform.GetChild(0).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(m_Owner));
+		deathEffect.transform.GetChild(1).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(m_Owner));
 		//deathEffect.renderer.material.color = m_Owner.renderer.material.color;
 		
 		//CLEAN UP
 		//if(m_Owner != null)
 		//	m_Owner.networkView.RPC("RemoveBeesFromSwarm", RPCMode.All, gameObject.name, GetComponentInChildren(ParticleEmitter).particleCount);
+		
 		m_Owner = null;
 		m_NumBees = 0;
 		m_LifebarTimer = -1;
 		
 		//destroy any children we have left
-		for(var i:int = 0;  i < transform.childCount; i++)
+		for(i = 0;  i < transform.childCount; i++)
 		{
 			if(transform.GetChild(i).gameObject.GetComponent(WorkerBeeScript) != null)
 				transform.GetChild(i).gameObject.GetComponent(WorkerBeeScript).Kill();

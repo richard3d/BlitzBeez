@@ -18,7 +18,8 @@ var m_Owner : GameObject = null;
 var m_Tgt : GameObject = null;
 var m_Homing : float = 0;
 
-static var m_Pool:Array[] = null;
+static var m_BulletPool:Array[] = new Array[5];
+static var m_PowerBulletPool:Array[] = new Array[5];
 
 
 class BulletCollision implements System.IComparable
@@ -31,14 +32,76 @@ class BulletCollision implements System.IComparable
 		var other:BulletCollision = obj;
 		return hit.distance.CompareTo(other.hit.distance);
 		
-     }
-   
+     }  
+}
+
+static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : GameObject
+{
+	var bs:BulletScript = bulletType.GetComponent(BulletScript);
+	var go:GameObject = null;
+	
+	if(bs.m_PowerShot)
+	{
+		// if(m_PowerBulletPool[bs.m_PowerShotType+1] != null && m_PowerBulletPool[bs.m_PowerShotType+1].length > 0)
+		// {
+			// go = m_PowerBulletPool[bs.m_PowerShotType+1].Shift();
+			// go.transform.position = pos;
+			// go.GetComponent(UpdateScript).m_Vel = vel;
+			// go.GetComponent(BulletScript).m_Life = 1.25;
+			// go.active = true;	
+		// }
+		// else
+		// {
+			//instantiate a new one
+			go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
+		//}
+	}
+	else
+	{
+		if(m_BulletPool[bs.m_BulletType+1] != null && m_BulletPool[bs.m_BulletType+1].length > 0)
+		{
+			go = m_BulletPool[bs.m_BulletType+1].Shift();
+			go.transform.position = pos;
+			go.GetComponent(UpdateScript).m_Vel = vel;
+			go.GetComponent(BulletScript).m_Life = 1.25;
+			//go.GetComponent(BulletScript).Start();
+			go.active = true;	
+		}
+		else
+		{
+			//instantiate a new one
+			go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
+		}
+	}
+	return go;
+}
+
+static function RecycleBullet(bullet:GameObject)
+{
+	var bs:BulletScript = bullet.GetComponent(BulletScript);
+	if(bs.m_PowerShot)
+	{
+		if(m_PowerBulletPool[bs.m_PowerShotType+1] == null)
+			m_PowerBulletPool[bs.m_PowerShotType+1] = new Array();
+		bullet.active = false;
+		m_PowerBulletPool[bs.m_PowerShotType+1].Push(bullet);
+	}
+	else
+	{
+		if(m_BulletPool[bs.m_BulletType+1] == null)
+			m_BulletPool[bs.m_BulletType+1] = new Array();
+		bullet.active = false;
+		m_BulletPool[bs.m_BulletType+1].Push(bullet);
+	}
 }
 
 function Awake()
 {
+	Debug.Log("Awake");
 	gameObject.name = "Bullet"+ ++m_InstanceID;
 }
+
+
 
 function Start () {
 
@@ -265,7 +328,10 @@ function Update () {
 	
 	if(m_Life <= 0.0)
 	{
-		GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView.RPC("NetworkDestroy", RPCMode.All, gameObject.name);
+	
+		ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, gameObject.transform.position);
+		ServerRPC.DeleteFromBuffer(gameObject);
+		//GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView.RPC("NetworkDestroy", RPCMode.All, gameObject.name);
 	}
 
 }
@@ -520,8 +586,8 @@ function RemoveBullet(pos:Vector3)
 	//otherwise the client destroys the bullet and another RPC arrives from the server due to second collision
 	if(m_Life > 0)
 	{
-		ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, pos);
-		ServerRPC.DeleteFromBuffer(gameObject);
+		//ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, pos);
+		//ServerRPC.DeleteFromBuffer(gameObject);
 	}
 	m_Life = -1;
 }
@@ -581,7 +647,10 @@ function KillBullet(pos:Vector3)
 
 	}
 	AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
-	Destroy(gameObject);
+	
+	RecycleBullet(gameObject);
+	if(m_PowerShot)
+		Destroy(gameObject);
 } 
 
 @RPC function RemoveComponent(compName:String)

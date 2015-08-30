@@ -137,7 +137,7 @@ function GetCoin(name : String)
 	}
 	
 	//we dashed into our first coin
-	if(bee.GetComponent(BeeDashDecorator) != null && bee.GetComponent(CoinDashDecorator) == null)
+	if(m_Owner == null && bee.GetComponent(BeeDashDecorator) != null && bee.GetComponent(CoinDashDecorator) == null)
 	{
 		bee.AddComponent(CoinDashDecorator);
 	}
