@@ -126,7 +126,7 @@ function GetCurrentLevel() : int
 function SetColor(c:Color)
 {
 	var go:GameObject = GameObject.Find(gameObject.name+"/Bee/NewBee/NewBee");
-	
+
 	
 	for(var mat:Material in go.renderer.materials)
 	{
@@ -203,6 +203,9 @@ function Update() {
 		//this may be an issue setting accel to zero
 		//GetComponent(UpdateScript).m_Accel.y = 0;
 		GetComponent(UpdateScript).m_Vel.y = 0;
+		
+	//	if(transform.up != Terr.m_TerrainInfo.normal)
+		//	transform.up = Terr.m_TerrainInfo.normal;
 	}
 	if(Network.isServer)
 	{	
@@ -1060,7 +1063,8 @@ function Show(show:boolean)
 	{
 		for(var child:Transform in transform)
 		{
-			child.gameObject.renderer.enabled = false;
+			if(child.gameObject.renderer != null)
+				child.gameObject.renderer.enabled = false;
 		}
 		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = false;
 		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = false;
@@ -1072,7 +1076,8 @@ function Show(show:boolean)
 	{	
 		for(var child:Transform in transform)
 		{
-			child.gameObject.renderer.enabled = true;
+			if(child.gameObject.renderer != null)
+				child.gameObject.renderer.enabled = true;
 		}
 		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = true;
 		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = true;

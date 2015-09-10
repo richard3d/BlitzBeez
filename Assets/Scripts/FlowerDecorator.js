@@ -35,7 +35,7 @@ function Start () {
 		
 		m_OrigOffset = m_Camera.GetComponent(CameraScript).m_DefaultOffset;
 		m_OrigPitch = m_Camera.GetComponent(CameraScript).m_Pitch;
-		m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(6, 25, -75);
+		m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 25, -90);
 		m_Camera.GetComponent(CameraScript).m_Pitch = 15;
 	}
 	

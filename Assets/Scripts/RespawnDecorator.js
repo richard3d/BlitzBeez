@@ -67,7 +67,7 @@ function Update () {
 		}
 		gameObject.GetComponent(BeeScript).enabled = false;
 		m_AnimTime -= Time.deltaTime;
-		transform.position = Vector3(m_RespawnPos.x, Mathf.Lerp(m_RespawnPos.y, 7, Mathf.Max(1-m_AnimTime/0.25, 0)), m_RespawnPos.z);
+		transform.position = Vector3(m_RespawnPos.x, Mathf.Lerp(m_RespawnPos.y, GetComponent(CharacterController).height, Mathf.Max(1-m_AnimTime/0.25, 0)), m_RespawnPos.z);
 		GetComponent(TrailRenderer).enabled = true;
 		
 		if(m_AnimTime <= 0)

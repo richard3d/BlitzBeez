@@ -35,8 +35,13 @@ function Update () {
 				var size:float = transform.localScale.z * GetComponent(SphereCollider).radius;
 				if(transform.position.y - size + Comp.m_Vel.y * Time.deltaTime < Terr.m_TerrainInfo.point.y)
 				{
-					transform.position.y = size+Terr.m_TerrainInfo.point.y;
-				//	Comp.m_Vel.y *= -0.75;
+						// if(Network.isServer)
+						// {	
+							// Explode();
+							// return;
+						// }
+					 transform.position.y = size+Terr.m_TerrainInfo.point.y;
+				// //	Comp.m_Vel.y *= -0.75;
 					Comp.m_Vel = Vector3.Reflect(Comp.m_Vel, Vector3.up)*0.75;
 				}		
 			}
@@ -120,7 +125,7 @@ function OnCollisionStay(coll : Collision)
 		m_Owner = go;
 		go.AddComponent(ItemDecorator);
 		go.GetComponent(ItemDecorator).SetItem(gameObject, Vector3(0,1,14), Vector3(0,0,0), false, false);
-		go.GetComponent(ItemDecorator).m_MaxSpeed = 50;
+		go.GetComponent(ItemDecorator).m_MaxSpeed = 75;
 		AudioSource.PlayClipAtPoint(m_ActivateSound, Camera.main.transform.position);
 		AudioSource.PlayClipAtPoint(m_FuseSound, Camera.main.transform.position);
 	}

@@ -21,7 +21,7 @@ var m_TerrainLayer:LayerMask; //for collision
 
 //helper variables
 private var m_YRot:float = 0;
-private var m_CurrPitch:float = 45;
+public var m_CurrPitch:float = 45;
 private var m_CurrOffset:Vector3 = Vector3(0,0,200);
 
 function Start () {
@@ -159,7 +159,9 @@ function Update () {
 			m_YRot += 360;
 		if(!m_Fixed)
 			m_YRot = Mathf.Lerp(m_YRot, desiredRot, Time.deltaTime*5);
-		m_WorldOffset = Quaternion.AngleAxis(m_YRot, Vector3.up) * m_WorldOffset ;
+	//	m_WorldOffset = Quaternion.AngleAxis(m_YRot, Vector3.up) * m_WorldOffset ;
+		//m_WorldOffset.z = -m_WorldOffset.z;
+		m_WorldOffset = Quaternion.LookRotation(m_Target.transform.forward, m_Target.transform.up) * m_WorldOffset ;
 		var m_CamWorldPos:Vector3 = m_CamPos + m_WorldOffset;
 		
 		
@@ -181,8 +183,10 @@ function Update () {
 			
 		}
 		
-		m_CurrPitch = Mathf.Lerp(m_CurrPitch, m_Pitch, Time.deltaTime *5);
+		var desiredPitch : float = m_Pitch+m_Target.transform.localEulerAngles.x;
+		m_CurrPitch = Mathf.LerpAngle(m_CurrPitch, desiredPitch, Time.deltaTime *5);
 		transform.localEulerAngles.x = m_CurrPitch;
+		transform.localEulerAngles.z = Mathf.LerpAngle(transform.localEulerAngles.z,m_Target.transform.localEulerAngles.z, Time.deltaTime);
 		
 	}
 }

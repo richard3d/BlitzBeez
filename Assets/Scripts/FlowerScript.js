@@ -292,7 +292,7 @@ function OnTriggerStay(coll : Collider)
 		{
 			if(transform.GetChild(i).gameObject.GetComponent(WorkerBeeScript) != null)
 				transform.GetChild(i).gameObject.GetComponent(WorkerBeeScript).Kill();
-			else
+			else if(transform.GetChild(i).gameObject.layer != LayerMask.NameToLayer("Minimap"))
 				Destroy(transform.GetChild(i).gameObject);
 		}
 		Destroy(m_ShieldEffect);
@@ -354,8 +354,10 @@ function OnTriggerExit(other : Collider)
 			m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
 			var color = NetworkUtils.GetColor(m_Owner);	
 			m_ShieldEffect.renderer.material.SetColor("_TintColor", color);
+			m_ShieldEffect.transform.Find("Shield_Minimap").renderer.material.SetColor("_TintColor", color);
 			color*=0.5;
 			color.a = 0.392;
+			
 			m_ShieldEffect.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
 			//gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
 		}

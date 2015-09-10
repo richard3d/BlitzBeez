@@ -207,7 +207,7 @@ function Update () {
 		//END NEW
 		
 		//ORIGINAL
-		var Sensitivity = 14;
+		var Sensitivity = 7;
 		var LookAt :Vector3 = transform.forward;
 		m_CursorDist = 100;// += Input.GetAxis("Look Up/Down")*(Sensitivity+5);
 		m_CursorDist = Mathf.Max(10,Mathf.Min(m_CursorDist, 200));
@@ -447,7 +447,7 @@ function Update () {
 	
 	//var vPos : Vector3 = client.m_GameObject.transform.position;
 	//client.m_GameObject.transform.LookAt(vPos + lookPt);
-	SendMessage("OnPlayerLookAt", lookPt* ang, SendMessageOptions.DontRequireReceiver);
+	SendMessage("OnPlayerTurn", ang, SendMessageOptions.DontRequireReceiver);
 }
 
 @RPC function RecordInput()

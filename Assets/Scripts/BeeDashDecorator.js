@@ -20,6 +20,7 @@ function Start () {
 	//Debug.Log(m_MaxSpeed);
 	m_TracerParticles = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashTracerParticles"),transform.position, Quaternion.identity);
 	m_TracerParticles.transform.parent = transform;
+	m_TracerParticles.transform.rotation = m_TracerParticles.transform.parent.rotation;
 	m_TracerParticles.GetComponent(ParticleSystem).startRotation = Mathf.Acos(Vector3.Dot(transform.forward,Vector3.forward));
 	
 	 if(transform.forward.x < 0)

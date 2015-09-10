@@ -37,7 +37,7 @@ var m_ControlEnabled : boolean = true;
 var m_MoveEnabled : boolean = true;
 var m_LookEnabled : boolean = true;
 var m_AttackEnabled : boolean = true;
-
+var m_Heading :float = 0;
 
 var m_BulletInstance : GameObject = null; 
 var m_PowerBulletInstance : GameObject[] = null; 
@@ -59,7 +59,7 @@ var m_NumDashes : int = 3;
 var m_LoadOut : LoadOut;
 
 var m_ReloadJam: boolean = false;
-var m_Stats = {"Loadout":0, "Clip_Size":-1, "Special_Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload_Speed":-1,"Powershot_Reload":-1,  "Fire_Rate" : -1, "Pollination_Time":-1, "Max_Workers":-1, "Worker_Generation":-1 };
+var m_Stats = {"Loadout":-1, "Clip_Size":-1, "Special_Rounds":-1, "Powershot":-1, "Health":-1, "Speed":1, "Stamina":-1, "Reload_Speed":-1,"Powershot_Reload":-1,  "Fire_Rate" : -1, "Pollination_Time":-1, "Max_Workers":-1, "Worker_Generation":-1 };
 
 
 private var m_Swarm:GameObject = null;
@@ -257,7 +257,7 @@ function OnNetworkInput(IN : InputState)
 				var dashTime : float = 2;
 				
 				
-				m_StaminaTimer = 1/(0.65 + (stam+1.0)*0.35);
+				m_StaminaTimer = 1/(0.5 + (stam+1.0)*0.35);
 				//m_DashTimer = 1/dashTime;
 				networkView.RPC("Dash", RPCMode.All);
 				
@@ -492,21 +492,7 @@ function OnNetworkInput(IN : InputState)
 						}
 					}
 				}
-				// closestDot = 99999;
-				// //no player found, try flowers next
-				// if(m_AimTarget == null)
-				// {
-					// var flowers:GameObject[] = GameObject.FindGameObjectsWithTag("Flowers");
-					// for(i = 0; i < flowers.length; i++)
-					// {
-						// dot = Vector3.Angle(transform.forward.normalized, (flowers[i].transform.position - transform.position));
-						// if(dot < 45 && dot < closestDot)
-						// {
-							// closestDot = dot;
-							// m_AimTarget = flowers[i];
-						// }
-					// }
-				// }
+				
 			}
 			
 		}
@@ -532,13 +518,20 @@ function OnNetworkInput(IN : InputState)
 		
 			if(m_AimTarget.GetComponent(RespawnDecorator) != null)
 				m_AimTarget = null;
+			
+			// GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov = Mathf.Lerp(GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov, 16, Time.deltaTime *2);
+			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 5;
 		}
 	
 	}
 	else
 	{
 		if(m_AimTarget != null)
+		{
 			m_AimTarget = null;
+			// GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov = 33;
+			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 10;
+		}
 	}
 	
 	if(IN.GetActionBuffered(IN.RELOAD) /*&& !m_ShootButtonHeld*/)
@@ -568,7 +561,7 @@ function OnNetworkInput(IN : InputState)
 
 function HandleShotLogic()
 {	
-	var random =Random.Range(-2,2);
+	var random =Random.Range(-1,1);
 	for(var i : int = 0; i < m_LoadOut.m_Pylons.length; i++)
 	{
 		if(m_LoadOut.m_Pylons[i].IsShooting())
@@ -682,22 +675,32 @@ function HandleShotLogic()
 	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
 }
 
-function OnPlayerLookAt(at : Vector3)
+function OnPlayerTurn(ang:float)
 {
 	if(m_LookEnabled)
 	{
 		if(m_AimTarget)
 		{
-			m_AimOffset = at.magnitude;
+			m_AimOffset = ang;
 			//Debug.Log(m_AimOffset);
-			if(Vector3.Dot(at, transform.forward) < 0)
-				m_AimOffset = -m_AimOffset;
+			//if(Vector3.Dot(at, transform.forward) < 0)
+			//	m_AimOffset = -m_AimOffset;
 		}
 		else
 		{
-			if(Vector3.Dot(at, transform.forward) < 0)
-				at = -at;
-			transform.LookAt(transform.position+at.normalized);
+			// if(Vector3.Dot(at, transform.forward) < 0)
+				// at = -at;
+			// transform.LookAt(transform.position+at.normalized);	
+			var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);	
+		
+			transform.up = Vector3.Lerp(transform.up,Terr.m_TerrainInfo.normal, Time.deltaTime*4);	
+			m_Heading += ang;
+			transform.Rotate(Vector3(0,m_Heading,0));
+			 // if(Vector3.Dot(at, transform.forward) < 0)
+				 // transform.Rotate(Vector3(0, - at.magnitude,0));
+			 // else
+			 // transform.Rotate(Vector3(0, at.magnitude,0));
+			//
 		}
 	}
 }
@@ -876,7 +879,7 @@ function PowershotAnim()
 	var rock : GameObject = GameObject.Find(rockName);
 	gameObject.AddComponent(ItemDecorator);
 	GetComponent(ItemDecorator).SetItem(rock, Vector3(0,1,14), Vector3(0,0,0), false, false);
-	GetComponent(ItemDecorator).m_MaxSpeed = 25;
+	GetComponent(ItemDecorator).m_MaxSpeed = 75;
 }
 
 @RPC function UseFlower(name : String)

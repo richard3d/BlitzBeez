@@ -578,7 +578,7 @@ function GetGameObject() : GameObject
 		m_Clients[clientID].m_GameObject = gameObject.Find(go);
 		m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_ClientOwner = clientID;
 		m_Clients[clientID].m_GameObject.transform.position = m_Clients[clientID].m_GameObject.GetComponent(BeeScript).FindRespawnLocation();
-		m_Clients[clientID].m_GameObject.transform.position.y = 7;
+		m_Clients[clientID].m_GameObject.transform.position.y = m_Clients[clientID].m_GameObject.GetComponent(CharacterController).height;
 		if(m_Clients[clientID].m_Player.ToString() == "0")
 		{
 			//tell the input system it is dealing with a local client
@@ -626,6 +626,8 @@ function GetGameObject() : GameObject
 			var onePixX = 1.0/Screen.width;
 			var onePixY= 1.0/Screen.height;
 			onePixX = onePixY;
+			var camRect :Rect;
+			var minimapCam:Camera;
 			if(numLocalClients == 1)
 			{
 			}
@@ -636,9 +638,13 @@ function GetGameObject() : GameObject
 					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
 					{
 						if(localCount == 0)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5+onePixY,1,0.5-onePixY);
+							camRect = new Rect(0,0.5+onePixY,1,0.5-onePixY);
 						else if(localCount == 1)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-onePixY,1,0.5-onePixY);
+							camRect = new Rect(0,0-onePixY,1,0.5-onePixY);
+						GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = camRect;
+						minimapCam = GameObject.Find(m_Clients[i].m_GameObject.name+"/MinimapCamera").GetComponent(Camera);
+						minimapCam.rect.x = camRect.x + 0.02;
+						minimapCam.rect.y = camRect.y + camRect.height - 0.02 - minimapCam.rect.height;
 						localCount++;
 					}		
 				}
@@ -650,11 +656,15 @@ function GetGameObject() : GameObject
 					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
 					{
 						if(localCount == 0)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5+onePixY,1,0.5-onePixY);
+							camRect = new Rect(0,0.5+onePixY,1,0.5-onePixY);
 						else if(localCount == 1)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-onePixY,0.5-onePixX,0.5-onePixY);
+							camRect = new Rect(0,0-onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 2)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+onePixX,0-onePixY,0.5-onePixX,0.5-onePixY);
+							camRect = new Rect(0.5+onePixX,0-onePixY,0.5-onePixX,0.5-onePixY);
+						GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = camRect;
+						minimapCam = GameObject.Find(m_Clients[i].m_GameObject.name+"/MinimapCamera").GetComponent(Camera);
+						minimapCam.rect.x = camRect.x + 0.02;
+						minimapCam.rect.y = camRect.y + camRect.height - 0.02 - minimapCam.rect.height;
 						localCount++;
 					}	
 				}
@@ -666,13 +676,18 @@ function GetGameObject() : GameObject
 					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
 					{
 						if(localCount == 0)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0.5+onePixY,0.5-onePixX,0.5-onePixY);
+							camRect = new Rect(0,0.5+onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 1)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+onePixX,0.5+onePixY,0.5-onePixX,0.5-onePixY);
+							camRect = new Rect(0.5+onePixX,0.5+onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 2)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0,0-onePixY,0.5-onePixX,0.5-onePixY);
+							camRect = new Rect(0,0-onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 3)
-							GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = new Rect(0.5+onePixX,0-onePixY,0.5-onePixX,0.5-onePixY);
+							camRect = new Rect(0.5+onePixX,0-onePixY,0.5-onePixX,0.5-onePixY);
+						GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = camRect;
+						minimapCam = GameObject.Find(m_Clients[i].m_GameObject.name+"/MinimapCamera").GetComponent(Camera);
+						minimapCam.rect.x = camRect.x + 0.02;
+						minimapCam.rect.y = camRect.y + camRect.height - 0.02 - minimapCam.rect.height;
+						
 						localCount++;
 					}
 						
@@ -681,8 +696,15 @@ function GetGameObject() : GameObject
 		}
 		//set the client gameObejct color			
 		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).SetColor(m_Clients[clientID].m_SkinColor);
+		
+		var mapIcon:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee_Minimap").gameObject;
+		mapIcon.renderer.material.SetColor("_TintColor", m_Clients[clientID].m_Color);
+		
 		var armor:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/BeeArmor").gameObject;
 		armor.renderer.materials[0].color = m_Clients[clientID].m_Color;
+		
+		
+		
 		var body:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/NewBee");
 		var hand:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand");
 		

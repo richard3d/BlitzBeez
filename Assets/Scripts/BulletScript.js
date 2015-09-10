@@ -617,7 +617,8 @@ function KillBulletOriented(pos:Vector3, norm:Vector3)
 		
 
 	}
-	AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
+	if(m_HitSoundEffect != null)
+		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
 	Destroy(gameObject);
 } 
 
@@ -646,7 +647,8 @@ function KillBullet(pos:Vector3)
 		
 
 	}
-	AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
+	if(m_HitSoundEffect != null)
+		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
 	
 	RecycleBullet(gameObject);
 	if(m_PowerShot)
