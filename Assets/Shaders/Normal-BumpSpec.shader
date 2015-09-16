@@ -28,7 +28,7 @@ void surf (Input IN, inout SurfaceOutput o) {
 	fixed4 tex = tex2D(_MainTex, IN.uv_MainTex);
 	o.Albedo = tex.rgb * tex.a + _Color.rgb * (1-tex.a);
 	o.Gloss = tex.a;
-	o.Alpha = tex.a * _Color.a;
+	o.Alpha = 1;//tex.a * _Color.a;
 	o.Specular = _Shininess;
 	o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));
 }

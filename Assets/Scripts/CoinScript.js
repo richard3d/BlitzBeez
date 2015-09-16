@@ -32,6 +32,8 @@ static function SpawnCoins(pos:Vector3, num:int, owner:GameObject)
 			ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, "Coin",go1.name, pos, Quaternion.identity, viewID, 0);
 			
 			go1.GetComponent(CoinScript).m_Owner = owner;	
+			if(owner != null)
+				go1.collider.enabled = false;
 			go1.GetComponent(TrailRenderer).enabled = true;
 		}
 

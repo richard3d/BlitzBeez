@@ -159,9 +159,10 @@ function Update () {
 			m_YRot += 360;
 		if(!m_Fixed)
 			m_YRot = Mathf.Lerp(m_YRot, desiredRot, Time.deltaTime*5);
-	//	m_WorldOffset = Quaternion.AngleAxis(m_YRot, Vector3.up) * m_WorldOffset ;
+		var temp:Vector3 = Quaternion.AngleAxis(-desiredRot, m_Target.transform.up) * m_Target.transform.forward;
+	    temp = Quaternion.AngleAxis(m_YRot, m_Target.transform.up) * temp;
 		//m_WorldOffset.z = -m_WorldOffset.z;
-		m_WorldOffset = Quaternion.LookRotation(m_Target.transform.forward, m_Target.transform.up) * m_WorldOffset ;
+		m_WorldOffset = Quaternion.LookRotation(temp, m_Target.transform.up) * m_WorldOffset ;
 		var m_CamWorldPos:Vector3 = m_CamPos + m_WorldOffset;
 		
 		

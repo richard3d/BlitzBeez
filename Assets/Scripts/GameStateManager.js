@@ -97,7 +97,8 @@ static function CompareWinners(a:GameObject, b:GameObject)
 	flash.animation["FlashIntro"].time = 2.35;
 	flash.animation.Play("FlashIntro");
 
-	GameObject.Find("Music").GetComponent(AudioSource).Stop();
+	if(GameObject.Find("Music"))
+		GameObject.Find("Music").GetComponent(AudioSource).Stop();
 	
 	//this (MatchStartGUI) is really just a text type with a cool zoom effect
 	AudioSource.PlayClipAtPoint(m_GameSound, Camera.main.transform.position);

@@ -122,7 +122,7 @@ function OnNetworkInput(IN : InputState)
 	{
 		m_Item.GetComponent(BombScript).m_Owner = gameObject;
 		//var distScalar = Mathf.Min
-		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward + Vector3.up*0.33).normalized  * m_Item.GetComponent(UpdateScript).m_DefaultMaxSpeed *m_ThrowVelocityScalar;
+		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward + Vector3.up*0.13).normalized  * m_Item.GetComponent(UpdateScript).m_DefaultMaxSpeed *m_ThrowVelocityScalar;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 20;
 		m_Item.GetComponent(UpdateScript).m_Accel.y = -350;
 		if(gameObject.GetComponent(ControlDisablerDecorator) == null)

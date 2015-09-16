@@ -14,9 +14,11 @@ function Start () {
 	Camera.main.transform.position = Vector3(0,0,0);
 	Camera.main.transform.LookAt(Vector3(0,0,1));
 	
-	GameObject.Find("Music").GetComponent(AudioSource).clip = m_MatchOverMusic;
-	GameObject.Find("Music").GetComponent(AudioSource).Play();
-	
+	if(GameObject.Find("Music"))
+	{
+		GameObject.Find("Music").GetComponent(AudioSource).clip = m_MatchOverMusic;
+		GameObject.Find("Music").GetComponent(AudioSource).Play();
+	}
 	m_MenuPos.x = -Screen.width;
 	
 	

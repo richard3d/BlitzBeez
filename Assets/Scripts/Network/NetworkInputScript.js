@@ -161,8 +161,8 @@ function Update () {
 	m_PrevActions = m_CurrentActions;
 	m_CurrentActions = 0;
 	
-	var joyStr = "Joy"+0+" ";
-	//var joyStr = "Joy"+m_JoyOwner+" ";
+	//var joyStr = "Joy"+0+" ";
+	var joyStr = "Joy"+m_JoyOwner+" ";
 	
 	//handle movement keys
 	m_CurrInputState.m_XAxisVal = Input.GetAxis(joyStr+"Strafe Left/Right");

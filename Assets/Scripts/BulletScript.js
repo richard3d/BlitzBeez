@@ -324,14 +324,17 @@ function Update () {
 	
 	if(Network.isClient)
 		return;
-	m_Life -= Time.deltaTime;
-	
-	if(m_Life <= 0.0)
+		
+	if(	m_Life > 0.0)
 	{
-	
-		ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, gameObject.transform.position);
-		ServerRPC.DeleteFromBuffer(gameObject);
-		//GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView.RPC("NetworkDestroy", RPCMode.All, gameObject.name);
+		m_Life -= Time.deltaTime;	
+		if(m_Life <= 0.0)
+		{
+		
+			ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, gameObject.transform.position);
+			ServerRPC.DeleteFromBuffer(gameObject);
+			//GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView.RPC("NetworkDestroy", RPCMode.All, gameObject.name);
+		}
 	}
 
 }
@@ -586,8 +589,8 @@ function RemoveBullet(pos:Vector3)
 	//otherwise the client destroys the bullet and another RPC arrives from the server due to second collision
 	if(m_Life > 0)
 	{
-		//ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, pos);
-		//ServerRPC.DeleteFromBuffer(gameObject);
+		ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, pos);
+		ServerRPC.DeleteFromBuffer(gameObject);
 	}
 	m_Life = -1;
 }

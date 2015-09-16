@@ -750,7 +750,7 @@ function DrawGUI()
 		
 			
 		
-			for(var i:int = 0; i < NetworkUtils.GetNumClients(); i++)
+			for(var i:int = 0; i < 2; i++)
 			{	
 				var player:GameObject = NetworkUtils.GetGameObjectFromClient(i);
 				if(player == null)
@@ -786,10 +786,13 @@ function DrawGUI()
 			
 			if(player != gameObject && Vector3.Dot((player.transform.position - transform.position).normalized, transform.forward) > 0.1)
 			{
-				var pt:Vector3 = m_Camera.camera.WorldToScreenPoint(player.transform.position+Vector3.up *20);
-				pt.y = Screen.height-pt.y;
-				var rt:Rect = GUILayoutUtility.GetRect(new GUIContent(player.name), SmallFontStyle);
-				GUI.Label(Rect(pt.x-rt.width*0.5*camScale,pt.y-rt.height*0.5*camScale, rt.width*camScale, rt.height*camScale), player.name,SmallFontStyle);
+				if(!Physics.Raycast(transform.position,(player.transform.position - transform.position).normalized, (player.transform.position - transform.position).magnitude,GetComponent(TerrainCollisionScript).m_TerrainLayer))
+				{
+					var pt:Vector3 = m_Camera.camera.WorldToScreenPoint(player.transform.position+Vector3.up *30);
+					pt.y = Screen.height-pt.y;
+					var rt:Rect = GUILayoutUtility.GetRect(new GUIContent(player.name), SmallFontStyle);
+					GUI.Label(Rect(pt.x-rt.width*0.5*camScale,pt.y-rt.height*0.5*camScale, rt.width*camScale, rt.height*camScale), player.name,SmallFontStyle);
+				}
 			}
 		}
 		GUI.color = Color.white;
@@ -834,6 +837,7 @@ function DrawGUI()
 			aimPt = m_Camera.camera.WorldToScreenPoint(transform.position+transform.forward*dist);
 			aimPt.y = Screen.height-aimPt.y;
 			GUI.DrawTexture(Rect(aimPt.x-12*camScale,aimPt.y-12*camScale, 24*camScale, 24*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+			
 			if(m_HitTargetEntity)
 			{
 				
@@ -1498,7 +1502,7 @@ function CalculateRank() : int
 
 function Hurt()
 {
-	m_Camera.GetComponent(MotionBlur).enabled = true;
+	//m_Camera.GetComponent(MotionBlur).enabled = true;
 	var gui : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/HurtGUI"));
 	gui.GetComponent(GUIScript).SetCamera(m_Camera);
 	gui.GetComponent(GUIScript).m_Depth = -999999;
@@ -1525,22 +1529,22 @@ function Hurt()
 			Destroy(GetComponent(FlowerDecorator));
 		}
 		gameObject.AddComponent(DizzyDecorator);
-		m_ShieldHP = 3;
+		m_ShieldHP = 10;
 	}
 	else
 	{
 		if(GetComponent(FlowerDecorator) != null)
 		{
-			var shield:GameObject = GetComponent(FlowerDecorator).m_FlowerShieldEffect;
-			shield.transform.localScale *= .8;
-			var parts :ParticleSystem.Particle[] = new ParticleSystem.Particle[shield.GetComponent(ParticleSystem).particleCount];
-			shield.GetComponent(ParticleSystem).startSize *= 0.8;
-			shield.GetComponent(ParticleSystem).GetParticles(parts);
-			for(var i = 0; i < parts.length; i++)
-			{
-				parts[i].size *= 0.8;
-			}
-			shield.GetComponent(ParticleSystem).SetParticles(parts, parts.length);
+			// var shield:GameObject = GetComponent(FlowerDecorator).m_FlowerShieldEffect;
+			// shield.transform.localScale *= .8;
+			// var parts :ParticleSystem.Particle[] = new ParticleSystem.Particle[shield.GetComponent(ParticleSystem).particleCount];
+			// shield.GetComponent(ParticleSystem).startSize *= 0.8;
+			// shield.GetComponent(ParticleSystem).GetParticles(parts);
+			// for(var i = 0; i < parts.length; i++)
+			// {
+				// parts[i].size *= 0.8;
+			// }
+			// shield.GetComponent(ParticleSystem).SetParticles(parts, parts.length);
 		}
 	}
 
