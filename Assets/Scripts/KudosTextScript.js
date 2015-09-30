@@ -25,8 +25,12 @@ function Update () {
 	{
 		m_WorldPos += Vector3.up*20*Time.deltaTime;
 		GetComponent(GUIText).material.color = m_Color;
+		
 		if(m_CameraOwner != null)
-			gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_WorldPos);
+		{
+			if(Vector3.Dot(m_CameraOwner.transform.forward, (m_WorldPos - m_CameraOwner.transform.position).normalized) > 0)
+				gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_WorldPos);
+		}
 	}
 
 }

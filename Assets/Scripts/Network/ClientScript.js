@@ -51,7 +51,7 @@ function OnGUI()
 	{
 		skin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
 		GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
-		GUILayout.Label("All Hail "+m_Clients[GameStateManager.m_WinningPlayer].m_Name+".\n The new QUEEN (OR KING) BEE!", skin.label);
+		//GUILayout.Label("All Hail "+m_Clients[GameStateManager.m_WinningPlayer].m_Name+".\n The new QUEEN (OR KING) BEE!", skin.label);
 		GUILayout.EndArea();
 	}
 }

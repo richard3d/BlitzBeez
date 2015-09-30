@@ -108,7 +108,7 @@ function OnNetworkInput(IN : InputState)
 	{
 		m_ThrowVelocityScalar = Mathf.Max(m_ThrowVelocityScalar*3, 1.5);
 		m_Item.GetComponent(RockScript).m_Owner = gameObject;
-		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward ) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar;//  + transform.up*0.15* GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar ;
+		m_Item.GetComponent(UpdateScript).m_Vel = (transform.forward ) * GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar*50;//  + transform.up*0.15* GetComponent(UpdateScript).m_DefaultMaxSpeed * m_ThrowVelocityScalar ;
 		m_Item.transform.position = transform.position + transform.forward * 10 + transform.up * 10;
 		m_Item.GetComponent(UpdateScript).m_Accel.y = -79.8;
 		m_Item.GetComponent(TrailRenderer).enabled = true;

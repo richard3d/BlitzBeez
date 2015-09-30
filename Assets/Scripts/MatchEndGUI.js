@@ -2,7 +2,7 @@
 var m_GUISkin:GUISkin = null;
 private var m_Life:float = -1;
 private var m_Lifetime:float = 0.35;
-private var m_Bee:GameObject = null;
+private var m_Bees:Array = new Array();
 public var m_CrownTexture:Texture2D;
 public var m_MatchOverMusic:AudioClip = null;
 public var m_MenuSound:AudioClip = null;
@@ -44,50 +44,81 @@ function Update () {
 			}
 			
 			m_Players = GameObject.FindGameObjectsWithTag("Player");
+			var count:int = 0;
 			for(var player :GameObject in m_Players)
 			{
-				if(player == NetworkUtils.GetGameObjectFromClient(GameStateManager.m_WinningPlayer))
+				if(player.GetComponent(BeeScript).m_Team == GameStateManager.m_WinningTeam)
 				{	
+					count++;
 					Camera.main.fov = 60;
-					m_Bee = GameObject.Instantiate(GameObject.Find(player.name+"/Bee"));
-					m_Bee.animation.Stop();
-					GameObject.Find(m_Bee.name+"/NewBee").animation.Stop();
-					GameObject.Find(m_Bee.name+"/NewBee").animation.Play("celebrate");
-					GameObject.Find(m_Bee.name+"/NewBee").animation["celebrate"].speed = 0.75;
-					GameObject.Find(m_Bee.name+"/NewBee/NewBee").layer = LayerMask.NameToLayer("FullScreenGUI");
-					GameObject.Find(m_Bee.name+"/NewBee/BeeArmor").layer = LayerMask.NameToLayer("FullScreenGUI");
-					if(GameObject.Find(m_Bee.name+"/NewBee/body/head/swag") != null)
-						GameObject.Find(m_Bee.name+"/NewBee/body/head/swag").layer = LayerMask.NameToLayer("FullScreenGUI");
-					m_Bee.layer = LayerMask.NameToLayer("FullScreenGUI");
-					m_Bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  15;
-					m_Bee.transform.localScale= Vector3(0,0,0);
-					m_Bee.transform.eulerAngles.x = 300;
-					m_Bee.renderer.enabled = true;
-					var parts:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SunrayParticles"));
-					parts.transform.position = m_Bee.transform.position+ Camera.main.transform.forward *  50;
-					parts.transform.LookAt(Camera.main.transform.position);
-					parts.layer = LayerMask.NameToLayer("FullScreenGUI");
+					var bee:GameObject = GameObject.Instantiate(GameObject.Find(player.name+"/Bee"));
+					bee.name = bee.name + count;
+					if( count % 2)
+					{
+						bee.animation.Stop();
+						GameObject.Find(bee.name+"/NewBee").animation.Stop();
+						GameObject.Find(bee.name+"/NewBee").animation.Play("celebrate");
+						GameObject.Find(bee.name+"/NewBee").animation["celebrate"].speed = 0.75;
+					}
+					else
+					{
+						//bee.animation.Stop();
+						bee.animation.Stop();
+						GameObject.Find(bee.name+"/NewBee").animation.Stop();
+						GameObject.Find(bee.name+"/NewBee").animation.Play("celebrate");
+						GameObject.Find(bee.name+"/NewBee").animation["celebrate"].time = 1;
+						GameObject.Find(bee.name+"/NewBee").animation["celebrate"].speed = 0.65;
+					}
+					GameObject.Find(bee.name+"/NewBee/NewBee").layer = LayerMask.NameToLayer("FullScreenGUI");
+					GameObject.Find(bee.name+"/NewBee/BeeArmor").layer = LayerMask.NameToLayer("FullScreenGUI");
+					if(GameObject.Find(bee.name+"/NewBee/body/head/swag") != null)
+						GameObject.Find(bee.name+"/NewBee/body/head/swag").layer = LayerMask.NameToLayer("FullScreenGUI");
+					bee.layer = LayerMask.NameToLayer("FullScreenGUI");
+					bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  15 + Vector3.right * 12 * (count-1);
+					if(GameStateManager.m_MVPPlayer == player.name)
+					{
+						bee.transform.localScale= Vector3(3,3,3);
+						bee.transform.position.y = -10;
+					}
+					else
+						bee.transform.localScale= Vector3(0,0,0);
+					bee.transform.eulerAngles.x = 300;
+					bee.renderer.enabled = true;
 					
-					GetComponent(GUIScript).m_Rect.y = -2;
-					GetComponent(GUIScript).m_Img = m_CrownTexture;
-					GetComponent(GUIScript).m_ImgColor = Color.white;
-					GetComponent(GUIScript).m_Color = Color.white;
-					GetComponent(GUIScript).m_FontSize = 32;
+					m_Bees.Add(bee);
 					//GetComponent(GUIScript).enabled = true;
 				}
 				player.active = false;
 			}
+			var parts:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SunrayParticles"));
+			parts.transform.position = Camera.main.transform.position+ Camera.main.transform.forward *  50;
+			parts.transform.LookAt(Camera.main.transform.position);
+			parts.layer = LayerMask.NameToLayer("FullScreenGUI");
+			Camera.main.orthographic = true;
+			Camera.main.orthographicSize = 15;
+			
+			GetComponent(GUIScript).m_Rect.y = -2;
+			GetComponent(GUIScript).m_Img = m_CrownTexture;
+			GetComponent(GUIScript).m_ImgColor = Color.white;
+			GetComponent(GUIScript).m_Color = Color.white;
+			GetComponent(GUIScript).m_FontSize = 32;
 		}	
 	}	
 	
-	if(m_Bee != null)
+	for(var k:int = 0; k < m_Bees.length; k++)
 	{
-		//StopCoroutine("ShowWinnerText");
-		var scale:float = m_Bee.transform.localScale.x;
-		scale = Mathf.Lerp(scale, 1.5, Time.deltaTime*5);
-		if(1.5 - scale > 0.1)
-			m_Bee.transform.localScale = Vector3(scale, scale, scale);
-		
+		bee = m_Bees[k];
+		if(bee != null)
+		{
+			//StopCoroutine("ShowWinnerText");
+			var scale:float = bee.transform.localScale.x;
+			scale = Mathf.Lerp(scale, 1.5, Time.deltaTime*5);
+			if(1.5 - scale > 0.1)
+				bee.transform.localScale = Vector3(scale, scale, scale);
+		}
+	}
+	if(m_Bees .length > 0 )
+	{
 		
 		GetComponent(GUIScript).m_Rect = Rect(0.4,Mathf.Lerp(GetComponent(GUIScript).m_Rect.y, 0, Time.deltaTime *10),0.2,0.2);
 		
@@ -108,7 +139,7 @@ function Update () {
 
 function ShowWinnerText()
 {
-	var str:String = "Player "+(GameStateManager.m_WinningPlayer+1)+" Wins!";
+	var str:String = "Team "+(GameStateManager.m_WinningTeam+1)+" Wins!";
 	var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
 	var rect:Rect = new Rect(0,0,1,0.3);
 	txt.GetComponent(GUIScript).m_Text =  str;
@@ -139,18 +170,18 @@ function ShowWinnerText()
 		m_MenuPos.x = Mathf.Lerp(m_MenuPos.x,0,0.0166*20);
 		if(Mathf.Abs(m_MenuPos.x) < 1)
 			break;
-		if(m_Bee != null)
+		for( var bee:GameObject in m_Bees)
 		{
-			m_Bee.transform.eulerAngles.y += 4;
+			bee.transform.eulerAngles.y += 4;
 		}
 		yield WaitForSeconds(0.0166);
 	}
 	
 	while(Input.GetAxis("Joy0 OK") == 0.0)
 	{
-		if(m_Bee != null)
+		for( var bee:GameObject in m_Bees)
 		{
-			m_Bee.transform.eulerAngles.y += 4;
+			bee.transform.eulerAngles.y += 4;
 		}
 		yield WaitForSeconds(0.033);
 	}
@@ -168,25 +199,48 @@ function ShowWinnerText()
 	
 	GetComponent(GUIScript).enabled = false;
 	GameObject.Destroy(txt);
-	while(m_Bee != null && m_Bee.transform.localEulerAngles.x > 0.01 && m_Bee.transform.localEulerAngles.y > 0.01)
+	var done:boolean = false;
+	while(!done)
 	{
-		m_Bee.transform.rotation = Quaternion.Slerp(m_Bee.transform.rotation, Quaternion.identity, 15/60.0);
-		yield WaitForSeconds(1/60.0);
+		for( var bee:GameObject in m_Bees)
+		{
+			var anim :GameObject = GameObject.Find(bee.name+"/NewBee");
+			anim.animation.Stop();
+			if(bee != null && bee.transform.localEulerAngles.x > 0.01 && bee.transform.localEulerAngles.y > 0.01)
+			{
+				bee.transform.rotation = Quaternion.Slerp(bee.transform.rotation, Quaternion.identity, 15/60.0);
+				
+			}
+			else
+			{
+				done = true;
+			}
+		}
+		Camera.main.orthographicSize += Time.deltaTime * 1000;
+		yield WaitForSeconds(1/30.0);
+	}
+	// while(m_Bee != null && m_Bee.transform.localEulerAngles.x > 0.01 && m_Bee.transform.localEulerAngles.y > 0.01)
+	// {
+		// m_Bee.transform.rotation = Quaternion.Slerp(m_Bee.transform.rotation, Quaternion.identity, 15/60.0);
+		// yield WaitForSeconds(1/60.0);
+	// }
+	
+	// while(Camera.main.orthographicSize < 500)
+	// {
+		// Camera.main.orthographicSize += Time.deltaTime * 1000;
+		// yield WaitForSeconds(1/60.0);
+	// }
+	
+	for( var bee:GameObject in m_Bees)
+	{
+		bee.active = false;
 	}
 	
-	while(Camera.main.fov < 175)
-	{
-		Camera.main.fov += Time.deltaTime * 1200;
-		yield WaitForSeconds(1/60.0);
-	}
-	
-	m_Bee.active = false;
-	
-	while(Camera.main.GetComponent(GlobalFog).globalDensity < 0.01)
-	{
-		Camera.main.GetComponent(GlobalFog).globalDensity += .0001;
-		yield WaitForSeconds(1/60.0);
-	}
+	// while(Camera.main.GetComponent(GlobalFog).globalDensity < 0.01)
+	// {
+		// Camera.main.GetComponent(GlobalFog).globalDensity += .0001;
+		// yield WaitForSeconds(1/60.0);
+	// }
 	
 	if(Network.isServer)
 	{
@@ -227,6 +281,9 @@ function OnGUI()
 			}
 			players.Sort(GameStateManager.CompareWinners);
 			
+			var team1Count:int = 0;
+			var team2Count:int = 0;
+			
 			for(var p:int = 0; p < players.Count; p++)
 			{
 				//GUILayout.BeginHorizontal();
@@ -236,16 +293,36 @@ function OnGUI()
 				//GUILayout.Label("15", m_GUISkin.label);
 				//GUILayout.Label("23", m_GUISkin.label);
 				//GUILayout.Label("8", m_GUISkin.label);
-				var y:float = (p+1) * m_GUISkin.label.fontSize*1.1;
 				
-				if(NetworkUtils.GetClientFromGameObject(players[p]) == GameStateManager.m_WinningPlayer)
+				
+				var c:ClientNetworkInfo = NetworkUtils.GetClientObjectFromGameObject(players[p]);
+				var y:float = 0;
+				if(c.m_Side == GameStateManager.m_WinningTeam)
 				{
-					GUI.Label(Rect(0,y,width, 32),"       "+NetworkUtils.GetClientObjectFromGameObject(players[p]).m_Name, m_GUISkin.label);
+					y = (team1Count+1) * m_GUISkin.label.fontSize*1.1;
+					team1Count++;
+				}
+				else
+				{
+					y = (team2Count+1) * m_GUISkin.label.fontSize*1.1 + 164;
+					team2Count++;
+					
+				}
+				GUI.backgroundColor = c.m_Color;
+				GUI.backgroundColor.a = 0.4;
+				if(players[p].name == GameStateManager.m_MVPPlayer)
+				{
+					GUI.Label(Rect(0,y,width, 32),"       "+c.m_Name, m_GUISkin.label);
 					var scale = Mathf.Sin(Time.time*8)*8;
 					GUI.DrawTexture(Rect(4-scale*0.5,y-scale*0.5,32+scale, 32+scale),m_CrownTexture);
 				}
 				else
-					GUI.Label(Rect(0,y,width, 32),"       "+NetworkUtils.GetClientObjectFromGameObject(players[p]).m_Name, m_GUISkin.label);
+				{
+					//GUI.color = c.m_Color;
+					GUI.Label(Rect(0,y,width, 32),"       "+c.m_Name, m_GUISkin.label);
+					//GUI.color = Color.white;
+				}
+				
 				GUI.Label(Rect(width,y,width, 32)," "+players[p].GetComponent(BeeScript).m_MatchPoints, m_GUISkin.label);
 				GUI.Label(Rect(width*2,y,width, 32)," "+players[p].GetComponent(BeeScript).m_Kills, m_GUISkin.label);
 				GUI.Label(Rect(width*3,y,width, 32)," "+players[p].GetComponent(BeeScript).m_Deaths, m_GUISkin.label);

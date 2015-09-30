@@ -22,7 +22,7 @@ function OnBulletCollision(coll:BulletCollision)
 		if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
 		{
 		
-			m_Owner.networkView.RPC("SetShieldHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_ShieldHP - 3);
+			m_Owner.networkView.RPC("SetShieldHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_ShieldHP - 5);
 		}
 		else
 		{

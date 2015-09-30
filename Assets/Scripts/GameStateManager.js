@@ -14,12 +14,14 @@ static var MATCH_LOBBY : int = 4;
 
 static var m_CurrState:int = -1;
 var m_MatchTick : int = 3;
-static var m_WinningPlayer : int = -1;
+static var m_WinningTeam : int = -1;
+static var m_MVPPlayer : String = "";
 static var m_PointsToWin : int = 800;
 function Start()
 {
 	m_CurrState =-1;
-	m_WinningPlayer = -1;
+	m_WinningTeam = -1;
+	m_MVPPlayer = "";
 	m_PointsToWin = 800;
 }
 
@@ -30,13 +32,26 @@ function Update()
 static function CheckForWin()
 {
 	var players : GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+	var team1Score:int = 0;
+	var team2Score:int = 0;
 	for(var player:GameObject in players)
 	{
-		if(player.GetComponent(BeeScript).m_Honey >= m_PointsToWin)
-		{
-			ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView, "EndMatch", RPCMode.All,  NetworkUtils.GetClientFromGameObject(player));
-			return;
-		}
+		if(player.GetComponent(BeeScript).m_Team == 0)
+			team1Score += player.GetComponent(BeeScript).m_Honey;
+		else
+			team2Score += player.GetComponent(BeeScript).m_Honey;
+			
+		
+	}
+	
+	if(team1Score >= m_PointsToWin)
+	{
+		ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView, "EndMatch", RPCMode.All,  0);
+	}
+	else
+	if(team2Score >= m_PointsToWin)
+	{
+		ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView, "EndMatch", RPCMode.All, 1);
 	}
 }
 
@@ -48,7 +63,8 @@ function SetState(state:int)
 
 @RPC function StartMatchTick(numTicks:int, ticksPerSec:float)
 {
-	m_WinningPlayer = -1;
+	m_WinningTeam = -1;
+	m_MVPPlayer = "";
 	SetState(MATCH_STARTING);
 	m_MatchTick = numTicks;
 	AudioSource.PlayClipAtPoint(m_ReadySound, Camera.main.transform.position);
@@ -62,11 +78,12 @@ function SetState(state:int)
 
 static function CompareWinners(a:GameObject, b:GameObject)
 {
-	return b.GetComponent(BeeScript).m_Honey.CompareTo(a.GetComponent(BeeScript).m_Honey);
+	return b.GetComponent(BeeScript).m_MatchPoints.CompareTo(a.GetComponent(BeeScript).m_MatchPoints);
 }
 
-@RPC function EndMatch(winner:int)
+@RPC function EndMatch(winningTeam:int)
 {
+	m_WinningTeam = winningTeam;
 
 	//give players their scores based on
 	var playerList = new List.<GameObject>();
@@ -76,17 +93,15 @@ static function CompareWinners(a:GameObject, b:GameObject)
 		playerList.Add(player);
 	}
 	
-	playerList.Sort(CompareWinners); 
 	for(var i:int = 0; i <playerList.Count; i++)
 	{
 		var beeScript:BeeScript = playerList[i].GetComponent(BeeScript);
-		if( i <= 2)
-		{
-			beeScript.m_MatchPoints = 500- i*200 + Mathf.Max(beeScript.m_Kills - beeScript.m_Deaths, 0)*10 + beeScript.m_LongestChain * 25;
-		}
-		else
-			break;
+		beeScript.m_MatchPoints = beeScript.m_Honey + Mathf.Max(beeScript.m_Kills - beeScript.m_Deaths, 0)*10 + beeScript.m_LongestChain * 25;
+		
 	}
+	
+	playerList.Sort(CompareWinners); 
+	m_MVPPlayer = playerList[0].name;
 
 	var flash:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"));
 		// GameObject.Find("Flash").animation.Stop("FlashIntro");
@@ -126,7 +141,7 @@ static function CompareWinners(a:GameObject, b:GameObject)
 	
 	
 	SetState(MATCH_OVER);
-	m_WinningPlayer = NetworkUtils.GetClientFromGameObject(playerList[0]);
+	
 	
 	
 }

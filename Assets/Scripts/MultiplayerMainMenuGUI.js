@@ -88,7 +88,7 @@ function Update () {
 			{
 				var gos:GameObject[] = GameObject.FindGameObjectsWithTag("Flowers");
 				var flw:int = Random.Range(0,gos.length-1);
-				GameObject.Find("WorkerBee").transform.parent = gos[flw].transform;
+				//GameObject.Find("WorkerBee").transform.parent = gos[flw].transform;
 				AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);
 				m_Sel++;
 			}
@@ -99,7 +99,7 @@ function Update () {
 			{
 				gos= GameObject.FindGameObjectsWithTag("Flowers");
 				flw = Random.Range(0,gos.length-1);
-				GameObject.Find("WorkerBee").transform.parent = gos[flw].transform;
+				//GameObject.Find("WorkerBee").transform.parent = gos[flw].transform;
 				AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);
 				m_Sel--;	
 			}			

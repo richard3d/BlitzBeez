@@ -478,7 +478,7 @@ function OnNetworkInput(IN : InputState)
 				
 				for(i = 0; i < players.length; i++)
 				{
-					if(players[i] != gameObject && players[i].GetComponent(BeeScript).m_Team != beeScript.m_Team)
+					if(players[i] != gameObject && players[i].GetComponent(BeeScript).m_Team != beeScript.m_Team && GetComponent(ItemDecorator) == null)
 					{
 						if(Physics.Linecast(transform.position, players[i].transform.position, m_TerrainMask))
 							continue;
@@ -632,7 +632,7 @@ function HandleShotLogic()
 	go.GetComponent(BulletScript).m_Owner = gameObject;
 	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
-		Camera.main.GetComponent(CameraScript).Shake(0.35,1);
+		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.35,1);
 	go.GetComponent(BulletScript).m_PowerShot = false;
 	
 	//make it so we dont collide with our own bullets

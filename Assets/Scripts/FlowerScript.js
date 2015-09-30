@@ -172,7 +172,7 @@ function OnBulletCollision(coll:BulletCollision)
 			
 			//make sure we arent shooting our own bees
 			var bs:BulletScript =coll.bullet.GetComponent(BulletScript);
-			if(bs.m_Owner != m_Owner)
+			if(bs.m_Owner != m_Owner && bs.m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team)
 			{
 				//Handle power shot
 				if(bs.m_PowerShot)
