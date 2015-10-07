@@ -63,9 +63,14 @@ static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : G
 			go = m_BulletPool[bs.m_BulletType+1].Shift();
 			go.transform.position = pos;
 			go.GetComponent(UpdateScript).m_Vel = vel;
+			//go.transform.LookAt(pos+vel);
 			go.GetComponent(BulletScript).m_Life = 1.25;
 			//go.GetComponent(BulletScript).Start();
 			go.active = true;	
+			for(var t:Transform in go.transform)
+			{
+				t.gameObject.active = true;
+			}
 		}
 		else
 		{
@@ -91,13 +96,18 @@ static function RecycleBullet(bullet:GameObject)
 		if(m_BulletPool[bs.m_BulletType+1] == null)
 			m_BulletPool[bs.m_BulletType+1] = new Array();
 		bullet.active = false;
+		for(var t:Transform in bullet.transform)
+		{
+			t.gameObject.active = false;
+		}
+		if(bullet.GetComponent(ParticleSystem) != null)
+			bullet.GetComponent(ParticleSystem).Clear();
 		m_BulletPool[bs.m_BulletType+1].Push(bullet);
 	}
 }
 
 function Awake()
 {
-	Debug.Log("Awake");
 	gameObject.name = "Bullet"+ ++m_InstanceID;
 }
 
@@ -191,7 +201,7 @@ function Start () {
 			
 			for(go in gos)
 			{
-				if(go == m_Owner)
+				if(go == m_Owner || go.GetComponent(BeeScript).m_Team == m_Owner.GetComponent(BeeScript).m_Team)
 					continue;
 				var diff : Vector3 = go.transform.position - transform.position;
 				if(Vector3.Dot(diff.normalized, up.m_Vel.normalized) > accuracy)

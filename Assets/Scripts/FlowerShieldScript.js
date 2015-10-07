@@ -16,7 +16,7 @@ function OnBulletCollision(coll:BulletCollision)
 		return;
 	
 	var bs:BulletScript = coll.bullet.GetComponent(BulletScript);
-	if(bs.m_Owner != m_Owner)
+	if(bs.m_Owner != m_Owner && bs.m_Owner.GetComponent(BeeScript).m_Team !=  m_Owner.GetComponent(BeeScript).m_Team)
 	{
 		m_Owner.GetComponent(UpdateScript).m_Vel = coll.bullet.GetComponent(UpdateScript).m_Vel.normalized* 50;
 		if(coll.bullet.GetComponent(BulletScript).m_PowerShot)

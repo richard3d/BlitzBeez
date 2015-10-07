@@ -108,7 +108,7 @@ function OnNetworkInput(IN : InputState)
 		//networkView.RPC("Upgrade", RPCMode.All, m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_StatName,m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_Value);
 		
 		if(Network.isServer )
-			networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
+			networkView.RPC("ShowHiveGUI", RPCMode.All, 0);
 	}
 	
 	if(IN.GetAction(IN.MOVE_UP) && IN.GetAction(IN.MOVE_LEFT))
@@ -214,8 +214,8 @@ function Show(bShow : boolean)
 			animation["BeeGUIOpen"].speed = 1;
 			animation.Play("BeeGUIOpen");
 			
-			m_Camera.animation["CameraDramaticZoom"].speed = 1;
-			m_Camera.animation.Play("CameraDramaticZoom");
+			//m_Camera.animation["CameraDramaticZoom"].speed = 1;
+			//m_Camera.animation.Play("CameraDramaticZoom");
 			//m_CurrSelMenu.Push(m_MainMenu);
 			//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
 			
@@ -237,9 +237,9 @@ function Show(bShow : boolean)
 			animation["BeeGUIOpen"].time = animation["BeeGUIOpen"].length;
 			animation.Play("BeeGUIOpen");
 			
-			m_Camera.animation["CameraDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
-			m_Camera.animation["CameraDramaticZoom"].speed = -1;
-			m_Camera.animation.Play("CameraDramaticZoom");
+			//m_Camera.animation["CameraDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
+			//m_Camera.animation["CameraDramaticZoom"].speed = -1;
+			//m_Camera.animation.Play("CameraDramaticZoom");
 			AudioSource.PlayClipAtPoint(m_MenuHide, Camera.main.transform.position);
 			
 		}
@@ -315,41 +315,41 @@ function OnGUI()
 			 var count = 0;
 			 var statsPoint:Vector2 = Vector2(camPos.x+camWidth*0.60,camPos.y+camHeight*0.27);
 			 var fontSize = m_GUISkin.GetStyle("DescriptionText").fontSize;
-			 for(var s:String in beeCtrlScript.m_Stats.Keys)
-			 {
-				if(s == "Loadout" || s == "Powershot" || s == "Special_Rounds")
-					continue;
-					var label = s.Replace("_", " ");
-					//label.Replace("_", " ");
-				 GUI.Label(Rect(statsPoint.x,statsPoint.y+fontSize*count, 128,30), label, m_GUISkin.GetStyle("DescriptionText"));
+			 // for(var s:String in beeCtrlScript.m_Stats.Keys)
+			 // {
+				// if(s == "Loadout" || s == "Powershot" || s == "Special_Rounds")
+					// continue;
+					// var label = s.Replace("_", " ");
+					// //label.Replace("_", " ");
+				 // GUI.Label(Rect(statsPoint.x,statsPoint.y+fontSize*count, 128,30), label, m_GUISkin.GetStyle("DescriptionText"));
 				 
-				 //draw empty sqaures for the meter
-				 for(var p:int = 0; p < 5; p++)
-				 {
-					GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
-				 }
+				 // //draw empty sqaures for the meter
+				 // for(var p:int = 0; p < 5; p++)
+				 // {
+					// GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
+				 // }
 				 
-				 //draw the filled in squares for the meter
-				 var val:int = beeCtrlScript.m_Stats[s];
-				 t = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;
-				for(var key:String in t.m_Stats.Keys)
-				{
-					if(key == s)
-					{
-						var updatedVal : int = t.m_Stats[key];
-						val += updatedVal;
-						break;
-					}
+				 // //draw the filled in squares for the meter
+				 // var val:int = beeCtrlScript.m_Stats[s];
+				 // t = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;
+				// for(var key:String in t.m_Stats.Keys)
+				// {
+					// if(key == s)
+					// {
+						// var updatedVal : int = t.m_Stats[key];
+						// val += updatedVal;
+						// break;
+					// }
 					
-				}
+				// }
 				
-				 for(p = 0; p < (val+1); p++)
-				 {
-					GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
-					GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
-				 }
-				 count++;
-			 }
+				 // for(p = 0; p < (val+1); p++)
+				 // {
+					// GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
+					// GUI.DrawTexture(Rect(statsPoint.x+(8+p)*fontSize*1.1,statsPoint.y+fontSize*0.25+count*fontSize,fontSize,fontSize*.75), GetComponent(BeeScript).ReloadBarTexture, ScaleMode.StretchToFill, true);
+				 // }
+				 // count++;
+			 // }
 			
 			width = 256;
 		}

@@ -10,11 +10,13 @@ class LevelPrev
 class LocalPlayerLobbyState
 {
 	var m_Joined:boolean = false;
+	var m_TeamChosen:boolean = false;
 	var m_ColorChosen : boolean = false;
 	var m_Ready : boolean = false;
 	var m_Swag : String = null;
 	var m_SwagIndex : int = -1;
 	var m_Color:Color;
+	var m_Team : int = 0;
 }
 
 var Style : GUIStyle;
@@ -33,6 +35,8 @@ private var m_MenuPos:Vector2;
 public var m_BeeTexture:RenderTexture;
 public var m_ColorStripTexture:Texture2D = null;
 public var m_TeamColorTexture:Texture2D = null;
+public var m_Team1IconTexture:Texture2D = null;
+public var m_Team2IconTexture:Texture2D = null;
 public var m_WhitePix:Texture2D = null;
 
 public var m_StartMatch:boolean = false;
@@ -262,9 +266,19 @@ function Update () {
 					var armor:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
 					
 					if(i%2 == 0)
+					{
 						armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
+						m_PlayerStates[i].m_Team = 0;
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team1IconTexture;
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
+					}
 					else
+					{
 						armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
+						m_PlayerStates[i].m_Team = 1;
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team2IconTexture;
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
+					}
 					
 				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
 				GameObject.Find("Bee"+(i+1)).animation.enabled = true;
@@ -285,16 +299,84 @@ function Update () {
 				}
 			}
 			else
-			//player is choosing color
+			//player is choosing team			
 			if(m_PlayerStates[i].m_Joined)
 			{
+				
 				var bee:GameObject = GameObject.Find("Bee"+(i+1));
 				bee.transform.eulerAngles.y += Time.deltaTime * 360*Input.GetAxis("Joy"+i+" Look Left/Right");
+				if(!m_PlayerStates[i].m_TeamChosen)
+				{
+					var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Team >";
+					if(GameObject.Find("P"+(i+1)+"_TeamIcon") != null)
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
+					if(currInput != 0 && pLastInput[i] == 0)
+					{
+						armor = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
+						if(armor.renderer.materials[0].color == m_TeamColorTexture.GetPixel(TeamColorIndex,0))
+						{
+							armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
+							m_PlayerStates[i].m_Team = 1;
+							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team2IconTexture;
+							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
+						}
+						else
+						{
+							armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
+							m_PlayerStates[i].m_Team = 0;
+							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team1IconTexture;
+							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
+						}
+				
+							
+						
+						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);			
+						
+						if(Network.isServer)
+						{
+							for(var k:int =0 ; k < 4; k++)
+							{
+								if(GetComponent(ServerScript).GetClient(k) != null)
+								{
+									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
+										GetComponent(ServerScript).GetClient(k).m_SkinColor = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color;
+								}
+							}
+						}
+					
+					}
+					pLastInput[i] = currInput;
+					if(Input.GetButtonDown("Joy"+i+" OK"))
+					{
+						m_PlayerStates[i].m_TeamChosen = true;
+						GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Skin >";
+						//GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
+						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+					}
+					
+					if(Input.GetButtonDown("Joy"+i+" Cancel"))
+					{
+							if( i == 0)
+							{
+								AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
+								MenuExit(false);
+								for(var t:int = 0; t < m_PlayerStates.length; t++)
+								{
+									m_PlayerStates[t].m_Joined = false;
+									GameObject.Find("P"+(t+1)+"_Text").GetComponent(GUIScript).enabled = false;
+									GameObject.Find("P"+(t+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
+								}
+								CameraOutro();
+							}
+					}
+				}
+				else	
 				if(!m_PlayerStates[i].m_ColorChosen)
 				{
 					
 					
-					var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
 					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Skin >";
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
@@ -311,7 +393,7 @@ function Update () {
 						
 						if(Network.isServer)
 						{
-							for(var k:int =0 ; k < 4; k++)
+							for(k =0 ; k < 4; k++)
 							{
 								if(GetComponent(ServerScript).GetClient(k) != null)
 								{
@@ -334,13 +416,8 @@ function Update () {
 					{
 							if( i == 0)
 							{
+								m_PlayerStates[i].m_TeamChosen = false;
 								AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
-								MenuExit(false);
-								for(var t:int = 0; t < m_PlayerStates.length; t++)
-								{
-									GameObject.Find("P"+(t+1)+"_Text").GetComponent(GUIScript).enabled = false;
-								}
-								CameraOutro();
 							}
 					}
 	
@@ -421,16 +498,10 @@ function Update () {
 								{
 									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
 									{
-										if(i%2 == 0)
-										{
-											GetComponent(ServerScript).GetClient(k).m_Side = 0;
-											GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
-										}
-										else
-										{
-											GetComponent(ServerScript).GetClient(k).m_Side = 1;
-											GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
-										}
+									
+										GetComponent(ServerScript).GetClient(k).m_Side = m_PlayerStates[i].m_Team;
+										GetComponent(ServerScript).GetClient(k).m_Color = m_TeamColorTexture.GetPixel(TeamColorIndex+m_PlayerStates[i].m_Team,0);
+										
 									}
 								}
 							}
@@ -475,6 +546,7 @@ function Update () {
 				for(i = 0; i < m_PlayerStates.length; i++)
 				{
 					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).enabled = false;
+					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 					
 				}	
 				AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
@@ -593,24 +665,10 @@ function OnGUI()
 		var width : float = 800;
 		
 		GUILayout.BeginArea (Rect(m_MenuPos.x, 0, Screen.width,Screen.height));		
-		GUILayout.BeginHorizontal();
-		for(var p:int = 0; p < 4; p++)
-		{
-			// if(!m_PlayerStates[p].m_Joined )
-				// GUI.color.a = 0.5;
-			//GUILayout.Label("P "+(p+1), m_GUISkin.GetStyle("Heading"));
-			GUI.color.a = 1;
-			//GUI.color = Color.white;
-		
-		}
-		GUILayout.EndHorizontal();
-		
-		
-		
-		gameObject.Find("BeeCamera").camera.Render();
-		GUI.DrawTexture(Rect(0, 0 ,Screen.width, Screen.height),m_BeeTexture);
+			gameObject.Find("BeeCamera").camera.Render();
+			GUI.DrawTexture(Rect(0, 0 ,Screen.width, Screen.height),m_BeeTexture);
 		GUILayout.EndArea();
-		
+
 		return;
 	}
 

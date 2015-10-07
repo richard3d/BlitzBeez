@@ -407,42 +407,17 @@ function OnNetworkInput(IN : InputState)
 				}
 				
 			}
+			// else
+			// //handle hive pedestals
+			// if(m_NearestObject.tag == "HivePedestals")
+			// {
+			    // if(GetComponent(ItemDecorator) == null && !m_NearestObject.GetComponent(HivePedestalScript).m_Activated)
+			    // {
+				 	// ServerRPC.Buffer(networkView,"UsePedestal", RPCMode.All, m_NearestObject.name);
+			    // }
+			// }
 			else
-			//handle hive pedestals
-			if(m_NearestObject.tag == "HivePedestals")
-			{
-			    if(GetComponent(ItemDecorator) == null && !m_NearestObject.GetComponent(HivePedestalScript).m_Activated)
-			    {
-				 	ServerRPC.Buffer(networkView,"UsePedestal", RPCMode.All, m_NearestObject.name);
-			    }
-			}
-			else
-			//handle hives
-			if(m_NearestObject.tag == "Hives")
-			{
-				   if(GetComponent(ItemDecorator) == null && m_NearestObject.GetComponent(HiveScript).m_Owner == gameObject && beeScript.m_NumUpgradesAvailable > 0)
-				   {
-						var six:int[] = new int[6];
-						var removedTalents:Array = new Array();
-						var validIndices:Array = new Array();
-						for(var i:int = 0; i < GetComponent(TalentTree).m_Talents.Count; i++)
-						{
-							validIndices.Add(i);
-						}
-						for(i = 0; i < 6; i++)
-						{
-							var indexSel:int = Random.Range(0,validIndices.Count-1);
-							six[i] = validIndices[indexSel];
-							validIndices.RemoveAt(indexSel);
-							//removedTalents.Add(GetComponent(TalentTree).m_Talents[six[i]]);
-							//GetComponent(TalentTree).m_Talents.RemoveAt(six[i]);
-						}
-						
-						
-						networkView.RPC("EnterHive", RPCMode.All, m_NearestObject.name, six[0], six[1], six[2], six[3], six[4], six[5]);
-				   }
-			}
-			//handle hive pedestals
+			//handle teleporter
 			if(m_NearestObject.tag == "Teleporters")
 			{
 			    if(GetComponent(ItemDecorator) == null && GetComponent(TeleportDecorator) == null)
@@ -450,6 +425,7 @@ function OnNetworkInput(IN : InputState)
 				 	ServerRPC.Buffer(networkView,"UseTeleporter", RPCMode.All, m_NearestObject.name);
 			    }
 			}
+		
 		}
 		else
 		if(GetComponent(TreeHideDecorator) == null)
@@ -471,6 +447,29 @@ function OnNetworkInput(IN : InputState)
 				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
 				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 0);	
 			}
+			else
+			if(GetComponent(ItemDecorator) == null && beeScript.m_NumUpgradesAvailable > 0)
+		    {
+				//handle upgrade
+				var six:int[] = new int[6];
+				var removedTalents:Array = new Array();
+				var validIndices:Array = new Array();
+				for(var i:int = 0; i < GetComponent(TalentTree).m_Talents.Count; i++)
+				{
+					validIndices.Add(i);
+				}
+				for(i = 0; i < 6; i++)
+				{
+					var indexSel:int = Random.Range(0,validIndices.Count-1);
+					six[i] = validIndices[indexSel];
+					validIndices.RemoveAt(indexSel);
+					//removedTalents.Add(GetComponent(TalentTree).m_Talents[six[i]]);
+					//GetComponent(TalentTree).m_Talents.RemoveAt(six[i]);
+				}
+				
+				
+				networkView.RPC("EnterHive", RPCMode.All, six[0], six[1], six[2], six[3], six[4], six[5]);
+		    }
 			else
 			{
 				var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
@@ -962,7 +961,7 @@ function PowershotAnim()
 	
 	
 }
-@RPC function EnterHive(hiveName : String, item0:int, item1:int, item2:int, item3:int, item4:int, item5:int)
+@RPC function EnterHive( item0:int, item1:int, item2:int, item3:int, item4:int, item5:int)
 {
 	GetComponent(BeehiveGUI).m_Selection[0] = item0;
 	GetComponent(BeehiveGUI).m_Selection[1] = item1;
@@ -970,14 +969,12 @@ function PowershotAnim()
 	GetComponent(BeehiveGUI).m_Selection[3] = item3;
 	GetComponent(BeehiveGUI).m_Selection[4] = item4;
 	GetComponent(BeehiveGUI).m_Selection[5] = item5;
-	ShowHiveGUI(1, hiveName);
+	ShowHiveGUI(1);
 }
 
-@RPC function ShowHiveGUI(bShow : int, hiveName : String)
+@RPC function ShowHiveGUI(bShow : int)
 {	
-	var parts : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashParticles"));
-	parts.GetComponent(ParticleSystem).renderer.material.color = Color.white;
-	parts.transform.position = transform.position;
+	
 	Debug.Log("SHOWING HIVE " +bShow);
 	//if(GetComponent(BeeScript).m_CurrLevel > 0)
 	//{
@@ -985,34 +982,27 @@ function PowershotAnim()
 		{
 			//freeze our character and hide them
 			gameObject.AddComponent(ControlDisablerDecorator);
-			GetComponent(BeeScript).Show(false);
+			
 			
 			//if this bee is our controlled bee then show the hive GUI
 			//if(NetworkUtils.IsControlledGameObject(gameObject))
-				GetComponent(BeehiveGUI).Show(true);
+			GetComponent(BeehiveGUI).Show(true);
 			
 			
-			for(var i = 0; i <transform.childCount; i++)
-			{
-				transform.GetChild(i).gameObject.active = false;
-			}
 						
-			GetComponent(SphereCollider).enabled = false;
+			
 			//GetComponent(NetworkInputScript).enabled = false;
 			GetComponent(UpdateScript).m_Vel = Vector3(0,0,0);
 			GetComponent(UpdateScript).m_Accel = Vector3(0,0,0);
-			transform.position = gameObject.Find(hiveName).transform.position;
+			//transform.position = gameObject.Find(hiveName).transform.position;
 		}
 		else
 		{
 			//if(NetworkUtils.IsControlledGameObject(gameObject))
 			GetComponent(BeehiveGUI).Show(false);
-			GetComponent(BeeScript).Show(true);
-			for(i = 0; i <transform.childCount; i++)
-			{
-				transform.GetChild(i).gameObject.active = true;
-			}
-			GetComponent(SphereCollider).enabled = true;
+			
+		
+		
 			GetComponent(NetworkInputScript).enabled = true;
 			Destroy(gameObject.GetComponent(ControlDisablerDecorator));
 		}

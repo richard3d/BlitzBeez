@@ -11,6 +11,10 @@ ModelImporter:
     4300012: Beezus
     4300014: Billy
     4300016: MageCap
+    4300018: Hawk
+    4300020: NewBee
+    4300022: Burner
+    4300024: Astro
   serializedVersion: 10
   materials:
     importMaterials: 1
@@ -55,6 +59,19 @@ ModelImporter:
       data:
         first: 111
         second: 605fa900
+    Astro:
+      data:
+        first: 1
+        second: b2860100
+      data:
+        first: 4
+        second: 921a0600
+      data:
+        first: 23
+        second: 70182300
+      data:
+        first: 33
+        second: b05a3200
     Beezus:
       data:
         first: 1
@@ -81,6 +98,19 @@ ModelImporter:
       data:
         first: 33
         second: aa5a3200
+    Burner:
+      data:
+        first: 1
+        second: b0860100
+      data:
+        first: 4
+        second: 901a0600
+      data:
+        first: 23
+        second: 6e182300
+      data:
+        first: 33
+        second: ae5a3200
     Fez:
       data:
         first: 1
