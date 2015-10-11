@@ -20,7 +20,7 @@ function Start () {
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		GetComponent(BeeControllerScript).m_LookEnabled = false;
-		GetComponent(BeeScript).m_DrawGUI = false;
+		GetComponent(BeeScript).SetGUIEnabled(false);
 		m_Camera.GetComponent(MotionBlur).enabled = true;
 		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
 		m_Camera.animation.Play("CameraLessDramaticZoom");
@@ -92,11 +92,9 @@ function OnGUI()
 			camPos.y = 0;
 		var time:int = (m_Lifetime+0.5);
 		var style:GUIStyle = GetComponent(BeeScript).FontStyle;
-		var tempMinItemWidth:float;
-		var tempMaxItemWidth:float;
-		style.CalcMinMaxWidth(GUIContent("Respawning in  "), tempMinItemWidth, tempMaxItemWidth);
+		var tempRect:Rect = GUILayoutUtility.GetRect(new GUIContent("Respawning in 10"), style);
 		GUI.backgroundColor.a = 0;
-		GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempMinItemWidth*0.5,camPos.y+tempMaxItemWidth,256,512), "Respawning in "+time, style);
+		GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempRect.width*0.5,camPos.y+tempRect.height*4,tempRect.width,tempRect.height), "Respawning in "+time, style);
 		
 	}
 }
@@ -113,7 +111,7 @@ function OnDestroy()
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		GetComponent(BeeControllerScript).m_LookEnabled = true;
-		GetComponent(BeeScript).m_DrawGUI = true;
+		GetComponent(BeeScript).SetGUIEnabled(true);
 		
 		m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 		m_Camera.animation["CameraLessDramaticZoom"].speed = -1;

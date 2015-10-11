@@ -630,7 +630,7 @@ function HandleShotLogic()
 	var go : GameObject = gameObject.Find(bulletName);
 	go.GetComponent(BulletScript).m_Owner = gameObject;
 	
-	if(NetworkUtils.IsControlledGameObject(gameObject))
+	if(NetworkUtils.IsLocalGameObject(gameObject))
 		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.35,1);
 	go.GetComponent(BulletScript).m_PowerShot = false;
 	
@@ -657,21 +657,15 @@ function HandleShotLogic()
 	go.GetComponent(TrailRenderer).material.color = color;
 	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
 	}
-	
-	// if(decrementAmmo)
-	// {
-		// if(GetComponentInChildren(ParticleEmitter).particleCount == 1)
-		// {
-			// m_ReloadTimer = m_Stats["Reload_Speed"];
-			// m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
-		// }
-		// GetComponentInChildren(BeeParticleScript).RemoveParticle();
-	// }
+	gameObject.AddComponent(ControlDisablerDecorator);
+	GetComponent(ControlDisablerDecorator).SetLifetime(0.15);
+	GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
+	GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
+
     go.renderer.material.SetColor("_Color",color);
 	go.renderer.material.SetColor("_Emission", color);
 	go.GetComponent(BulletScript).Start();
-	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
-	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
+	
 }
 
 function OnPlayerTurn(ang:float)
@@ -791,7 +785,7 @@ function PowershotAnim()
 		{
 			go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
 			go.GetComponent(TrailRenderer).startWidth = 0.6* 10;
-			go.GetComponent(TrailRenderer).time *= 2;
+			go.GetComponent(TrailRenderer).time = 0.14;
 			
 			go.renderer.material.SetColor("_TintColor", color);
 			go.GetComponent(TrailRenderer).material.SetColor("_TintColor", color);

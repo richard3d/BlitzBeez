@@ -86,7 +86,7 @@ var m_FocusedGroupNum:int = -1;
 var m_FocusedObject:GameObject = null;
 var m_DraggedFocusObject:GameObject = null;
 var FontStyle : GUIStyle = null;
-var m_DrawGUI:boolean = true;
+private var m_DrawGUI:boolean = true;
 var SmallFontStyle : GUIStyle = null;
 
 
@@ -185,6 +185,16 @@ function FadeOutXPMeter(time:float)
 	m_XPMeterFade = 0;
 }
 
+function IsGUIEnabled() : boolean
+{
+	return m_DrawGUI;
+}
+
+function SetGUIEnabled(b:boolean)
+{
+	m_DrawGUI = b;
+	transform.Find("MinimapCamera").camera.enabled = b;
+}
 
 function Update() {
 	
@@ -481,12 +491,12 @@ function DrawGUI()
 					//honeyPerc = Mathf.Min(honeyPerc, 1);
 					
 				
-					GUI.color  = NetworkUtils.GetColor(player);
-					GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotTexture, ScaleMode.ScaleToFit, true);
-					GUI.color = Color.white;
-						GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotOutlineTexture, ScaleMode.ScaleToFit, true);
-					GUI.backgroundColor = Color.black;
-					GUI.Label(Rect(164*camScale*i+96*camScale, 0, 128*camScale, 32*camScale),  (honeyPerc).ToString("F2")+"%",FontStyle);
+					// GUI.color  = NetworkUtils.GetColor(player);
+					// GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotTexture, ScaleMode.ScaleToFit, true);
+					// GUI.color = Color.white;
+						// GUI.DrawTexture(Rect(164*camScale*(i+1), 32*camScale, 96*camScale, 96*camScale), HoneypotOutlineTexture, ScaleMode.ScaleToFit, true);
+					// GUI.backgroundColor = Color.black;
+					// GUI.Label(Rect(164*camScale*i+96*camScale, 0, 128*camScale, 32*camScale),  (honeyPerc).ToString("F2")+"%",FontStyle);
 				
 				}
 			}

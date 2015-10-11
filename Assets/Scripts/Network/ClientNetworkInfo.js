@@ -12,6 +12,7 @@ class ClientNetworkInfo
 	var m_Color: Color = Color.yellow;
 	var m_Swag: String = "";
 	var m_Side:int = 0;
+	var m_TotalScore:int = 0;
 	var m_Player : NetworkPlayer;
 	var m_GameObject : GameObject = null;
 	var m_LevelLoaded : boolean = false;

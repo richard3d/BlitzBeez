@@ -42,19 +42,23 @@ static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : G
 	
 	if(bs.m_PowerShot)
 	{
-		// if(m_PowerBulletPool[bs.m_PowerShotType+1] != null && m_PowerBulletPool[bs.m_PowerShotType+1].length > 0)
-		// {
-			// go = m_PowerBulletPool[bs.m_PowerShotType+1].Shift();
-			// go.transform.position = pos;
-			// go.GetComponent(UpdateScript).m_Vel = vel;
-			// go.GetComponent(BulletScript).m_Life = 1.25;
-			// go.active = true;	
-		// }
-		// else
-		// {
+		if(m_PowerBulletPool[bs.m_PowerShotType+1] != null && m_PowerBulletPool[bs.m_PowerShotType+1].length > 0)
+		{
+			go = m_PowerBulletPool[bs.m_PowerShotType+1].Shift();
+			go.transform.position = pos;
+			go.GetComponent(UpdateScript).m_Vel = vel;
+			go.GetComponent(BulletScript).m_Life = 1.25;
+			go.active = true;	
+			for(var t:Transform in go.transform)
+			{
+				t.gameObject.active = true;
+			}
+		}
+		else
+		{
 			//instantiate a new one
 			go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
-		//}
+		}
 	}
 	else
 	{
@@ -89,6 +93,12 @@ static function RecycleBullet(bullet:GameObject)
 		if(m_PowerBulletPool[bs.m_PowerShotType+1] == null)
 			m_PowerBulletPool[bs.m_PowerShotType+1] = new Array();
 		bullet.active = false;
+		for(var t:Transform in bullet.transform)
+		{
+			t.gameObject.active = false;
+		}
+		if(bullet.GetComponent(ParticleSystem) != null)
+			bullet.GetComponent(ParticleSystem).Clear();
 		m_PowerBulletPool[bs.m_PowerShotType+1].Push(bullet);
 	}
 	else
@@ -295,8 +305,8 @@ function Update () {
 						var diff : Vector3 = m_Tgt.transform.position - transform.position+Vector3(0,10,0);
 						var homing :float = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.15;
 						
-						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
-						up.m_Vel.y = 0;
+					//	up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+					//	up.m_Vel.y = 0;
 						transform.LookAt(transform.position+up.m_Vel);
 						//up.m_Vel += diff.normalized * homing ;
 					}
@@ -305,8 +315,8 @@ function Update () {
 				{
 						diff = m_Tgt.transform.position - transform.position+Vector3(0,10,0);
 						homing = Mathf.Max(0.3,Mathf.Abs(Vector3.Dot(up.m_Vel.normalized, diff.normalized)))*0.15;
-						up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
-						up.m_Vel.y = 0;
+						//up.m_Vel = Vector3.Slerp(up.m_Vel, diff.normalized * up.m_Vel.magnitude, homing);
+						//up.m_Vel.y = 0;
 						transform.LookAt(transform.position+up.m_Vel);
 						//up.m_Vel += diff.normalized * homing ;
 				}
@@ -664,8 +674,8 @@ function KillBullet(pos:Vector3)
 		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
 	
 	RecycleBullet(gameObject);
-	if(m_PowerShot)
-		Destroy(gameObject);
+	//if(m_PowerShot)
+	//	Destroy(gameObject);
 } 
 
 @RPC function RemoveComponent(compName:String)

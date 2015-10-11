@@ -48,7 +48,9 @@ function OnGUI()
 	{
 		//if(GetNumClients() > 1)
 		var skin :GUISkin = GetComponent(MultiplayerLobbyGUI).m_GUISkin;
+		GUI.color = Color(0,0,0,0.75);
 		 GUILayout.BeginArea(Rect(0,Screen.height*0.25, Screen.width,Screen.height*0.5), skin.customStyles[0]);
+		 GUI.color = Color.white;
 		// GUILayout.Label(" ", skin.label);
 		 GUILayout.EndArea();
 		
@@ -75,7 +77,7 @@ function OnStateChange(state:int)
 			{			
 				m_Clients[i].m_GameObject.GetComponent(BeeControllerScript).m_ControlEnabled = true;
 				if(m_Clients[i].m_LocalClient)
-					m_Clients[i].m_GameObject.GetComponent(BeeScript).m_DrawGUI = true;
+					m_Clients[i].m_GameObject.GetComponent(BeeScript).SetGUIEnabled(true);
 				Debug.Log("enabling input for "+i);
 			}
 		}
@@ -585,7 +587,7 @@ function GetGameObject() : GameObject
 			m_Clients[clientID].m_LocalClient = true;
 			m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_JoyOwner = m_Clients[clientID].m_JoyNum;
 			m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient = true;
-			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_DrawGUI = false;
+			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).SetGUIEnabled(false);
 			//instantiate a new camera for this player to render on screen (split screen)
 			var playerCam:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/PlayerCamera"));
 			playerCam.name = go + "Camera";

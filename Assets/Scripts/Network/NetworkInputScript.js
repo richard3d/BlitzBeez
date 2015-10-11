@@ -88,7 +88,7 @@ function Start () {
 
 function OnGUI()
 { 
-	if(NetworkUtils.IsLocalGameObject(gameObject) && GetComponent(BeeScript).m_DrawGUI)
+	if(NetworkUtils.IsLocalGameObject(gameObject) && GetComponent(BeeScript).IsGUIEnabled())
 	{
 		var cam:GameObject = GetComponent(BeeScript).m_Camera;
 		var camWidth = cam.camera.rect.width;

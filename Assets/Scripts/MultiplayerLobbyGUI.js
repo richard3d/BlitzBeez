@@ -37,6 +37,7 @@ public var m_ColorStripTexture:Texture2D = null;
 public var m_TeamColorTexture:Texture2D = null;
 public var m_Team1IconTexture:Texture2D = null;
 public var m_Team2IconTexture:Texture2D = null;
+public var m_SkinPrevTexture:Texture2D = null;
 public var m_WhitePix:Texture2D = null;
 
 public var m_StartMatch:boolean = false;
@@ -83,7 +84,7 @@ function Start () {
 
 function OnEnable()
 {
-	Debug.Log("Enabling");
+	//Debug.Log("Enabling");
 
 	for(var i:int = 0; i < 4; i++)
 	{	
@@ -248,7 +249,7 @@ function Update () {
 	{
 		for(var i:int = 0; i < m_PlayerStates.length; i++)
 		{
-			if(Input.GetButtonDown("Joy"+i+" OK") && !m_PlayerStates[i].m_Joined)
+			if(Input.GetButtonDown("Joy"+i+" OK") && !m_PlayerStates[i].m_Joined && !GameObject.Find("BeeCamera").animation.isPlaying)
 			{
 				if(Network.isServer)
 				{
@@ -309,8 +310,13 @@ function Update () {
 				{
 					var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right");
 					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Team >";
-					if(GameObject.Find("P"+(i+1)+"_TeamIcon") != null)
-						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
+					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
+					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = m_TeamColorTexture.GetPixel(TeamColorIndex+m_PlayerStates[i].m_Team,0);;
+					if(m_PlayerStates[i].m_Team == 0)
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team1IconTexture;
+					else
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team2IconTexture;	
+					
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
 						armor = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
@@ -318,15 +324,11 @@ function Update () {
 						{
 							armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
 							m_PlayerStates[i].m_Team = 1;
-							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team2IconTexture;
-							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
 						}
 						else
 						{
 							armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
 							m_PlayerStates[i].m_Team = 0;
-							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team1IconTexture;
-							GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
 						}
 				
 							
@@ -378,6 +380,9 @@ function Update () {
 					
 					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
 					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Skin >";
+					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
+					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_SkinPrevTexture;
+					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
 						if(currInput > 0)
@@ -389,6 +394,7 @@ function Update () {
 							pColorIndices[i] -= 1;
 						}
 						GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
+						
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);			
 						
 						if(Network.isServer)
@@ -428,6 +434,7 @@ function Update () {
 				{
 					//player is selecting swag
 					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
 						var currSwag:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag");
@@ -677,49 +684,30 @@ function OnGUI()
 	{
 		
 		//var width : float = 800;
+		GUI.backgroundColor = Color(0,0,0,1);
 		GUILayout.BeginArea (Rect(m_MenuPos.x, m_MenuPos.y, 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 			
-			GUILayout.BeginHorizontal();
-				GUI.backgroundColor = Color(0,0,0,0);
-				GUILayout.Label("<", m_GUISkin.label);
-				// {
-					// m_LevelIndex--;
-					// if(m_LevelIndex < 0)
-						// m_LevelIndex = m_LevelPreviews.length - 1;
-				// }
-				GUI.backgroundColor = Color(0,0,0,0);
+			//GUILayout.BeginVertical();
+				GUI.backgroundColor = Color(0,0,0,1);
+				m_GUISkin.label.alignment = TextAnchor.UpperCenter;
+				//GUILayout.Label("<", m_GUISkin.label);
+				GUI.backgroundColor = Color(0,0,0,1);
 				GUILayout.Label(m_LevelPreviews[m_LevelIndex].m_Name, m_GUISkin.label);
 				
-				GUILayout.Label(">", m_GUISkin.label);
-				GUI.backgroundColor = Color.white;
-			GUILayout.EndHorizontal();
+				//GUILayout.Label(">", m_GUISkin.label);
+				//GUI.backgroundColor = Color.white;
 			
-			GUI.backgroundColor = Color(0,0,0,0.5);
-			GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex, GUILayout.ExpandHeight(true));
+			
+			//GUI.backgroundColor = Color(0,0,0,0.5);
+			
+			GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,GUILayout.Height(512));
+			GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex);
+			GUILayout.Label( "Select Map", m_GUISkin.label);
 			GUI.backgroundColor = Color.white;
-			// GUILayout.BeginHorizontal();
-				
-				// if(GUILayout.Button("Return to Main Menu", m_GUISkin.button))
-				// {
-					// //m_ReturnToMain = true;
-					// // AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-					// // gameObject.Destroy(gameObject.Find("GameServer"));
-					// // Application.LoadLevel(0);
-				// }
-				// if(GUILayout.Button("Start Match", m_GUISkin.button))
-				// {
-					// // //Tell the clients which level to load
-
-					// //m_StartMatch = true;
-					// //AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-					// //StartMatch();
-					// //AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-				 // //  GetComponent(ServerScript).m_ConnectMsgsView.RPC("LoadLevel", RPCMode.Others, "Scene2");
-				  // // GetComponent(ServerScript).LoadLevel("Scene2");
-				// }
-			// GUILayout.EndHorizontal();
+			//GUILayout.EndVertical();
 		GUILayout.EndArea();
-		
+		GUI.backgroundColor = Color(0,0,0,0.75);
+	
 		GUILayout.BeginArea (Rect(m_MenuPos.x+512, m_MenuPos.y, Screen.width - 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 		var comp : ServerScript = GetComponent(ServerScript) as ServerScript;
 		if(comp.GetNumClients() == 0)
@@ -728,16 +716,83 @@ function OnGUI()
 		}
 		else
 		{
-			GUI.backgroundColor = new Color(0,0,0,0.5);
-			for(var i : int = 0; i < comp.GetNumClients(); i++)
+			var m_Players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+			if(m_Players != null)
 			{
-				GUILayout.Label(comp.GetClient(i).m_Name, m_GUISkin.label);		
-			}
-			if(comp.GetNumClients() == 1)
-			{
-				GUILayout.Label("Waiting for other players to join...", m_GUISkin.label);	
-			}
-			GUI.backgroundColor = Color.white;
+				var rankedClients = new List.<ClientNetworkInfo>();
+				for(var p : int = 0; p < comp.GetNumClients(); p++)
+				{
+					rankedClients.Add(comp.GetClient(p));
+				}
+				rankedClients.Sort(GameStateManager.CompareLeaders);
+				
+				var team1Count:int = 0;
+				var team2Count:int = 0;
+				//set the headings
+				
+				var leaderboardXOffset:float = 32; 
+				width = (Screen.width-512)/3;
+				
+				m_GUISkin.label.alignment = TextAnchor.UpperLeft;
+				GUI.backgroundColor.a = 0.0;
+				GUI.Label(Rect(leaderboardXOffset,0,width, m_GUISkin.label.fontSize),"Name", m_GUISkin.label);
+				//GUI.Label(Rect(width,0,width, m_GUISkin.label.fontSize),"Name", m_GUISkin.label);
+				GUI.Label(Rect(width+leaderboardXOffset,0,width, m_GUISkin.label.fontSize),"Rank", m_GUISkin.label);
+				GUI.Label(Rect(width*2+leaderboardXOffset,0,width, m_GUISkin.label.fontSize),"Score", m_GUISkin.label);
+				
+				//draw the ranked list of clients
+				for(p  = 0; p < rankedClients.Count; p++)
+				{	
+					
+					var c:ClientNetworkInfo = rankedClients[p];
+					var y:float = 0;
+					if(c.m_Side == 0)
+					{
+						y = (team1Count+1) * m_GUISkin.label.fontSize*1.1+64;
+						if(team1Count == 0)
+						{
+							GUI.color = c.m_Color;
+							//GUI.color.a = 0.4;
+							GUI.Label(Rect(leaderboardXOffset,y-64,64, 64),m_Team1IconTexture);
+							GUI.color = Color.white;	
+						}
+						team1Count++;
+					}
+					else
+					{
+						y = (team2Count+1) * m_GUISkin.label.fontSize*1.1 + 164+64;
+						if(team2Count == 0)
+						{
+							GUI.color = c.m_Color;
+							//GUI.color.a = 0.4;
+							GUI.Label(Rect(leaderboardXOffset,y-64,64, 64),m_Team2IconTexture);
+							GUI.color = Color.white;
+						}
+						team2Count++;
+						
+					}
+					GUI.backgroundColor = c.m_Color;
+					GUI.backgroundColor.a = 0.4;
+					
+					//GUI.color = c.m_Color;
+					
+					GUI.Label(Rect(leaderboardXOffset,y,width, 32),"       "+c.m_Name, m_GUISkin.label);
+					GUI.Label(Rect(width+leaderboardXOffset,y,width, 32)," "+(p+1), m_GUISkin.label);
+					GUI.Label(Rect(width*2+leaderboardXOffset,y,width-64, 32)," "+c.m_TotalScore, m_GUISkin.label);
+					
+				}
+				m_GUISkin.label.alignment = TextAnchor.MiddleCenter;
+			}	
+			// GUI.backgroundColor = new Color(0,0,0,0.5);
+			// for(var i : int = 0; i < comp.GetNumClients(); i++)
+			// {
+				// GUILayout.Label(comp.GetClient(i).m_Name, m_GUISkin.label);		
+			// }
+			// if(comp.GetNumClients() == 1)
+			// {
+				// GUILayout.Label("Waiting for other players to join...", m_GUISkin.label);	
+			// }
+			// GUI.backgroundColor = Color.white;
 		}
 		GUILayout.EndArea();
 	}
@@ -765,7 +820,7 @@ function OnGUI()
 			GUILayout.BeginArea (Rect(m_MenuPos.x+512, 0, Screen.width - 512,Screen.height*0.5), m_GUISkin.customStyles[0]);
 			GUI.backgroundColor = new Color(0,0,0,0.5);
 			GUILayout.Label("Waiting for Match to Start..." , m_GUISkin.label);
-			for(i= 0; i < cliScript.GetNumClients(); i++)
+			for(var i:int= 0; i < cliScript.GetNumClients(); i++)
 			{
 				GUILayout.Label(cliScript.GetClient(i).m_Name, m_GUISkin.label);		
 			}

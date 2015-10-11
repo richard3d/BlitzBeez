@@ -76,9 +76,18 @@ function SetState(state:int)
 		MatchTickCoroutine(numTicks, ticksPerSec);
 } 
 
+//this ranks players by how they did in the match that just finished
 static function CompareWinners(a:GameObject, b:GameObject)
 {
 	return b.GetComponent(BeeScript).m_MatchPoints.CompareTo(a.GetComponent(BeeScript).m_MatchPoints);
+}
+
+//this is overall leaderboard for current session
+static function CompareLeaders(a:ClientNetworkInfo, b:ClientNetworkInfo)
+{
+	if(b.m_TotalScore == a.m_TotalScore)
+		return -1;
+	return b.m_TotalScore.CompareTo(a.m_TotalScore);
 }
 
 @RPC function EndMatch(winningTeam:int)
@@ -97,6 +106,7 @@ static function CompareWinners(a:GameObject, b:GameObject)
 	{
 		var beeScript:BeeScript = playerList[i].GetComponent(BeeScript);
 		beeScript.m_MatchPoints = beeScript.m_Honey + Mathf.Max(beeScript.m_Kills - beeScript.m_Deaths, 0)*10 + beeScript.m_LongestChain * 25;
+		NetworkUtils.GetClientObjectFromGameObject(playerList[i]).m_TotalScore += beeScript.m_MatchPoints;
 		
 	}
 	
