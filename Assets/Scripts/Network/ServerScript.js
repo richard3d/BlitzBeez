@@ -546,7 +546,7 @@ function GetGameObject() : GameObject
 	
 	//go.AddComponent(ControlDisablerDecorator);
 	ServerRPC.Buffer(m_SyncMsgsView, "NetworkInstantiate", RPCMode.Others, m_PlayerPrefab.name,"", go.transform.position, Quaternion.identity, viewID, 0);
-	go.name = "Bee" + clientID; 
+	go.name = m_Clients[clientID].m_Name; 
 	SetClientGameObject(clientID,go.name);
 	ServerRPC.Buffer(m_SyncMsgsView, "SetClientGameObject", RPCMode.Others, clientID, go.name);
 	ServerRPC.Buffer(go.networkView, "AddSwarm", RPCMode.All, "", Vector3(0,0,0), go.GetComponent(BeeControllerScript).m_LoadOut.m_BaseClipSize);

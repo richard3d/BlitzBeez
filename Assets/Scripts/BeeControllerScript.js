@@ -87,8 +87,6 @@ function Start () {
 function Update()
 {
 
-//	m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
-	//m_LoadOut.Update();
 	HandleShotLogic();
 	if(m_FireTimer > 0)
 		m_FireTimer -= Time.deltaTime;
@@ -580,7 +578,7 @@ function HandleShotLogic()
 			
 		
 			var go : GameObject = null;
-			go = BulletScript.SpawnBullet(m_BulletInstance,bulletPos,Vector3.zero);
+			go = BulletScript.SpawnBullet(m_LoadOut.m_Pylons[i].m_BulletInstance,bulletPos,Vector3.zero);
 			//Uncomment this later if not using pool!!!
 			// if(m_LoadOut.m_Pylons[i].m_BulletInstance != null)
 				// go  = Network.Instantiate(m_LoadOut.m_Pylons[i].m_BulletInstance, bulletPos , Quaternion.identity, 0);	
@@ -657,10 +655,10 @@ function HandleShotLogic()
 	go.GetComponent(TrailRenderer).material.color = color;
 	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
 	}
-	gameObject.AddComponent(ControlDisablerDecorator);
-	GetComponent(ControlDisablerDecorator).SetLifetime(0.15);
-	GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
-	GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
+	// gameObject.AddComponent(ControlDisablerDecorator);
+	// GetComponent(ControlDisablerDecorator).SetLifetime(0.15);
+	// GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
+	// GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
 
     go.renderer.material.SetColor("_Color",color);
 	go.renderer.material.SetColor("_Emission", color);
@@ -781,6 +779,7 @@ function PowershotAnim()
 		//set the position and velocity of the bullet
 		go.transform.position = transform.position+transform.forward*15;
 		go.GetComponent(UpdateScript).m_Vel = transform.forward * go.GetComponent(UpdateScript).m_MaxSpeed;
+		go.transform.LookAt(go.transform.position+go.GetComponent(UpdateScript).m_Vel);
 		if(go.GetComponent(TrailRenderer) != null)
 		{
 			go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
@@ -790,6 +789,8 @@ function PowershotAnim()
 			go.renderer.material.SetColor("_TintColor", color);
 			go.GetComponent(TrailRenderer).material.SetColor("_TintColor", color);
 		}
+		
+		go.GetComponent(BulletScript).Start();
 		
 	}
 	else
@@ -828,6 +829,7 @@ function PowershotAnim()
 	}
 	m_PowershotReloadTimer = m_Stats["Powershot_Reload"];
 	m_PowershotReloadTimer = 1.5 -  ((m_PowershotReloadTimer+1.0) /4.0)*1.5;
+	
 
 }
 

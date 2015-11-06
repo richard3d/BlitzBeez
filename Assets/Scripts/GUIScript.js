@@ -16,6 +16,11 @@ var m_AnchorCenter : boolean = false;
 var m_AutoScale:boolean = false;
 var m_SpawnGUI:GameObject;	//a gui to spawn on our death, useful for sequencing animated gui items
 
+function Awake()
+{
+	
+}
+
 function Start () {
 
 	m_Style.fontSize = m_FontSize;

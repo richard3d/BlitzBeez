@@ -85,8 +85,8 @@ static function CompareWinners(a:GameObject, b:GameObject)
 //this is overall leaderboard for current session
 static function CompareLeaders(a:ClientNetworkInfo, b:ClientNetworkInfo)
 {
-	if(b.m_TotalScore == a.m_TotalScore)
-		return -1;
+	// if(b.m_TotalScore == a.m_TotalScore)
+		// return -1;
 	return b.m_TotalScore.CompareTo(a.m_TotalScore);
 }
 

@@ -10,11 +10,14 @@ class LevelPrev
 class LocalPlayerLobbyState
 {
 	var m_Joined:boolean = false;
+	var m_NameEntered : boolean = false;
+	var m_Name : String;
 	var m_TeamChosen:boolean = false;
 	var m_ColorChosen : boolean = false;
 	var m_Ready : boolean = false;
 	var m_Swag : String = null;
 	var m_SwagIndex : int = -1;
+	var m_AlphaIndex : int = 64;
 	var m_Color:Color;
 	var m_Team : int = 0;
 }
@@ -48,7 +51,7 @@ var pLastInput:float[] = new float[4];
 var pColorIndices:int[] = new int[4];
 var TeamColorIndex:int = 0;
 public var m_IsAnimating:boolean = false;
-
+private var m_IconRect:Rect;
 
 function GetHosts()
 {
@@ -60,6 +63,7 @@ function GetHosts()
 function Awake()
 {
 	m_MenuPos = Vector2(-Screen.width, Screen.height*0.25);
+	
 	
 }
 
@@ -105,7 +109,7 @@ function OnEnable()
 				 GameObject.Find("P"+(i+1)+"_Text").transform.position.y += 4.5;
 				 GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "Ready!";
 				 GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_ImgColor.a = 0;
-				 GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Color.a = 1;
+				GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Color.a = 1;
 				
 				
 				GameObject.Find("Bee"+(i+1)).animation.enabled = true;
@@ -161,7 +165,9 @@ function MenuEnter(fwrd:boolean)
 		{
 			m_MenuPos.x = Mathf.Lerp(m_MenuPos.x,0,0.0166*20);
 			if(Mathf.Abs(m_MenuPos.x) < 1)
+			{
 				break;
+			}
 			yield WaitForSeconds(0.0166);
 		}
 	}
@@ -241,6 +247,20 @@ function CameraStart()
 	StartMatch();
 }
 
+function SquishIcon(icon:GUIScript)
+{
+	var rt:Rect = icon.m_Rect;
+	
+	var fTime:float = 0.3;
+	while(fTime > 0)
+	{	
+		var scale:float = 1+(Mathf.Sin(fTime*24)+1)*0.15* (fTime /0.3);
+		icon.m_Rect = new Rect(rt.x, rt.y, m_IconRect.width * scale, m_IconRect.height * scale);
+		fTime -= 0.033;
+		yield WaitForSeconds(0.033);
+	}
+}
+
 function Update () {
 
 	gameObject.Find("BeeCamera").camera.targetTexture = m_BeeTexture;
@@ -249,6 +269,7 @@ function Update () {
 	{
 		for(var i:int = 0; i < m_PlayerStates.length; i++)
 		{
+			var guiScript:GUIScript = GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript);
 			if(Input.GetButtonDown("Joy"+i+" OK") && !m_PlayerStates[i].m_Joined && !GameObject.Find("BeeCamera").animation.isPlaying)
 			{
 				if(Network.isServer)
@@ -261,8 +282,16 @@ function Update () {
 					GameObject.Find("P"+(i+1)+"_Text").animation.Stop();
 					GameObject.Find("P"+(i+1)+"_Text").transform.parent.parent.gameObject.animation.Stop();
 					GameObject.Find("P"+(i+1)+"_Text").transform.position.y += 4.5;
-					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_ImgColor.a = 0;
-					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Color.a = 1;
+					guiScript.m_ImgColor.a = 0;
+					guiScript.m_Color.a = 1;
+					
+					// var hand:Transform = avatar.transform.Find("Bee"+(i+1)+"/NewBee/body/r_shoulder/r_arm/r_hand");
+					// var gun:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/BeeGun"));
+					// gun.transform.parent = hand;
+					// gun.transform.position = hand.position;
+					// gun.transform.localScale = Vector3(1,1,1);
+					// gun.transform.localEulerAngles.z = -90;
+					// gun.name = "gun";
 					avatar.animation.Play();
 					var armor:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
 					
@@ -289,6 +318,7 @@ function Update () {
 				GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").renderer.enabled = true;
 			
 					m_PlayerStates[i].m_Joined = true;
+					guiScript.m_Text = "< Enter Name >";
 					GameObject.Find("Bee"+(i+1)).animation.enabled = true;
 					//GameObject.Find("Bee"+(i+1)).renderer.enabled = true;
 					AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
@@ -300,16 +330,133 @@ function Update () {
 				}
 			}
 			else
-			//player is choosing team			
+			//player is entering name			
 			if(m_PlayerStates[i].m_Joined)
 			{
 				
 				var bee:GameObject = GameObject.Find("Bee"+(i+1));
 				bee.transform.eulerAngles.y += Time.deltaTime * 360*Input.GetAxis("Joy"+i+" Look Left/Right");
-				if(!m_PlayerStates[i].m_TeamChosen)
+				
+				if(!m_PlayerStates[i].m_NameEntered)
 				{
 					var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right");
-					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Team >";
+					//guiScript.m_Text = "< Enter Name >";
+					
+					if(currInput != 0 && pLastInput[i] == 0)
+					{
+						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);
+						if(guiScript.m_Text == "< Enter Name >")
+							guiScript.m_Text = 'a';
+						if(currInput > 0)
+						{
+							m_PlayerStates[i].m_AlphaIndex += 1;
+							if(m_PlayerStates[i].m_AlphaIndex > 95)
+								m_PlayerStates[i].m_AlphaIndex = 48;
+						}
+						else
+						{
+							m_PlayerStates[i].m_AlphaIndex -= 1;
+							if(m_PlayerStates[i].m_AlphaIndex < 48)
+								m_PlayerStates[i].m_AlphaIndex = 95;
+						}
+						
+						if(System.Convert.ToChar(m_PlayerStates[i].m_AlphaIndex).ToString() == "@" &&  m_PlayerStates[i].m_Name.length > 0)
+						{
+							guiScript.m_Text = m_PlayerStates[i].m_Name + " -OK?";
+							
+						}
+						else
+							guiScript.m_Text = m_PlayerStates[i].m_Name + System.Convert.ToChar(m_PlayerStates[i].m_AlphaIndex).ToString();
+						
+					}
+					pLastInput[i] = currInput;
+					if(guiScript.m_Text.IndexOf(" -OK?") != -1 )
+						guiScript.m_Color.a = (Mathf.Sin(Time.time*8)+1.25)* 0.5;
+					else
+						guiScript.m_Color.a = 1;
+					
+					if(Input.GetButtonDown("Joy"+i+" OK"))
+					{
+						if(guiScript.m_Text.IndexOf(" -OK?") != -1 || guiScript.m_Text == "< Enter Name >")
+						{	
+							if(guiScript.m_Text == "< Enter Name >")
+								m_PlayerStates[i].m_Name = "Player "+ (i+1);
+							m_PlayerStates[i].m_NameEntered = true;
+							guiScript.m_Color.a = 1;
+							AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+							if(Network.isServer)
+							{
+								for(var k:int =0 ; k < 4; k++)
+								{
+									if(GetComponent(ServerScript).GetClient(k) != null)
+									{
+										if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
+											GetComponent(ServerScript).GetClient(k).m_Name = m_PlayerStates[i].m_Name;
+									}
+								}
+							}
+						}
+						else
+						{
+							if(guiScript.m_Text.length < 11)
+							{
+								m_PlayerStates[i].m_Name = guiScript.m_Text;
+								guiScript.m_Text += "_";
+								m_PlayerStates[i].m_AlphaIndex = 64;
+							}
+						}
+					}
+					if(Input.GetButtonDown("Joy"+i+" Cancel"))
+					{
+						//if(guiScript.m_Text = "< Enter Name >";)
+						if(guiScript.m_Text.Length == 1)
+						{
+							guiScript.m_Text = "< Enter Name >";
+							
+						}
+						else
+						{
+						
+							if(guiScript.m_Text == "< Enter Name >")
+							{
+								if( i == 0)
+								{
+									AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
+									MenuExit(false);
+									for(var t:int = 0; t < m_PlayerStates.length; t++)
+									{
+										m_PlayerStates[t].m_Joined = false;
+										GameObject.Find("P"+(t+1)+"_Text").GetComponent(GUIScript).enabled = false;
+										GameObject.Find("P"+(t+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
+									}
+									CameraOutro();
+								}
+							}
+						
+							if(guiScript.m_Text[guiScript.m_Text.Length-1] == "_")
+							{
+								m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(guiScript.m_Text.Length-2);
+								guiScript.m_Text = m_PlayerStates[i].m_Name+"_";
+							}
+							else
+							{
+								m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(guiScript.m_Text.Length-1);
+								guiScript.m_Text = m_PlayerStates[i].m_Name+"_";
+							}						
+							//m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(m_PlayerStates[i].m_Name.Length-1);
+							//guiScript.m_Text = m_PlayerStates[i].m_Name;
+							//if(guiScript.m_Text.IndexOf("_") == -1)
+						}
+						
+					}
+					
+				}
+				else
+				if(!m_PlayerStates[i].m_TeamChosen)
+				{
+					//player is choosing team
+					currInput= Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					guiScript.m_Text = "< Choose Team >";
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = m_TeamColorTexture.GetPixel(TeamColorIndex+m_PlayerStates[i].m_Team,0);;
 					if(m_PlayerStates[i].m_Team == 0)
@@ -330,14 +477,14 @@ function Update () {
 							armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
 							m_PlayerStates[i].m_Team = 0;
 						}
-				
-							
 						
+							
+						SquishIcon(GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript));
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);			
 						
 						if(Network.isServer)
 						{
-							for(var k:int =0 ; k < 4; k++)
+							for(k =0 ; k < 4; k++)
 							{
 								if(GetComponent(ServerScript).GetClient(k) != null)
 								{
@@ -352,7 +499,7 @@ function Update () {
 					if(Input.GetButtonDown("Joy"+i+" OK"))
 					{
 						m_PlayerStates[i].m_TeamChosen = true;
-						GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Skin >";
+						guiScript.m_Text = "< Choose Skin >";
 						//GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					}
@@ -363,7 +510,7 @@ function Update () {
 							{
 								AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
 								MenuExit(false);
-								for(var t:int = 0; t < m_PlayerStates.length; t++)
+								for(t = 0; t < m_PlayerStates.length; t++)
 								{
 									m_PlayerStates[t].m_Joined = false;
 									GameObject.Find("P"+(t+1)+"_Text").GetComponent(GUIScript).enabled = false;
@@ -379,7 +526,7 @@ function Update () {
 					
 					
 					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
-					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Choose Skin >";
+					guiScript.m_Text = "< Choose Skin >";
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_SkinPrevTexture;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
@@ -394,7 +541,7 @@ function Update () {
 							pColorIndices[i] -= 1;
 						}
 						GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
-						
+						SquishIcon(GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript));
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);			
 						
 						if(Network.isServer)
@@ -414,7 +561,7 @@ function Update () {
 					if(Input.GetButtonDown("Joy"+i+" OK"))
 					{
 						m_PlayerStates[i].m_ColorChosen = true;
-						GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Swag Up >";
+						guiScript.m_Text = "< Swag Up >";
 						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					}
 					
@@ -468,12 +615,12 @@ function Update () {
 							currSwag.transform.rotation = currSwag.transform.parent.rotation;
 							currSwag.transform.localEulerAngles.z = 180;
 							currSwag.transform.localScale = Vector3(1,1,1);
-							GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = m_PlayerStates[i].m_Swag;
+							guiScript.m_Text = m_PlayerStates[i].m_Swag;
 						}
 						else
 						{
 							m_PlayerStates[i].m_Swag = "";
-							GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Swag Up >";
+							guiScript.m_Text = "< Swag Up >";
 						}
 						
 						
@@ -495,7 +642,8 @@ function Update () {
 					if(Input.GetButtonDown("Joy"+i+" OK"))
 					{
 						m_PlayerStates[i].m_Ready = true;
-						GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "Ready!";
+						guiScript.m_Text = "Ready!";
+						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 						//client is readied
 						if(Network.isServer)
 						{
@@ -522,11 +670,14 @@ function Update () {
 				}
 				else if(m_PlayerStates[i].m_Ready)
 				{
+					guiScript.m_FontScalar = 1.5+(Mathf.Sin(Time.time*6)+1)*0.5;
+					//guiScript.m_Color = Color(0.5,1,0.5);
 					if(Input.GetButtonDown("Joy"+i+" Cancel"))
 					{
 						m_PlayerStates[i].m_Ready = false;
-						GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "< Swag Up >";
+						guiScript.m_Text = "< Swag Up >";
 						AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
+						guiScript.m_FontScalar = 1.5;
 					}
 				}
 				
@@ -552,7 +703,8 @@ function Update () {
 			{
 				for(i = 0; i < m_PlayerStates.length; i++)
 				{
-					GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).enabled = false;
+					guiScript = GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript);
+					guiScript.enabled = false;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 					
 				}	
@@ -615,6 +767,7 @@ function OnLevelWasLoaded(L:int)
 {
 	if(L == 4)
 	{
+		m_IconRect = GameObject.Find("P1_TeamIcon").GetComponent(GUIScript).m_Rect;
 		m_IsAnimating = true;
 		yield WaitForSeconds(0.75);
 		m_IsAnimating = false;
@@ -692,7 +845,7 @@ function OnGUI()
 				m_GUISkin.label.alignment = TextAnchor.UpperCenter;
 				//GUILayout.Label("<", m_GUISkin.label);
 				GUI.backgroundColor = Color(0,0,0,1);
-				GUILayout.Label(m_LevelPreviews[m_LevelIndex].m_Name, m_GUISkin.label);
+				GUILayout.Label(m_LevelPreviews[m_LevelIndex].m_Name, m_GUISkin.customStyles[1]);
 				
 				//GUILayout.Label(">", m_GUISkin.label);
 				//GUI.backgroundColor = Color.white;
@@ -700,9 +853,11 @@ function OnGUI()
 			
 			//GUI.backgroundColor = Color(0,0,0,0.5);
 			
-			GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,GUILayout.Height(512));
-			GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex);
-			GUILayout.Label( "Select Map", m_GUISkin.label);
+			GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex,GUILayout.Height(300));
+		//	GUILayout.Label( m_LevelPreviews[m_LevelIndex].m_Tex);
+			GUILayout.Label( "< Select Map >", m_GUISkin.label);
+			GUILayout.Space(64);
+			GUILayout.Label( "X-ok           O-cancel", m_GUISkin.label);
 			GUI.backgroundColor = Color.white;
 			//GUILayout.EndVertical();
 		GUILayout.EndArea();
@@ -735,6 +890,7 @@ function OnGUI()
 				
 				m_GUISkin.label.alignment = TextAnchor.UpperLeft;
 				GUI.backgroundColor.a = 0.0;
+			//	GUI.Label(Rect(leaderboardXOffset,0,width, m_GUISkin.customStyles[1].fontSize), "Leaderboard", m_GUISkin.customStyles[1]);
 				GUI.Label(Rect(leaderboardXOffset,0,width, m_GUISkin.label.fontSize),"Name", m_GUISkin.label);
 				//GUI.Label(Rect(width,0,width, m_GUISkin.label.fontSize),"Name", m_GUISkin.label);
 				GUI.Label(Rect(width+leaderboardXOffset,0,width, m_GUISkin.label.fontSize),"Rank", m_GUISkin.label);

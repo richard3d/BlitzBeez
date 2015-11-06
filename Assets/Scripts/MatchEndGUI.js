@@ -33,6 +33,18 @@ function Update () {
 		
 		if(m_Life  <= 0)
 		{
+			var rot:Quaternion = Quaternion.identity;
+			rot.eulerAngles = Vector3(0,180,280);
+			var flag:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Flag"),Camera.main.transform.position + Vector3(-18,12,26), rot);
+			
+			
+			rot.eulerAngles = Vector3(0,180,260);
+			var flag2:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Flag_Backwards"),Camera.main.transform.position + Vector3(18.6,12,26), rot);
+			
+			
+			
+			
+		
 			ShowWinnerText();
 			Camera.main.depth = 99;
 			GetComponent(GUIScript).m_Rect = new Rect(0,0,1,0);
@@ -47,8 +59,24 @@ function Update () {
 			var count:int = 0;
 			for(var player :GameObject in m_Players)
 			{
+			
+			
 				if(player.GetComponent(BeeScript).m_Team == GameStateManager.m_WinningTeam)
-				{	
+				{
+					var c:ClientNetworkInfo = NetworkUtils.GetClientObjectFromGameObject(player);
+					flag.transform.Find("InteractiveCloth").renderer.material.color	= c.m_Color;
+					flag2.transform.Find("InteractiveCloth").renderer.material.color	= c.m_Color;
+					
+					if(GameStateManager.m_WinningTeam == 0)
+					{
+						flag.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team1IconTexture;
+						flag2.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team1IconTexture;
+					}
+					else
+					{
+						flag.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team2IconTexture;
+						flag2.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team2IconTexture;
+					}
 					count++;
 					Camera.main.fov = 60;
 					var bee:GameObject = GameObject.Instantiate(GameObject.Find(player.name+"/Bee"));
@@ -91,7 +119,7 @@ function Update () {
 				player.active = false;
 			}
 			var parts:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SunrayParticles"));
-			parts.transform.position = Camera.main.transform.position+ Camera.main.transform.forward *  50;
+			parts.transform.position = Camera.main.transform.position+ Camera.main.transform.forward *  350;
 			parts.transform.LookAt(Camera.main.transform.position);
 			parts.layer = LayerMask.NameToLayer("FullScreenGUI");
 			Camera.main.orthographic = true;
@@ -162,7 +190,7 @@ function ShowWinnerText()
 	txt.GetComponent(UpdateScript).m_Lifetime = -1;
 	txt.GetComponent(GUIScript).m_Rect = rect;
 	txt.GetComponent(GUIScript).m_Color = Color.black;
-	yield WaitForSeconds(0.5);
+	yield WaitForSeconds(1);
 	
 	
 	while(m_MenuPos.x != 0)
@@ -252,8 +280,9 @@ function OnGUI()
 {
 	
 		//m_GUISkin.label.fixedWidth = Screen.width/5.0;
-	
+		GUI.color = Color(0,0,0,0.75);
 		GUI.BeginGroup (Rect(m_MenuPos.x, Screen.height*.30, Screen.width,Screen.height*0.5), m_GUISkin.GetStyle("Background"));	
+			GUI.color = Color.white;
 			GUI.backgroundColor.a = 0;
 		//var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");	
 		m_GUISkin.label.alignment = TextAnchor.UpperLeft;
@@ -266,7 +295,7 @@ function OnGUI()
 			GUI.Label(Rect(width*3,0,width, m_GUISkin.label.fontSize),"Deaths", m_GUISkin.label);
 			GUI.Label(Rect(width*4,0,width, m_GUISkin.label.fontSize),"Longest Chain", m_GUISkin.label);
 		//GUILayout.EndHorizontal();
-		
+		GUI.color = Color.white;
 		//m_GUISkin.label.margin= new RectOffset(0,0,0,0);
 		//m_GUISkin.label.fontSize = 24;
 		GUI.backgroundColor = new Color(1,0.75,0,0.5);

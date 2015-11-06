@@ -79,6 +79,7 @@ class LoadOut
 				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
 				m_Pylons[0].m_FireRate = 0.01;
 				m_Pylons[0].m_FireTime = 0.01;
+				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/ShotgunBullet");
 			
 				
 			break;
