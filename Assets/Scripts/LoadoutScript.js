@@ -29,6 +29,7 @@ class Pylon
 				 m_PrevTime = Time.time;
 				return true;
 			}		
+			 m_PrevTime = Time.time;
 			return false;
 		}
 	function IsShooting():boolean {
@@ -77,9 +78,8 @@ class LoadOut
 				m_BaseClipSize = 30;
 				m_Pylons[0].m_BurstCount = 1;
 				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
-				m_Pylons[0].m_FireRate = 0.01;
-				m_Pylons[0].m_FireTime = 0.01;
-				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/ShotgunBullet");
+				m_Pylons[0].m_FireRate = 0.17;
+				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/Bullet");
 			
 				
 			break;
@@ -90,10 +90,13 @@ class LoadOut
 				m_Pylons[0].PosOffset = Vector3(-6, 0, 0);	
 				m_Pylons[0].m_FireRate = 0.1;
 				m_Pylons[0].m_FireTime = 0.15;
+				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/Bullet");
 				
 				m_Pylons[1].PosOffset = Vector3(6, 0, 0);
 				m_Pylons[1].m_FireRate = 0.1;
 				m_Pylons[1].m_FireTime = 0.15;
+				
+				m_Pylons[1].m_BulletInstance = Resources.Load("GameObjects/Bullet");
 			break;
 			case 1:
 				// Triple Burst high velocity rounds
@@ -108,27 +111,18 @@ class LoadOut
 			case 2:
 				// Spreadshot
 				m_BaseClipSize = 5;
-				m_Pylons[0].AngOffset = -8.0;
-				m_Pylons[0].PosOffset = Vector3(-1, 0, 0);
-				m_Pylons[0].m_FireRate = 0.1;
-				m_Pylons[0].m_FireTime = 0.2;
-				
-				m_Pylons[1].AngOffset = 8.0;
-				m_Pylons[1].PosOffset = Vector3(1, 0, 0);
-				m_Pylons[1].m_FireRate = 0.1;
-				m_Pylons[1].m_FireTime = 0.2;
-				
-				m_Pylons[2].PosOffset = Vector3(0, 0, 1);
-				m_Pylons[2].m_FireRate = 0.1;
-				m_Pylons[2].m_FireTime = 0.2;
+				m_Pylons[0].m_BurstCount = 1;
+				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
+				m_Pylons[0].m_FireRate = 0.17;
+				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/ShotgunBullet");
 			break;
 			case 3:
 				// \/
-				m_BaseFireRate = 5.0;
-				m_Pylons[0].AngOffset = -5.0;
-				m_Pylons[0].PosOffset = Vector3(-3, 0, 0);
-				m_Pylons[1].AngOffset = 5.0;
-				m_Pylons[1].PosOffset = Vector3(3, 0, 0);
+				m_BaseClipSize = 3;
+				m_Pylons[0].m_BurstCount = 1;
+				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
+				m_Pylons[0].m_FireRate = 0.17;
+				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/RocketBullet");
 			break;
 			case 4:
 				// \|/

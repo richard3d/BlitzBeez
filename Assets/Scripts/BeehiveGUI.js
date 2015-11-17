@@ -213,7 +213,14 @@ function Show(bShow : boolean)
 			animation["BeeGUIOpen"].time = 0;
 			animation["BeeGUIOpen"].speed = 1;
 			animation.Play("BeeGUIOpen");
-			
+			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(5,10,48);
+			m_Camera.GetComponent(CameraScript).m_FocalOffset.x = -10;
+			m_Camera.GetComponent(DepthOfFieldScatter).enabled = true;
+			m_Camera.GetComponent(DepthOfFieldScatter).focalLength = 42.5;
+			m_Camera.GetComponent(DepthOfFieldScatter).aperture = 18;
+			transform.Find("Bee").localEulerAngles.z = 0;
+			transform.Find("Bee/NewBee").animation.Play("idle");
+			GetComponent(BeeScript).SetGUIEnabled(false);
 			//m_Camera.animation["CameraDramaticZoom"].speed = 1;
 			//m_Camera.animation.Play("CameraDramaticZoom");
 			//m_CurrSelMenu.Push(m_MainMenu);
@@ -226,7 +233,7 @@ function Show(bShow : boolean)
 		else
 		{
 			Screen.showCursor = false;
-			
+			m_Camera.GetComponent(CameraScript).m_DefaultOffset.z = -m_Camera.GetComponent(CameraScript).m_DefaultOffset.z;
 			m_Fade = 0;
 			m_Camera.camera.orthographicSize = 100;
 			
@@ -240,6 +247,11 @@ function Show(bShow : boolean)
 			//m_Camera.animation["CameraDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 			//m_Camera.animation["CameraDramaticZoom"].speed = -1;
 			//m_Camera.animation.Play("CameraDramaticZoom");
+			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
+			m_Camera.GetComponent(CameraScript).m_FocalOffset.x = 0;
+			m_Camera.GetComponent(DepthOfFieldScatter).enabled = false;
+			GetComponent(BeeScript).SetGUIEnabled(true);
+			transform.Find("Bee/NewBee").animation.Play("fly");
 			AudioSource.PlayClipAtPoint(m_MenuHide, Camera.main.transform.position);
 			
 		}
@@ -279,7 +291,7 @@ function OnGUI()
 			
 			
 			//display info for the current selection
-			var hexCenterPoint:Vector2 = Vector2(camPos.x+camWidth*0.5,camPos.y+camHeight*0.5);
+			var hexCenterPoint:Vector2 = Vector2(camPos.x+camWidth*0.65,camPos.y+camHeight*0.5);
 			if(m_CurrSelIndex != -1)
 			{	
 				var t:Talent = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;

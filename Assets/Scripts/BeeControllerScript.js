@@ -579,6 +579,7 @@ function HandleShotLogic()
 		
 			var go : GameObject = null;
 			go = BulletScript.SpawnBullet(m_LoadOut.m_Pylons[i].m_BulletInstance,bulletPos,Vector3.zero);
+			Debug.Log("Spawning bullet "+m_LoadOut.m_Pylons[i].m_BulletInstance.name + " for "+gameObject.name); 
 			//Uncomment this later if not using pool!!!
 			// if(m_LoadOut.m_Pylons[i].m_BulletInstance != null)
 				// go  = Network.Instantiate(m_LoadOut.m_Pylons[i].m_BulletInstance, bulletPos , Quaternion.identity, 0);	
@@ -624,9 +625,10 @@ function HandleShotLogic()
 	transform.Find("Bee/NewBee").animation["flyandshoot"].AddMixingTransform(transform.Find("Bee/NewBee/body/r_shoulder"));
 	transform.Find("Bee/NewBee").animation.Play("flyandshoot");
 	
-	AudioSource.PlayClipAtPoint(m_ShootSound, Camera.main.transform.position);
+	
 	var go : GameObject = gameObject.Find(bulletName);
 	go.GetComponent(BulletScript).m_Owner = gameObject;
+	AudioSource.PlayClipAtPoint(go.GetComponent(BulletScript).m_SoundEffect, Camera.main.transform.position);
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.35,1);

@@ -4,6 +4,7 @@ private static var m_InstanceID : int = 0;
 var m_Life : float = 1.25;
 var m_HitEffect : GameObject = null;
 var m_BombExplosion:GameObject = null; 
+var m_SoundEffect : AudioClip = null;
 var m_HitSoundEffect : AudioClip = null;
 
 var m_MuzzleEffect : GameObject = null;
@@ -18,7 +19,7 @@ var m_Owner : GameObject = null;
 var m_Tgt : GameObject = null;
 var m_Homing : float = 0;
 
-static var m_BulletPool:Array[] = new Array[5];
+static var m_BulletPool:Array[] = new Array[10];
 static var m_PowerBulletPool:Array[] = new Array[5];
 
 

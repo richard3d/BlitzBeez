@@ -16,9 +16,14 @@ var m_AnchorCenter : boolean = false;
 var m_AutoScale:boolean = false;
 var m_SpawnGUI:GameObject;	//a gui to spawn on our death, useful for sequencing animated gui items
 
-function Awake()
+function OnEnable()
 {
-	
+	if(m_3D && m_Camera != null)
+	{
+		var v:Vector3 = m_Camera.GetComponent(Camera).WorldToViewportPoint(transform.position);
+		m_Rect.x = v.x;
+		m_Rect.y = v.y;
+	}
 }
 
 function Start () {
