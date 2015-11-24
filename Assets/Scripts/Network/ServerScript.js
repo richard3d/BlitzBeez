@@ -688,19 +688,28 @@ function GetGameObject() : GameObject
 				{
 					if(m_Clients[i].m_GameObject && m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).m_LocalClient)
 					{
+						minimapCam = GameObject.Find(m_Clients[i].m_GameObject.name+"/MinimapCamera").GetComponent(Camera);
 						if(localCount == 0)
+						{
 							camRect = new Rect(0,0.5+onePixY,0.5-onePixX,0.5-onePixY);
+							minimapCam.rect.width -= 0.05;
+							minimapCam.rect.height -= 0.05;
+						}
 						else if(localCount == 1)
 							camRect = new Rect(0.5+onePixX,0.5+onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 2)
 							camRect = new Rect(0,0-onePixY,0.5-onePixX,0.5-onePixY);
 						else if(localCount == 3)
+						{
 							camRect = new Rect(0.5+onePixX,0-onePixY,0.5-onePixX,0.5-onePixY);
+							minimapCam.rect.width -= 0.05;
+							minimapCam.rect.height -= 0.05;
+						}
 						GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).rect = camRect;
 						GameObject.Find(m_Clients[i].m_GameObject.name+"Camera").GetComponent(Camera).fov = 48;
-						minimapCam = GameObject.Find(m_Clients[i].m_GameObject.name+"/MinimapCamera").GetComponent(Camera);
-						minimapCam.rect.width -= 0.05;
-						minimapCam.rect.height -= 0.05;
+						
+						//minimapCam.rect.width -= 0.05;
+						//minimapCam.rect.height -= 0.05;
 						minimapCam.rect.x = camRect.x + 0.02;
 						minimapCam.rect.y = camRect.y + camRect.height - 0.02 - minimapCam.rect.height;
 						

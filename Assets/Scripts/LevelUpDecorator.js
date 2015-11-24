@@ -18,25 +18,28 @@ function Start () {
 		m_PlayerCam.GetComponent(CameraScript).Shake(1.5,0.35);
 	}
 
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("levelup");
-	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
-	transform.GetChild(0).localEulerAngles.z = 0;
+	// GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	// GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("levelup");
+	// GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
+	// transform.GetChild(0).localEulerAngles.z = 0;
 	
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
 	m_LightEffect.animation.Play();
+	m_LightEffect.transform.parent = gameObject.transform;
 	//m_LightEffect.transform.localScale = Vector3(12,300,12);
-	GetComponent(BeeControllerScript).m_ControlEnabled = false;
+	//GetComponent(BeeControllerScript).m_ControlEnabled = false;
 	//gameObject.AddComponent(PauseDecorator);
-	GetComponent(UpdateScript).enabled = false;
+	//GetComponent(UpdateScript).enabled = false;
 	//GetComponent(PauseDecorator).m_Lifetime = 99;
 	
 	//this one deletes itself the other two (above and below) do not
 	var m_TeleportEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/TeleporterParticles"),transform.position, Quaternion.identity);
 	m_TeleportEffect.transform.eulerAngles = Vector3(270,0,0);
+	m_TeleportEffect.transform.parent = gameObject.transform;
 	
 	m_LightSpot = GameObject.Instantiate(Resources.Load("GameObjects/TeleportParticles"));
 	m_LightSpot.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*0.1;
+	m_LightSpot.transform.parent = gameObject.transform;
 
 }
 

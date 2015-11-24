@@ -295,6 +295,7 @@ function OnTriggerStay(coll : Collider)
 			else if(transform.GetChild(i).gameObject.layer != LayerMask.NameToLayer("Minimap"))
 				Destroy(transform.GetChild(i).gameObject);
 		}
+		transform.Find("Flower_Minimap").renderer.material.color = Color(1,1,1,0.5);
 		Destroy(m_ShieldEffect);
 		m_ShieldEffect = null;
 		

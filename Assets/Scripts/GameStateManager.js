@@ -99,6 +99,7 @@ static function CompareLeaders(a:ClientNetworkInfo, b:ClientNetworkInfo)
 	var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
 	for(var player:GameObject in players)
 	{
+		player.GetComponent(BeeScript).SetGUIEnabled(false);
 		playerList.Add(player);
 	}
 	

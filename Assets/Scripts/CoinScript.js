@@ -123,18 +123,18 @@ function GetCoin(name : String)
 		if(NetworkUtils.IsLocalGameObject(bee))
 		{
 			var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
-			txt.GetComponent(GUIText).text = "Upgrade Unlocked!";
+			txt.GetComponent(GUIText).text = "Leveled Up!";
 			txt.layer = LayerMask.NameToLayer("GUILayer_P"+(bee.GetComponent(NetworkInputScript).m_ClientOwner+1));
 			
-			var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
-			kudosText.GetComponent(GUIText).material.color = Color.yellow;
-			kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
-			kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
-			kudosText.GetComponent(GUIText).text = "Level Up!";
-			kudosText.animation.Stop();
-			kudosText.animation.Play();
-			kudosText.GetComponent(KudosTextScript).m_CameraOwner = bee.GetComponent(BeeScript).m_Camera;
-			kudosText.layer = LayerMask.NameToLayer("GUILayer_P"+(bee.GetComponent(NetworkInputScript).m_ClientOwner+1));
+			 var kudosText:GameObject;//  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
+			// kudosText.GetComponent(GUIText).material.color = Color.yellow;
+			// kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+			// kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
+			// kudosText.GetComponent(GUIText).text = "Level Up!";
+			// kudosText.animation.Stop();
+			// kudosText.animation.Play();
+			// kudosText.GetComponent(KudosTextScript).m_CameraOwner = bee.GetComponent(BeeScript).m_Camera;
+			// kudosText.layer = LayerMask.NameToLayer("GUILayer_P"+(bee.GetComponent(NetworkInputScript).m_ClientOwner+1));
 		}
 	}
 	

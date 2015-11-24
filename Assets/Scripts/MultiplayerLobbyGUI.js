@@ -135,6 +135,53 @@ function OnEnable()
 			}
 		}
 	}
+	
+	// var allJoined:boolean = true;
+		// for(i = 0; i < m_PlayerStates.length; i++)
+		// {
+			// if(m_PlayerStates[i].m_Joined && !m_PlayerStates[i].m_Ready)
+			// {
+				// allJoined = false;
+				// break;
+			// }
+		// }
+		
+		// // if(allJoined)
+		// // {
+			// // if(m_LocalPlayerScreen)
+			// // {
+				// // for(i = 0; i < m_PlayerStates.length; i++)
+				// // {
+					// // var guiScript : GUIScript = GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript);
+					// // guiScript.enabled = false;
+					// // GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
+					
+				// // }	
+				// // AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+				// // var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
+				// // go.animation.Stop("FlashIntro");
+				// // go.animation["FlashIntro"].time = 2.35;
+				// // go.animation.Play("FlashIntro");
+				// // MenuExit(true);
+				// // MenuEnter(true);
+				// // if(Network.isServer)
+				// // {
+					// // MasterServer.RegisterHost("BeeHappy", SystemInfo.deviceName, "Bzzz death to all!");
+				// // }
+				
+			// // }
+			// // else
+			// // {
+				// // // AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
+				// // // go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
+				// // // go.animation.Stop("FlashIntro");
+				// // // go.animation["FlashIntro"].time = 2.35;
+				// // // go.animation.Play("FlashIntro");
+				// // // MenuExit(true);
+				// // // CameraStart();
+				
+			// // }
+		// // }	
 }
 
 function ResetMenu(left:boolean)
@@ -261,6 +308,19 @@ function SquishIcon(icon:GUIScript)
 	}
 }
 
+function SpinPlatform(go:GameObject)
+{
+	var fTime : float= 1;
+	while(fTime > 0)
+	{
+		
+		go.transform.localEulerAngles.y = 180+(1-fTime*fTime) * 1440; 
+		//go.transform.Rotate(Vector3.up *  1440*fTime*fTime * 0.033);
+		fTime -= 0.033;
+		yield WaitForSeconds(0.033);
+	}
+}
+
 function Update () {
 
 	gameObject.Find("BeeCamera").camera.targetTexture = m_BeeTexture;
@@ -285,6 +345,8 @@ function Update () {
 					guiScript.m_ImgColor.a = 0;
 					guiScript.m_Color.a = 1;
 					
+					
+					SpinPlatform(GameObject.Find("P"+(i+1)+"_Platform"));
 					// var hand:Transform = avatar.transform.Find("Bee"+(i+1)+"/NewBee/body/r_shoulder/r_arm/r_hand");
 					// var gun:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/BeeGun"));
 					// gun.transform.parent = hand;
@@ -339,7 +401,7 @@ function Update () {
 				
 				if(!m_PlayerStates[i].m_NameEntered)
 				{
-					var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right")+Input.GetAxis("Joy"+i+" Dpad Left/Right");
 					//guiScript.m_Text = "< Enter Name >";
 					
 					if(currInput != 0 && pLastInput[i] == 0)
@@ -440,8 +502,11 @@ function Update () {
 							}
 							else
 							{
+								if(!guiScript.m_Text.Contains("-OK?"))
+								{
 								m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(guiScript.m_Text.Length-1);
 								guiScript.m_Text = m_PlayerStates[i].m_Name+"_";
+								}
 							}						
 							//m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(m_PlayerStates[i].m_Name.Length-1);
 							//guiScript.m_Text = m_PlayerStates[i].m_Name;
@@ -455,7 +520,7 @@ function Update () {
 				if(!m_PlayerStates[i].m_TeamChosen)
 				{
 					//player is choosing team
-					currInput= Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					currInput= Input.GetAxis("Joy"+i+" Strafe Left/Right")+Input.GetAxis("Joy"+i+" Dpad Left/Right");
 					guiScript.m_Text = "< Choose Team >";
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = m_TeamColorTexture.GetPixel(TeamColorIndex+m_PlayerStates[i].m_Team,0);;
@@ -525,7 +590,7 @@ function Update () {
 				{
 					
 					
-					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right")+Input.GetAxis("Joy"+i+" Dpad Left/Right");
 					guiScript.m_Text = "< Choose Skin >";
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_SkinPrevTexture;
@@ -580,7 +645,7 @@ function Update () {
 				else if(!m_PlayerStates[i].m_Ready)
 				{
 					//player is selecting swag
-					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right");
+					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right")+Input.GetAxis("Joy"+i+" Dpad Left/Right");
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
@@ -771,7 +836,7 @@ function OnLevelWasLoaded(L:int)
 		m_IsAnimating = true;
 		yield WaitForSeconds(0.75);
 		m_IsAnimating = false;
-		MenuEnter(true);
+		
 		
 		var anybodyReady:boolean = false;
 		for(var i:int = 0; i < 4; i++)
@@ -783,14 +848,17 @@ function OnLevelWasLoaded(L:int)
 		}
 		
 		if(!anybodyReady)
-			GameObject.Find("BeeCamera").animation.Play();
+		{
+			GameObject.Find("BeeCamera").animation.Play();MenuEnter(true);
+			}
 		else
 		{
 			for(i = 0; i < 4; i++)
 			{	
 				GameObject.Find("P"+(i+1)+"_Platform").renderer.enabled = true;
 			}
-			// m_LocalPlayerScreen = false;
+			 m_LocalPlayerScreen = true;
+			 MenuEnter(true);
 			// ResetMenu(true);
 			// MenuEnter(true);
 			

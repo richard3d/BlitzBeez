@@ -424,8 +424,8 @@ public class DatInputManager : EditorWindow {
 			m_ControllerAxisMapping[(int)JoyAxisCode.RightStickY-1] = 4;
 			m_ControllerAxisMapping[(int)JoyAxisCode.LeftTrigger-1] = 2;
 			m_ControllerAxisMapping[(int)JoyAxisCode.RightTrigger-1] = 2;
-			m_ControllerAxisMapping[(int)JoyAxisCode.DPadX-1] = 6;
-			m_ControllerAxisMapping[(int)JoyAxisCode.DPadY-1] = 7;
+			m_ControllerAxisMapping[(int)JoyAxisCode.DPadX-1] = 5;
+			m_ControllerAxisMapping[(int)JoyAxisCode.DPadY-1] = 6;
 			
 		}
 	}

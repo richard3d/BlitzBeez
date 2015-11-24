@@ -474,6 +474,7 @@ function DrawGUI()
 		
 		//draw the game event messages
 		GameEventMessenger.DrawMessages(relPos.x-32,(bottom- 48),SmallFontStyle);
+		
 			
 		//draw the honey pots for score
 		GUI.BeginGroup(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.7,bottom-64* camScale, 512*camScale, 512*camScale));		
@@ -670,14 +671,14 @@ function DrawGUI()
 			ReloadPerc = beeCtrlScript.m_PowershotReloadTimer/reloadSpeed;
 			
 			//powershot icon
-			
+			GUI.color.a = 0.5;
 			GUI.DrawTexture(Rect(20*camScale, 32*camScale, 72*camScale,12*camScale), ReloadBarTexture, ScaleMode.StretchToFill, true);	
 			if(GameObject.Find(gameObject.name+"/PowerShotEffect"))
 			{
 				GUI.color = Color(1,1,1,Mathf.Sin(Time.time * 48) > 0 ? 1:0 );
 				//powershot meter
 				GUI.Label(Rect(0, 24*camScale, 132*camScale,132*camScale), "p", SmallFontStyle);
-				GUI.color = Color.white;
+				GUI.color.a = 0.5;
 				GUI.DrawTexture(Rect(20*camScale, 32*camScale, 72*camScale,12*camScale), ReloadBarTexture, ScaleMode.StretchToFill, true);	
 				GUI.DrawTexture(Rect(20*camScale, 32*camScale, 72*camScale,12*camScale), ReloadBarTexture, ScaleMode.StretchToFill, true);	
 				
@@ -686,17 +687,18 @@ function DrawGUI()
 			{
 				GUI.color.a = 0.75;
 				GUI.Label(Rect(0, 24*camScale, 132*camScale,132*camScale), "p", SmallFontStyle);
-				GUI.color.a = 1;
+				GUI.color.a = 0.5;
 				GUI.DrawTexture(Rect(20*camScale, 32*camScale, 72*(1-ReloadPerc)*camScale,12*camScale), ReloadBarTexture, ScaleMode.StretchToFill, true);	
 				GUI.DrawTexture(Rect(20*camScale, 32*camScale, 72*(1-ReloadPerc)*camScale,12*camScale), ReloadBarTexture, ScaleMode.StretchToFill, true);	
-				
 			}
+			
 			
 			var numDashes:int = beeCtrlScript.m_NumDashes;
 			//stamina icon
+			GUI.color = Color.white;
 			GUI.color.a = 0.75;
 			GUI.Label(Rect(0, 46*camScale, 132*camScale,132*camScale), "s", SmallFontStyle);
-			GUI.color.a = 1;
+			GUI.color.a = 0.5;
 			for(i = 0; i < 3; i++)
 			{
 				//stamina meter background
@@ -708,7 +710,7 @@ function DrawGUI()
 				GUI.DrawTexture(Rect(20*camScale + i*(25)*camScale, 52*camScale, 22*camScale,12*camScale), ReloadBarTexture, ScaleMode.StretchToFill, true);
 				GUI.DrawTexture(Rect(20*camScale + i*(25)*camScale, 52*camScale, 22*camScale,12*camScale), ReloadBarTexture, ScaleMode.StretchToFill, true);
 			}		
-			
+			GUI.color.a = 1;
 			
 			GUI.EndGroup();
 		
@@ -747,12 +749,16 @@ function DrawGUI()
 				{
 					m_XPMeterFlashTimer -= Time.deltaTime;
 				}
+				
+				
+			
+				
 				GUI.DrawTexture(Rect(relPos.x+143*camScale,relPos.y+6*camScale, 96*camScale, 12*camScale), MeterBarBGTexture, ScaleMode.StretchToFill, true);
 				GUI.color = Color(0.2+m_XPMeterFlashTimer,0.2+m_XPMeterFlashTimer,0.2+m_XPMeterFlashTimer,0.75*m_XPMeterFade+m_XPMeterFlashTimer*m_XPMeterFade);
 				GUI.DrawTexture(Rect(relPos.x+143*camScale,relPos.y+6*camScale, 96*camScale, 12*camScale), MeterBarTexture, ScaleMode.StretchToFill, true);
 				fPerc = 0;
 				
-				if(m_CurrLevel >= m_XPToLevel.length)
+				if(m_CurrLevel >= m_XPToLevel.length || m_NumUpgradesAvailable > 0)
 					fPerc = 1;
 				else
 					fPerc = Mathf.Min(m_CurrXP / m_XPToLevel[m_CurrLevel], 1);
@@ -764,6 +770,15 @@ function DrawGUI()
 				GUI.color = Color(1-m_XPMeterFlashTimer*3,1-m_XPMeterFlashTimer*3,1*m_XPMeterFade-m_XPMeterFlashTimer*3*m_XPMeterFade);
 				//GUI.Label(Rect(relPos.x+8*camScale,relPos.y+3*camScale, 128, 34), "Lv "+(m_CurrLevel+1),SmallFontStyle);
 				GUI.color = Color.white;
+				if(m_NumUpgradesAvailable > 0)
+				{
+				
+					m_XPMeterFade = 1;
+					m_XPMeterFlashTimer = Mathf.Sin(Time.time*16) > 0 ? 1 : 0;
+					GUI.color = Color(1,1,1, (Mathf.Sin(Time.time*16) +1.5));
+					GUI.Label(Rect(relPos.x+143*camScale+96*camScale,relPos.y+3*camScale, 200*camScale, SmallFontStyle.fontSize), "Press -> To Upgrade",SmallFontStyle);
+				}
+				
 			GUI.EndGroup();
 		GUI.EndGroup();
 		
@@ -1383,6 +1398,7 @@ function Hurt()
 	{
 		GetNumFlowers();
 		m_WorkerBees--;
+		flowerDec.GetFlower().transform.Find("Flower_Minimap").renderer.material.color = color;
 		flowerDec.m_FlashTimer = 1;
 		flowerDec.Reset();
 		flowerDec.m_SwarmCreated = true;

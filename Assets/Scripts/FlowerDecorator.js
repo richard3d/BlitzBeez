@@ -35,8 +35,8 @@ function Start () {
 		
 		m_OrigOffset = m_Camera.GetComponent(CameraScript).m_DefaultOffset;
 		m_OrigPitch = m_Camera.GetComponent(CameraScript).m_Pitch;
-		m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 25, -90);
-		m_Camera.GetComponent(CameraScript).m_Pitch = 15;
+		m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 50, -180);
+		m_Camera.GetComponent(CameraScript).m_Pitch = 10;
 	}
 	
 	//don't show progress meter if the flower is already completely occupied

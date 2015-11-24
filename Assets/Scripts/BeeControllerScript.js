@@ -31,6 +31,7 @@ var m_ThrowSound : AudioClip  = null;
 var m_HideSound : AudioClip = null;
 var m_PowerShotEffectSound : AudioClip = null;
 var m_PowerShotSound : AudioClip = null;
+var m_TargetSound : AudioClip = null;
 var m_DenialSound : AudioClip = null;
 
 var m_ControlEnabled : boolean = true;
@@ -353,12 +354,38 @@ function OnNetworkInput(IN : InputState)
 		m_ShootButtonTimeHeld = 0;
 	}
 	
-	
+	//handle upgrade action
+	if(IN.GetActionBuffered(IN.DPAD_RIGHT) && !m_ShootButtonHeld)
+	{
+		var beeScript = GetComponent(BeeScript);
+		if( beeScript.m_NumUpgradesAvailable > 0 && GetComponent(TreeHideDecorator) == null)
+		{
+			//handle upgrade
+			var six:int[] = new int[6];
+			var removedTalents:Array = new Array();
+			var validIndices:Array = new Array();
+			for(var i:int = 0; i < GetComponent(TalentTree).m_Talents.Count; i++)
+			{
+				validIndices.Add(i);
+			}
+			for(i = 0; i < 6; i++)
+			{
+				var indexSel:int = Random.Range(0,validIndices.Count-1);
+				six[i] = validIndices[indexSel];
+				validIndices.RemoveAt(indexSel);
+				//removedTalents.Add(GetComponent(TalentTree).m_Talents[six[i]]);
+				//GetComponent(TalentTree).m_Talents.RemoveAt(six[i]);
+			}
+			
+			
+			networkView.RPC("EnterHive", RPCMode.All, six[0], six[1], six[2], six[3], six[4], six[5]);
+		}
+	}
 	
 	//handle use action
 	if(IN.GetActionBuffered(IN.USE) && !m_ShootButtonHeld)
 	{
-		var beeScript = GetComponent(BeeScript);
+		beeScript = GetComponent(BeeScript);
 		if(m_NearestObject != null)
 		{
 			//handle rocks
@@ -446,33 +473,11 @@ function OnNetworkInput(IN : InputState)
 				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 0);	
 			}
 			else
-			if(GetComponent(ItemDecorator) == null && beeScript.m_NumUpgradesAvailable > 0)
-		    {
-				//handle upgrade
-				var six:int[] = new int[6];
-				var removedTalents:Array = new Array();
-				var validIndices:Array = new Array();
-				for(var i:int = 0; i < GetComponent(TalentTree).m_Talents.Count; i++)
-				{
-					validIndices.Add(i);
-				}
-				for(i = 0; i < 6; i++)
-				{
-					var indexSel:int = Random.Range(0,validIndices.Count-1);
-					six[i] = validIndices[indexSel];
-					validIndices.RemoveAt(indexSel);
-					//removedTalents.Add(GetComponent(TalentTree).m_Talents[six[i]]);
-					//GetComponent(TalentTree).m_Talents.RemoveAt(six[i]);
-				}
-				
-				
-				networkView.RPC("EnterHive", RPCMode.All, six[0], six[1], six[2], six[3], six[4], six[5]);
-		    }
-			else
 			{
+				//Perform targeting by scanning for enemy players
 				var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
 				var closestDot = 99999;
-				
+				var found:boolean = false;
 				for(i = 0; i < players.length; i++)
 				{
 					if(players[i] != gameObject && players[i].GetComponent(BeeScript).m_Team != beeScript.m_Team && GetComponent(ItemDecorator) == null)
@@ -486,8 +491,14 @@ function OnNetworkInput(IN : InputState)
 						{
 							closestDot = dot;
 							m_AimTarget = players[i];
+							found = true;
 						}
 					}
+				}
+				//play target sound
+				if(found)
+				{
+					AudioSource.PlayClipAtPoint(m_TargetSound, transform.position);
 				}
 				
 			}
@@ -509,12 +520,15 @@ function OnNetworkInput(IN : InputState)
 				ang = -ang;
 			}
 			
-			if(Mathf.Abs(m_AimOffset) < 0.1)
-				gameObject.transform.Rotate(ang*Vector3.up * Time.deltaTime*4);
-			gameObject.transform.Rotate(m_AimOffset*0.5*Vector3.up);
+			
+			gameObject.transform.Rotate(ang*Vector3.up * Time.deltaTime*4+m_AimOffset*Vector3.up);
+			//gameObject.transform.Rotate(m_AimOffset*0.5*Vector3.up);
 		
 			if(m_AimTarget.GetComponent(RespawnDecorator) != null)
+			{
 				m_AimTarget = null;
+				m_Heading = transform.localEulerAngles.y;
+			}
 			
 			// GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov = Mathf.Lerp(GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov, 16, Time.deltaTime *2);
 			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 5;
@@ -526,6 +540,7 @@ function OnNetworkInput(IN : InputState)
 		if(m_AimTarget != null)
 		{
 			m_AimTarget = null;
+			m_Heading = transform.localEulerAngles.y;
 			// GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov = 33;
 			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 10;
 		}
@@ -628,11 +643,12 @@ function HandleShotLogic()
 	
 	var go : GameObject = gameObject.Find(bulletName);
 	go.GetComponent(BulletScript).m_Owner = gameObject;
+	go.GetComponent(BulletScript).m_PowerShot = false;
 	AudioSource.PlayClipAtPoint(go.GetComponent(BulletScript).m_SoundEffect, Camera.main.transform.position);
 	
-	if(NetworkUtils.IsLocalGameObject(gameObject))
-		GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.35,1);
-	go.GetComponent(BulletScript).m_PowerShot = false;
+	//if(NetworkUtils.IsLocalGameObject(gameObject))
+	//	GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.35,1);
+	
 	
 	//make it so we dont collide with our own bullets
 	if(go.collider.enabled && collider.enabled)

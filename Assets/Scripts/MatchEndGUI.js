@@ -8,11 +8,13 @@ public var m_MatchOverMusic:AudioClip = null;
 public var m_MenuSound:AudioClip = null;
 private var m_Players:GameObject[];
 private var m_MenuPos:Vector2;
+private var m_FadePos:Vector2;
 function Start () {
 	m_Life = m_Lifetime;
 	GetComponent(GUIScript).m_ImgColor = Color.black;
 	Camera.main.transform.position = Vector3(0,0,0);
 	Camera.main.transform.LookAt(Vector3(0,0,1));
+	
 	
 	if(GameObject.Find("Music"))
 	{
@@ -20,6 +22,7 @@ function Start () {
 		GameObject.Find("Music").GetComponent(AudioSource).Play();
 	}
 	m_MenuPos.x = -Screen.width;
+	m_FadePos.x = -Screen.width;
 	
 	
 }
@@ -57,6 +60,15 @@ function Update () {
 			
 			m_Players = GameObject.FindGameObjectsWithTag("Player");
 			var count:int = 0;
+			
+			
+			var numWinners:int = 0;
+			for(var player :GameObject in m_Players)
+			{
+				if(player.GetComponent(BeeScript).m_Team == GameStateManager.m_WinningTeam)
+					numWinners++;
+			}
+			
 			for(var player :GameObject in m_Players)
 			{
 			
@@ -102,7 +114,11 @@ function Update () {
 					if(GameObject.Find(bee.name+"/NewBee/body/head/swag") != null)
 						GameObject.Find(bee.name+"/NewBee/body/head/swag").layer = LayerMask.NameToLayer("FullScreenGUI");
 					bee.layer = LayerMask.NameToLayer("FullScreenGUI");
-					bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  15 + Vector3.right * 12 * (count-1);
+					var t:GameObject = new GameObject();
+					bee.transform.parent = t.transform;
+					t.AddComponent(BeeBlinkScript);
+					var posOffset:float = (numWinners-1)/2.0;
+					bee.transform.position = Camera.main.transform.position + Camera.main.transform.forward *  15 + Vector3.right * 12 * (count-1-posOffset);
 					if(GameStateManager.m_MVPPlayer == player.name)
 					{
 						bee.transform.localScale= Vector3(3,3,3);
@@ -213,6 +229,7 @@ function ShowWinnerText()
 		}
 		yield WaitForSeconds(0.033);
 	}
+	
 	AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);	
 	
 	var vel:float = Screen.width*0.5;
@@ -227,26 +244,40 @@ function ShowWinnerText()
 	
 	GetComponent(GUIScript).enabled = false;
 	GameObject.Destroy(txt);
-	var done:boolean = false;
-	while(!done)
+	
+	while(m_FadePos.x != 0)
 	{
-		for( var bee:GameObject in m_Bees)
-		{
-			var anim :GameObject = GameObject.Find(bee.name+"/NewBee");
-			anim.animation.Stop();
-			if(bee != null && bee.transform.localEulerAngles.x > 0.01 && bee.transform.localEulerAngles.y > 0.01)
-			{
-				bee.transform.rotation = Quaternion.Slerp(bee.transform.rotation, Quaternion.identity, 15/60.0);
-				
-			}
-			else
-			{
-				done = true;
-			}
-		}
-		Camera.main.orthographicSize += Time.deltaTime * 1000;
-		yield WaitForSeconds(1/30.0);
+		m_FadePos.x = Mathf.Lerp(m_FadePos.x,0,0.0166*10);
+		if(Mathf.Abs(m_FadePos.x) < 1)
+			break;
+		// for( var bee:GameObject in m_Bees)
+		// {
+			// bee.transform.eulerAngles.y += 4;
+		// }
+		 yield WaitForSeconds(0.0166);
 	}
+	
+	
+	var done:boolean = false;
+	// while(!done)
+	// {
+		// for( var bee:GameObject in m_Bees)
+		// {
+			// var anim :GameObject = GameObject.Find(bee.name+"/NewBee");
+			// anim.animation.Stop();
+			// if(bee != null && bee.transform.localEulerAngles.x > 0.01 && bee.transform.localEulerAngles.y > 0.01)
+			// {
+				// bee.transform.rotation = Quaternion.Slerp(bee.transform.rotation, Quaternion.identity, 15/60.0);
+				
+			// }
+			// else
+			// {
+				// done = true;
+			// }
+		// }
+		// Camera.main.orthographicSize += Time.deltaTime * 1000;
+		// yield WaitForSeconds(1/30.0);
+	// }
 	// while(m_Bee != null && m_Bee.transform.localEulerAngles.x > 0.01 && m_Bee.transform.localEulerAngles.y > 0.01)
 	// {
 		// m_Bee.transform.rotation = Quaternion.Slerp(m_Bee.transform.rotation, Quaternion.identity, 15/60.0);
@@ -280,6 +311,12 @@ function OnGUI()
 {
 	
 		//m_GUISkin.label.fixedWidth = Screen.width/5.0;
+		GUI.color = Color.black;
+		if(m_FadePos.x > -Screen.width+1)
+		{
+			GUI.BeginGroup (Rect(m_FadePos.x, 0, Screen.width+5,Screen.height+5), m_GUISkin.GetStyle("Background"));	
+			GUI.EndGroup();
+		}
 		GUI.color = Color(0,0,0,0.75);
 		GUI.BeginGroup (Rect(m_MenuPos.x, Screen.height*.30, Screen.width,Screen.height*0.5), m_GUISkin.GetStyle("Background"));	
 			GUI.color = Color.white;

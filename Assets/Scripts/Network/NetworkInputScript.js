@@ -32,6 +32,11 @@ class InputState
 	static var SHOOT : int = 32;
 	static var USE : int = 64;
 	static var RELOAD : int = 128;
+	static var DPAD_LEFT : int = 256;
+	static var DPAD_RIGHT : int = 512;
+	static var DPAD_UP : int = 2024;
+	static var DPAD_DOWN : int = 2048;
+	
 	
 	var m_Sequence:int = 0;
 	var m_Timestamp:float = 0;
@@ -41,6 +46,8 @@ class InputState
 	
 	var m_XAxisVal : float = 0;
 	var m_YAxisVal : float = 0;
+	var m_DpadXAxisVal : float = 0;
+	var m_DpadYAxisVal : float = 0;
 	
 	function GetAction(action : int) : boolean
 	{
@@ -167,6 +174,9 @@ function Update () {
 	//handle movement keys
 	m_CurrInputState.m_XAxisVal = Input.GetAxis(joyStr+"Strafe Left/Right");
 	m_CurrInputState.m_YAxisVal = Input.GetAxis(joyStr+"Move Forward/Back");
+	
+	m_CurrInputState.m_DpadXAxisVal = Input.GetAxis(joyStr+"Dpad Left/Right");
+	m_CurrInputState.m_DpadYAxisVal = Input.GetAxis(joyStr+"Dpad Up/Down");
 	if(m_CurrInputState.m_YAxisVal > 0)
 	{
 		m_CurrentActions |= InputState.MOVE_UP;
@@ -185,6 +195,26 @@ function Update () {
 	if(m_CurrInputState.m_XAxisVal < 0)
 	{
 		m_CurrentActions |= InputState.MOVE_LEFT;
+	}
+	
+	if(m_CurrInputState.m_DpadYAxisVal > 0)
+	{
+		m_CurrentActions |= InputState.DPAD_UP;
+	}
+	
+	if(m_CurrInputState.m_DpadYAxisVal  < 0)
+	{
+		m_CurrentActions |= InputState.DPAD_DOWN;
+	}
+	
+	if(m_CurrInputState.m_DpadXAxisVal > 0)
+	{
+		m_CurrentActions |= InputState.DPAD_RIGHT;
+	}
+	
+	if(m_CurrInputState.m_DpadXAxisVal < 0)
+	{
+		m_CurrentActions |= InputState.DPAD_LEFT;
 	}
 	//handle look direction
 	if(GetComponent(BeeScript).m_Camera != null &&

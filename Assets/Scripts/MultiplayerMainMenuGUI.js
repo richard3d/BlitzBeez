@@ -57,7 +57,7 @@ function Update () {
 		transform.position.x += (123-transform.position.x)*Time.deltaTime*8;
 	}
 	
-	var currInput:float = Input.GetAxis("Joy0 Move Forward/Back")+Input.GetAxis("Joy0 Strafe Left/Right"); 
+	var currInput:float = Input.GetAxis("Joy0 Move Forward/Back")+Input.GetAxis("Joy0 Strafe Left/Right")+Input.GetAxis("Joy0 Dpad Up/Down"); 
 	if(m_ShowOptions)
 	{
 		if(Input.GetAxis("Joy0 Cancel"))
@@ -82,7 +82,7 @@ function Update () {
 	}
 	else
 	{
-		if(Input.GetAxis("Joy0 Move Forward/Back") < 0 && m_PrevInput == 0)
+		if((Input.GetAxis("Joy0 Move Forward/Back") < 0 || Input.GetAxis("Joy0 Dpad Up/Down") < 0) && m_PrevInput == 0)
 		{
 			if(m_Sel < m_NumSel-1)
 			{
@@ -93,7 +93,7 @@ function Update () {
 				m_Sel++;
 			}
 		}
-		if(Input.GetAxis("Joy0 Move Forward/Back") > 0 && m_PrevInput == 0)
+		if((Input.GetAxis("Joy0 Move Forward/Back") > 0 || Input.GetAxis("Joy0 Dpad Up/Down") > 0) && m_PrevInput == 0)
 		{
 			if(m_Sel > 0)
 			{
