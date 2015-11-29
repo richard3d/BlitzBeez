@@ -382,11 +382,17 @@ function OnNetworkInput(IN : InputState)
 		}
 	}
 	
+	//handle flower power
+	if(IN.GetActionBuffered(IN.DPAD_LEFT))
+	{
+		gameObject.AddComponent(FlowerPowerDecorator);
+	}
+	
 	//handle use action
-	if(IN.GetActionBuffered(IN.USE) && !m_ShootButtonHeld)
+	if(IN.GetActionBuffered(IN.USE) )
 	{
 		beeScript = GetComponent(BeeScript);
-		if(m_NearestObject != null)
+		if(m_NearestObject != null && !m_ShootButtonHeld)
 		{
 			//handle rocks
 			if(m_NearestObject.tag == "Rocks" &&
@@ -455,7 +461,7 @@ function OnNetworkInput(IN : InputState)
 		else
 		if(GetComponent(TreeHideDecorator) == null)
 		{
-			if(beeScript.m_Inventory[1].m_Item != null && GetComponent(ItemDecorator) == null)
+			if(beeScript.m_Inventory[1].m_Item != null && GetComponent(ItemDecorator) == null && !m_ShootButtonHeld)
 			{
 				var viewID : NetworkViewID= Network.AllocateViewID();
 				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[1].m_Item.name,"", transform.position, Quaternion.identity, viewID ,  0);
@@ -464,7 +470,7 @@ function OnNetworkInput(IN : InputState)
 				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 1);	
 			}
 			else
-			if(beeScript.m_Inventory[0].m_Item != null && GetComponent(ItemDecorator) == null)
+			if(beeScript.m_Inventory[0].m_Item != null && GetComponent(ItemDecorator) == null && !m_ShootButtonHeld)
 			{
 				viewID = Network.AllocateViewID();
 				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[0].m_Item.name,"", transform.position, Quaternion.identity, viewID ,  0);

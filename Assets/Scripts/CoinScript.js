@@ -65,7 +65,7 @@ function Update () {
 
 function OnTriggerEnter(coll:Collider)
 {
-	if(coll.gameObject.tag == "Player")
+	if(coll.gameObject.tag == "Player" && coll.gameObject.GetComponent(BeeScript).m_NumUpgradesAvailable == 0)
 	{
 		if(Network.isServer)
 			ServerRPC.Buffer(networkView, "GetCoin", RPCMode.All, coll.gameObject.name);

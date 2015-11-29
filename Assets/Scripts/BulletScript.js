@@ -12,6 +12,7 @@ var m_AttachMuzzleEffect:boolean = true;	//determines if the muzzle effect exist
 var m_PowershotEffect:GameObject = null;
 
 private var m_LaserEffect : GameObject = null;
+private var m_NumHits: int = 0; //collision counter
 var m_PowerShot : boolean = false;
 var m_BulletType : int = -1;
 var m_PowerShotType : int = -1;
@@ -492,11 +493,32 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 				refNorm.Normalize();
 				refVel = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
 				refVel.y = 0;
-				m_BulletType = -1;
+				m_NumHits++;
+				//m_BulletType = -1;
 				refVel.Normalize();
 				GetComponent(UpdateScript).m_Vel = refVel*GetComponent(UpdateScript).m_MaxSpeed;
 				transform.LookAt(transform.position + GetComponent(UpdateScript).m_Vel);
 				ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+				
+				if(m_NumHits >= 2)
+				{
+					if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
+					  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
+					  (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner != m_Owner))
+					  {
+						
+							RemoveBullet(coll.hit.point);
+							return true;
+						}	
+						else if(tag == "Shield" )
+						{
+							if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
+							{
+								RemoveBullet(coll.hit.point);
+								return true;
+							}
+						}
+				}
 			break;
 			//penetration
 			case 1:

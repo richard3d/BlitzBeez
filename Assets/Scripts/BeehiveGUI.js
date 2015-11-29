@@ -233,20 +233,13 @@ function Show(bShow : boolean)
 		else
 		{
 			Screen.showCursor = false;
-			m_Camera.GetComponent(CameraScript).m_DefaultOffset.z = -m_Camera.GetComponent(CameraScript).m_DefaultOffset.z;
 			m_Fade = 0;
-			m_Camera.camera.orthographicSize = 100;
-			
-			Debug.Log("Hiding");
 			
 			//hide the menu
 			animation["BeeGUIOpen"].speed = -1;
 			animation["BeeGUIOpen"].time = animation["BeeGUIOpen"].length;
 			animation.Play("BeeGUIOpen");
 			
-			//m_Camera.animation["CameraDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
-			//m_Camera.animation["CameraDramaticZoom"].speed = -1;
-			//m_Camera.animation.Play("CameraDramaticZoom");
 			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
 			m_Camera.GetComponent(CameraScript).m_FocalOffset.x = 0;
 			m_Camera.GetComponent(DepthOfFieldScatter).enabled = false;

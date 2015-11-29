@@ -17,6 +17,10 @@ var m_MatchTick : int = 3;
 static var m_WinningTeam : int = -1;
 static var m_MVPPlayer : String = "";
 static var m_PointsToWin : int = 800;
+static var m_Team1Color: Color;
+static var m_Team2Color: Color;
+static var m_Team1Score: int;
+static var m_Team2Score: int;
 function Start()
 {
 	m_CurrState =-1;
@@ -27,6 +31,27 @@ function Start()
 
 function Update()
 {
+}
+
+function UpdateScore()
+{
+	var players : GameObject[] = GameObject.FindGameObjectsWithTag("Player");
+	while( m_CurrState == MATCH_PLAYING)
+	{
+		var t1:int = 0;
+		var t2:int = 0;
+		for(var player:GameObject in players)
+		{
+			if(player.GetComponent(BeeScript).m_Team == 0)
+				t1 += player.GetComponent(BeeScript).m_Honey;
+			else
+				t2 += player.GetComponent(BeeScript).m_Honey;
+					
+		}
+		m_Team1Score = t1;
+		m_Team2Score = t2;
+		yield WaitForSeconds(0.5);
+	}
 }
 
 static function CheckForWin()
@@ -222,6 +247,7 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 		go.animation.Play("FlashIntro");
 		txt.GetComponent(UpdateScript).m_Lifetime = 1.2;
 		SetState(MATCH_PLAYING);
+		UpdateScore();
 		
 	}
 	

@@ -81,6 +81,7 @@ function OnStateChange(state:int)
 				Debug.Log("enabling input for "+i);
 			}
 		}
+
 	}
 	else
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
@@ -727,6 +728,11 @@ function GetGameObject() : GameObject
 		
 		var armor:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/BeeArmor").gameObject;
 		armor.renderer.materials[0].color = m_Clients[clientID].m_Color;
+		if(m_Clients[clientID].m_Side == 0)
+			GameStateManager.m_Team1Color = m_Clients[clientID].m_Color;
+		else
+			GameStateManager.m_Team2Color = m_Clients[clientID].m_Color;
+			
 		
 		
 		

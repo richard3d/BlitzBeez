@@ -57,7 +57,7 @@ function Update () {
 		else
 		{
 			m_PollinationTimer = 0;
-			m_Owner.GetComponent(BeeScript).m_Honey += 0.01;
+			m_Owner.GetComponent(BeeScript).m_Honey += 0.1;
 		}
 	}
 
