@@ -1,6 +1,7 @@
 #pragma strict
 
 var m_Owner : GameObject = null;
+var m_DamageEffect :GameObject = null;
 var m_ExplosionParticles :GameObject = null;
 var m_RespawnParticles : GameObject = null;
 var m_Pedestal : GameObject = null;
@@ -64,7 +65,11 @@ function OnGUI()
 				var percent:float = m_HP/maxHP;
 			
 				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
+				GUI.color = Color(0.2,0.2,0.2,1.0);
+				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeTexture);
+				GUI.color = Color.red;
 				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width*percent, height), m_LifeTexture);
+				GUI.color = Color.white;
 			}
 		}
 	}
@@ -77,6 +82,26 @@ function DamageHive(dmgAmt:int)
 {
 	m_HP -= dmgAmt;
 	
+	var perc:float = m_HP;
+	perc = perc / m_BaseHP;
+	
+	if(perc <= .75 && transform.Find("HiveFire") == null)
+	{
+		var effect = GameObject.Instantiate(m_DamageEffect, transform.position, Quaternion.identity);
+		effect.name = "HiveFire";
+		effect.transform.parent = transform;
+		effect.Find("Fire").GetComponent(ParticleSystem).Stop();
+		effect.Find("Sparks").GetComponent(ParticleSystem).Stop();
+	
+	}
+	if(perc <= 0.50)
+	{
+		transform.Find("HiveFire/Fire").GetComponent(ParticleSystem).Play();
+	}
+	if(perc <= 0.25)
+	{
+		transform.Find("HiveFire/Sparks").GetComponent(ParticleSystem).Play();
+	}
 	
 	if(GetComponent(FlasherDecorator) == null)
 	{
@@ -91,7 +116,7 @@ function DamageHive(dmgAmt:int)
 		Destroy(gameObject);
 	}
 	else
-		m_LifebarTimer = 3;
+		m_LifebarTimer = 4;
 }
 
 

@@ -17,21 +17,26 @@ function Start () {
 		m_PlayerCam.GetComponent(CameraScript).m_CollisionEnabled = false;
 		GetComponent(BeeScript).SetGUIEnabled(false);
 	}
-
-	 GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
-	 GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("levelup");
-	 GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
-	 transform.GetChild(0).localEulerAngles.z = 0;
+	gameObject.AddComponent(InvincibilityDecorator);
+	GetComponent( InvincibilityDecorator ).m_Blink = false;
+	GetComponent( InvincibilityDecorator ).SetLifetime(m_Lifetime);
+	 
+	GetComponent(BeeControllerScript).m_ControlEnabled = false;
+	GetComponent(BeeControllerScript).m_LookEnabled = false;
+	GetComponent(UpdateScript).enabled = false;
+	 
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("levelup");
+	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = -90;
+	transform.GetChild(0).localEulerAngles.z = 0;
 	 
 	
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
 	m_LightEffect.animation.Play();
 	m_LightEffect.transform.parent = gameObject.transform;
-	//m_LightEffect.transform.localScale = Vector3(12,300,12);
-	GetComponent(BeeControllerScript).m_ControlEnabled = false;
-	//gameObject.AddComponent(PauseDecorator);
-	GetComponent(UpdateScript).enabled = false;
-	//GetComponent(PauseDecorator).m_Lifetime = 99;
+
+	
+
 	
 	//this one deletes itself the other two (above and below) do not
 	var m_TeleportEffect:GameObject= GameObject.Instantiate(Resources.Load("GameObjects/TeleporterParticles"),transform.position, Quaternion.identity);
@@ -58,7 +63,7 @@ function DoPowerup(lifetime : float)
 	bees.transform.LookAt(transform.position);	
 	bees.layer =  LayerMask.NameToLayer("GUILayer_P1");
 	bees.transform.GetChild(0).gameObject.layer =  LayerMask.NameToLayer("GUILayer_P1");
-	GetComponent(BeeControllerScript).m_LookEnabled = false;
+	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		GetComponent(BeeScript).SetGUIEnabled(false);
@@ -100,8 +105,12 @@ function DoPowerup(lifetime : float)
 		//go.transform.GetChild(0).localEulerAngles.z = 0;
 		
 	}
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
+	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("fly");
+	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 0;
 	
 	yield WaitForSeconds(3);
+	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
@@ -112,19 +121,19 @@ function DoPowerup(lifetime : float)
 		m_PlayerCam.GetComponent(CameraScript).m_CollisionEnabled = true;
 		
 	}
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("fly");
-	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 0;
+	
 	
 	//check for collisions with other players
 		
 	bees.GetComponent(SpecialAttackScript).m_TeamOwner = GetComponent(BeeScript).m_Team;
+	bees.GetComponent(SpecialAttackScript).m_Owner = gameObject;
 	bees.GetComponent(SpecialAttackScript).enabled = true;
+	bees.GetComponent(SpecialAttackScript).m_Duration = 2;
 	bees.layer = LayerMask.NameToLayer("Default");
 	bees.transform.GetChild(0).gameObject.layer = LayerMask.NameToLayer("Default"); 
 	//	Debug.Log("INTERSEC");
 	
-	yield WaitForSeconds(2);
+	yield WaitForSeconds(bees.GetComponent(SpecialAttackScript).m_Duration+0.5);
 	GetComponent(BeeScript).SetGUIEnabled(true);
 	
 	Destroy(bees);

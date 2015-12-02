@@ -480,56 +480,57 @@ function DrawGUI()
 		
 		//draw the game event messages
 		GameEventMessenger.DrawMessages(relPos.x-32,(bottom- 96 * camScale),SmallFontStyle);
-		var hive1Perc:float = GameStateManager.m_Hive1.GetComponent(HiveScript).m_HP;
-		hive1Perc = hive1Perc /  GameStateManager.m_Hive1.GetComponent(HiveScript).m_BaseHP;
-		
-		var hive2Perc:float = GameStateManager.m_Hive2.GetComponent(HiveScript).m_HP;
-		hive2Perc = hive2Perc /  GameStateManager.m_Hive2.GetComponent(HiveScript).m_BaseHP;
-		
-		
 		
 		//draw the score/lifeboard
-		if(camWidth <= 0.5)
-		{
-			var dispSize : float = 96*camScale;
+		if(GameStateManager.m_Hive1 && GameStateManager.m_Hive2)
+		{	
+			var hive1Perc:float = GameStateManager.m_Hive1.GetComponent(HiveScript).m_HP;
+			hive1Perc = hive1Perc /  GameStateManager.m_Hive1.GetComponent(HiveScript).m_BaseHP;
 			
-			GUI.color = Color.black;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
-			//GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.04, dispSize*0.7, dispSize*0.4), ReloadBarTexture);
-			GUI.color = GameStateManager.m_Team1Color;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), m_Team1Icon);
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
-			GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
+			var hive2Perc:float = GameStateManager.m_Hive2.GetComponent(HiveScript).m_HP;
+			hive2Perc = hive2Perc /  GameStateManager.m_Hive2.GetComponent(HiveScript).m_BaseHP;
 			
-			GUI.color = Color.black;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
-			
-			GUI.color = GameStateManager.m_Team2Color;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15, dispSize, dispSize), m_Team2Icon);
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
-			GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
-		}
-		else	
-		{
-			dispSize = 64*camScale;
-			
-			GUI.color = Color.black;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
-			
-			GUI.color = GameStateManager.m_Team1Color;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), m_Team1Icon);
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
-			GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
-			
-			GUI.color = Color.black;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
-			
-			GUI.color = GameStateManager.m_Team2Color;
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2, dispSize, dispSize), m_Team2Icon);
-			GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
-			GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
-		}
-		
+			if(camWidth <= 0.5)
+			{
+				var dispSize : float = 96*camScale;
+				
+				GUI.color = Color.black;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				//GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.04, dispSize*0.7, dispSize*0.4), ReloadBarTexture);
+				GUI.color = GameStateManager.m_Team1Color;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), m_Team1Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
+				
+				GUI.color = Color.black;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				
+				GUI.color = GameStateManager.m_Team2Color;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15, dispSize, dispSize), m_Team2Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+			}
+			else	
+			{
+				dispSize = 64*camScale;
+				
+				GUI.color = Color.black;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				
+				GUI.color = GameStateManager.m_Team1Color;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), m_Team1Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
+				
+				GUI.color = Color.black;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				
+				GUI.color = GameStateManager.m_Team2Color;
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2, dispSize, dispSize), m_Team2Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+			}
+		}	
 		//draw flower meter
 		if(Event.current.type.Equals(EventType.Repaint))
 		{

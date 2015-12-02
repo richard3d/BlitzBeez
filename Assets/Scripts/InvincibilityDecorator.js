@@ -38,7 +38,7 @@ function Update () {
 
 function OnDestroy()
 {
-	Debug.Log("Showing");
+
 	if(m_Blink)
 		renderer.enabled  = true;
 }
