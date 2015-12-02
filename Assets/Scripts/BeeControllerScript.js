@@ -386,6 +386,7 @@ function OnNetworkInput(IN : InputState)
 	if(IN.GetActionBuffered(IN.DPAD_LEFT))
 	{
 		gameObject.AddComponent(FlowerPowerDecorator);
+		GetComponent(BeeScript).m_CurrFlowerStreak = 0;
 	}
 	
 	//handle use action

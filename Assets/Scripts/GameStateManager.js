@@ -21,6 +21,8 @@ static var m_Team1Color: Color;
 static var m_Team2Color: Color;
 static var m_Team1Score: int;
 static var m_Team2Score: int;
+static var m_Hive1:GameObject;
+static var m_Hive2:GameObject;
 function Start()
 {
 	m_CurrState =-1;
@@ -240,7 +242,15 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 	}
 	
 	if(m_MatchTick == 0)
-	{		
+	{	
+		var hives:GameObject[] = GameObject.FindGameObjectsWithTag("Hives");
+		for(var hive:GameObject in hives)
+		{
+			if(hive.GetComponent(RespawnScript).m_TeamOwner == 0)
+				m_Hive1 = hive;
+			else
+				m_Hive2 = hive;
+		}
 		var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
 		go.animation.Stop("FlashIntro");
 		go.animation["FlashIntro"].time = 2.35;

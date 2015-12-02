@@ -4,16 +4,17 @@ private var m_LightEffect:GameObject = null;
 private var m_LightSpot:GameObject = null;
 private var m_PlayerCam:GameObject = null;
 private var m_OrigCamOffset : Vector3;
-private var m_Cam : GameObject; //the camera for rendering the special move
 private var m_Imposter : GameObject; //the imposter for the player's bee
 private var m_BGEffect : GameObject; //Background effect for anime lines
 private var m_OldMask : int;
 function Start () {
 
+	AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_LevelUpSound, Camera.main.transform.position);
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		m_PlayerCam = gameObject.GetComponent(BeeScript).m_Camera;
 		m_PlayerCam.GetComponent(CameraScript).Shake(1.5,0.35);
+		m_PlayerCam.GetComponent(CameraScript).m_CollisionEnabled = false;
 		GetComponent(BeeScript).SetGUIEnabled(false);
 	}
 
@@ -50,36 +51,29 @@ function DoPowerup(lifetime : float)
 
 	
 	yield WaitForSeconds(lifetime);
+	AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_ShingSound, Camera.main.transform.position);
 	var bees:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/BeeSwarmAttackParticles"));	
+	bees.GetComponent(ParticleSystem).startColor =  NetworkUtils.GetColor(gameObject);
 	bees.transform.position = transform.position - transform.forward * 100;
 	bees.transform.LookAt(transform.position);	
 	bees.layer =  LayerMask.NameToLayer("GUILayer_P1");
+	bees.transform.GetChild(0).gameObject.layer =  LayerMask.NameToLayer("GUILayer_P1");
 	GetComponent(BeeControllerScript).m_LookEnabled = false;
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		m_PlayerCam = gameObject.GetComponent(BeeScript).m_Camera;
-		
-		// m_OrigCamOffset = m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset;
-		// m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,23,-35);
-		// m_PlayerCam.GetComponent(CameraScript).m_Pitch = 30;
-		//m_PlayerCam.GetComponent(MotionBlur).enabled = true;
-	
-		m_PlayerCam.GetComponent(CameraScript).Shake(5,0.35);
 		GetComponent(BeeScript).SetGUIEnabled(false);
-		m_Cam = GameObject.Instantiate(Resources.Load("GameObjects/SpecialCam"));
-		m_Cam.camera.enabled = false;
-		m_Cam.camera.rect = GetComponent(BeeScript).m_Camera.camera.rect;
-		m_Cam.camera.fov = GetComponent(BeeScript).m_Camera.camera.fov;
-		m_Cam.transform.position = GetComponent(BeeScript).m_Camera.transform.position;
+	
+		m_PlayerCam = gameObject.GetComponent(BeeScript).m_Camera;	
+		m_PlayerCam.GetComponent(CameraScript).Shake(5,0.35);
 		m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(5,10,48);
 		m_OldMask = m_PlayerCam.camera.cullingMask;
 		m_PlayerCam.camera.cullingMask = 1 << 15;
 		m_PlayerCam.camera.clearFlags =  CameraClearFlags.SolidColor;
-		m_PlayerCam.camera.backgroundColor = Color(1,0.9,0);
-	//	GetComponent(BeeScript).m_Camera.camera.enabled = false;
+		m_PlayerCam.camera.backgroundColor = Color(0.88,0.88,0.88);
+	//	m_PlayerCam.camera.backgroundColor = Color(0.611,0.725,0.760);
 		
-		m_BGEffect = GameObject.Instantiate(Resources.Load("GameObjects/SunrayParticles"));
-		m_BGEffect.transform.position = transform.position - transform.forward * 100;
+		m_BGEffect = GameObject.Instantiate(Resources.Load("GameObjects/AnimeLinesParticles"));
+		m_BGEffect.transform.position = transform.position;
 		m_BGEffect.layer = LayerMask.NameToLayer("GUILayer_P1");
 		
 		var inst:GameObject = GameObject.Find(gameObject.name+"/Bee/NewBee") ;
@@ -102,9 +96,7 @@ function DoPowerup(lifetime : float)
 		m_Imposter.transform.localScale = Vector3(3,3,3);
 		m_Imposter.transform.localEulerAngles.x = 0;
 		
-		m_Cam.transform.position = m_Imposter.transform.position + m_Imposter.transform.forward * 30;
-		m_Cam.transform.position.y += 20;
-		m_Cam.transform.LookAt(m_Imposter.transform.position);
+	
 		//go.transform.GetChild(0).localEulerAngles.z = 0;
 		
 	}
@@ -115,18 +107,26 @@ function DoPowerup(lifetime : float)
 		m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
 		m_PlayerCam.camera.cullingMask = m_OldMask;
 		m_PlayerCam.camera.clearFlags = CameraClearFlags.Skybox;
-		GetComponent(BeeScript).SetGUIEnabled(true);
-	//	m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = m_OrigCamOffset;
-	//	m_PlayerCam.GetComponent(CameraScript).m_Pitch = m_PlayerCam.GetComponent(CameraScript).m_DefaultPitch;
-		Destroy(m_Cam);
-		Destroy(m_Imposter);
 		Destroy(m_BGEffect);
+		Destroy(m_Imposter);
+		m_PlayerCam.GetComponent(CameraScript).m_CollisionEnabled = true;
+		
 	}
 	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
 	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("fly");
 	GameObject.Find(gameObject.name+"/Bee/NewBee").transform.localEulerAngles.x = 0;
 	
+	//check for collisions with other players
+		
+	bees.GetComponent(SpecialAttackScript).m_TeamOwner = GetComponent(BeeScript).m_Team;
+	bees.GetComponent(SpecialAttackScript).enabled = true;
+	bees.layer = LayerMask.NameToLayer("Default");
+	bees.transform.GetChild(0).gameObject.layer = LayerMask.NameToLayer("Default"); 
+	//	Debug.Log("INTERSEC");
+	
 	yield WaitForSeconds(2);
+	GetComponent(BeeScript).SetGUIEnabled(true);
+	
 	Destroy(bees);
 	if(Network.isServer)
 				ServerRPC.Buffer(networkView, "RemoveComponent",RPCMode.All, "FlowerPowerDecorator");
@@ -154,15 +154,7 @@ function OnDestroy()
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		// m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
-		// m_PlayerCam.camera.cullingMask = m_OldMask;
-		// m_PlayerCam.camera.clearFlags = CameraClearFlags.Skybox;
-		// GetComponent(BeeScript).SetGUIEnabled(true);
-	// //	m_PlayerCam.GetComponent(CameraScript).m_DefaultOffset = m_OrigCamOffset;
-	// //	m_PlayerCam.GetComponent(CameraScript).m_Pitch = m_PlayerCam.GetComponent(CameraScript).m_DefaultPitch;
-		// Destroy(m_Cam);
-		// Destroy(m_Imposter);
-		// Destroy(m_BGEffect);
+		
 	}
 	
 	//

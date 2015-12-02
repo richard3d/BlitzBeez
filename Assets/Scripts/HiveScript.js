@@ -41,7 +41,7 @@ function Update () {
 
 function OnGUI()
 {
-	if(m_LifebarTimer > 0 && m_Owner != null)
+	if(m_LifebarTimer > 0 )
 	{
 		m_LifebarTimer -= Time.deltaTime;
 		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
@@ -72,18 +72,40 @@ function OnGUI()
 		
 }
 
+@RPC
+function DamageHive(dmgAmt:int)
+{
+	m_HP -= dmgAmt;
+	
+	
+	if(GetComponent(FlasherDecorator) == null)
+	{
+		gameObject.AddComponent(FlasherDecorator);
+		GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
+		GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+	}
+	
+	if(m_HP <= 0)
+	{
+		//destroy the hive
+		Destroy(gameObject);
+	}
+	else
+		m_LifebarTimer = 3;
+}
+
 
 function OnBulletCollision(coll:BulletCollision)
 {
-	if(!Network.isServer)
-		return;
-	if(coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Team != GetComponent(RespawnScript).m_TeamOwner)
-	{
-		if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
-			coll.bullet.networkView.RPC("DamageHive", RPCMode.All,gameObject.name, 5);
-		else
-			coll.bullet.networkView.RPC("DamageHive", RPCMode.All,gameObject.name, 1);
-	}
+	// if(!Network.isServer)
+		// return;
+	// if(coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Team != GetComponent(RespawnScript).m_TeamOwner)
+	// {
+		// if(coll.bullet.GetComponent(BulletScript).m_PowerShot)
+			// coll.bullet.networkView.RPC("DamageHive", RPCMode.All,gameObject.name, 5);
+		// else
+			// coll.bullet.networkView.RPC("DamageHive", RPCMode.All,gameObject.name, 1);
+	// }
 }
 
 function OnTriggerStay(other : Collider)
@@ -150,6 +172,10 @@ function OnTriggerEnter(other:Collider)
 			}
 		}
 	}
+	
+	
+	
+	
 }
 
 function OnTriggerExit(other : Collider)

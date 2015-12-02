@@ -14,7 +14,7 @@ var m_ShakeStrength : float = 0;
 var m_fShakeTimer : float = 0;
 var m_fShakeTime : float = 0;
 
-
+var m_CollisionEnabled = true;
 var m_Fixed : boolean = false;
 var m_Freeze: boolean = false;
 var m_TerrainLayer:LayerMask; //for collision
@@ -109,7 +109,7 @@ function Update () {
 			
 		}
 		
-		if(point != Vector3.zero)
+		if(point != Vector3.zero && m_CollisionEnabled)
 		{
 		
 			//gameObject.Find("Rock1").transform.position = point;
