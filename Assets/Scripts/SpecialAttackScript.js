@@ -50,11 +50,12 @@ function Start () {
 	
 	if(hitHive != null)
 	{
+		var hp:int = hitHive.GetComponent(HiveScript).m_HP;
 		if(Network.isServer)
 					hitHive.networkView.RPC("DamageHive", RPCMode.All, dmg);
 	
 		var d = m_Duration/dmg;
-		DoHitEffect(3.0, d,hitHive);
+		DoHitEffect(3.0, d,hitHive, hp);
 	}
 	
 	
@@ -62,15 +63,17 @@ function Start () {
 
 }
 
-function DoHitEffect(duration:float, delta:float, hitHive:GameObject)
+function DoHitEffect(duration:float, delta:float, hitHive:GameObject, maxHits:int)
 {
 
 	var hitCount:int = 0;
 	
-	while(duration > 0)
+	while(duration > 0 && hitCount < maxHits)
 	{
 		duration -= delta;
 		hitCount+= 1;
+		if(hitHive == null)
+			continue;
 		var vertIndex:int = Random.Range(0, hitHive.GetComponent(MeshFilter).mesh.vertexCount-1);
 		var pos:Vector3 = hitHive.GetComponent(MeshFilter).mesh.vertices[vertIndex];
 		pos = hitHive.transform.TransformPoint(pos);

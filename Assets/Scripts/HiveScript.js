@@ -90,6 +90,7 @@ function DamageHive(dmgAmt:int)
 		var effect = GameObject.Instantiate(m_DamageEffect, transform.position, Quaternion.identity);
 		effect.name = "HiveFire";
 		effect.transform.parent = transform;
+		effect.Find("Fire").GetComponent(ParticleSystem).Clear();
 		effect.Find("Fire").GetComponent(ParticleSystem).Stop();
 		effect.Find("Sparks").GetComponent(ParticleSystem).Stop();
 	
@@ -112,13 +113,45 @@ function DamageHive(dmgAmt:int)
 	
 	if(m_HP <= 0)
 	{
+		Time.timeScale = 0.15;
 		//destroy the hive
-		Destroy(gameObject);
+		if(m_ExplosionParticles != null )
+		{
+			var go:GameObject =  gameObject.Instantiate(m_ExplosionParticles);
+			go.transform.position = transform.position;
+		}
+		
+		ShowRecursive(transform, false);
+		
+		//wait just a tad for effect and then end the match
+		yield WaitForSeconds(1.5);
+		Time.timeScale = 1;
+		if(Network.isServer)
+		{
+			if(GetComponent(RespawnScript).m_TeamOwner == 0)
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView, "EndMatch",RPCMode.All, 1); 
+			else
+				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView, "EndMatch",RPCMode.All, 0); 
+		}
+		
+		
+		//Destroy(gameObject);
 	}
 	else
 		m_LifebarTimer = 4;
 }
 
+function ShowRecursive(p:Transform, show:boolean)
+{
+	if(p.gameObject.renderer != null)
+			p.gameObject.renderer.enabled = show;
+	for(var t:Transform in p)
+	{
+		if(t.gameObject.renderer != null)
+			t.gameObject.renderer.enabled = show;
+		ShowRecursive(t, show);
+	}
+}
 
 function OnBulletCollision(coll:BulletCollision)
 {
