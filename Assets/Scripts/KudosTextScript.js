@@ -1,9 +1,12 @@
 #pragma strict
-var m_WorldPos : Vector3;
+var m_Pos : Vector3;	//if no attached object below then this will be treated as the world space position, otherwise it is relative to the attached object
 var m_Color:Color = Color.white;
 var m_Delay:float = 0;
 var m_CameraOwner:GameObject;
+var m_AttachedObject : GameObject = null; //if null just uses the set world position 
 function Start () {
+
+
 
 }
 
@@ -23,13 +26,22 @@ function Update () {
 	}
 	else
 	{
-		m_WorldPos += Vector3.up*20*Time.deltaTime;
+		m_Pos += Vector3.up*20*Time.deltaTime;
+		
 		GetComponent(GUIText).material.color = m_Color;
 		
 		if(m_CameraOwner != null)
 		{
-			if(Vector3.Dot(m_CameraOwner.transform.forward, (m_WorldPos - m_CameraOwner.transform.position).normalized) > 0)
-				gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_WorldPos);
+			if(m_AttachedObject != null)
+			{
+				if(Vector3.Dot(m_CameraOwner.transform.forward, (m_AttachedObject.transform.position + m_Pos - m_CameraOwner.transform.position).normalized) > 0)
+					gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_AttachedObject.transform.position + m_Pos);
+			}
+			else
+			{
+				if(Vector3.Dot(m_CameraOwner.transform.forward, (m_Pos - m_CameraOwner.transform.position).normalized) > 0)
+					gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_Pos);
+			}
 		}
 	}
 

@@ -32,7 +32,7 @@ function FindCoin(lastCoin:GameObject)
 		 kudosText.animation["KudosText"].time = 0;
 		 kudosText.animation.Play("KudosText");
 		 kudosText.GetComponent(GUIText).material.color = Color.yellow;
-		 kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+		 kudosText.GetComponent(KudosTextScript).m_Pos = transform.position;
 		 kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
 		 kudosText.GetComponent(GUIText).text = "+"+m_CoinCount+" XP";
 		 kudosText.GetComponent(GUIText).fontSize = 32;

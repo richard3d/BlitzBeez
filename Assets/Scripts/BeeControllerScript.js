@@ -385,8 +385,12 @@ function OnNetworkInput(IN : InputState)
 	//handle flower power
 	if(IN.GetActionBuffered(IN.DPAD_LEFT))
 	{
-		gameObject.AddComponent(FlowerPowerDecorator);
-		GetComponent(BeeScript).m_CurrFlowerStreak = 0;
+		if(GetComponent(FlowerDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(RespawnDecorator) == null )
+		{
+			if(gameObject.AddComponent(SpecialAttackDecorator) == null)
+				gameObject.AddComponent(SpecialAttackDecorator);
+			GetComponent(BeeScript).m_CurrFlowerStreak = 0;
+		}
 	}
 	
 	//handle use action
@@ -427,7 +431,7 @@ function OnNetworkInput(IN : InputState)
 					//if(m_NearestObject.GetComponentInChildren(BeeParticleScript) == null)
 					//{
 					if(m_NearestObject.GetComponent(FlowerScript).m_Owner != null && 
-					   m_NearestObject.GetComponent(FlowerScript).m_Owner != gameObject)
+					   m_NearestObject.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Team != GetComponent(BeeScript).m_Team)
 						return;
 						
 						ServerRPC.Buffer(networkView, "UseFlower", RPCMode.All, m_NearestObject.name);

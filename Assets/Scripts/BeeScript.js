@@ -61,6 +61,7 @@ private var m_HitTargetEntity : GameObject = null; //the last entity we hit with
 //var HandIconTexture : Texture2D = null;
 var m_Team1Icon : Texture2D = null;
 var m_Team2Icon : Texture2D = null;
+var m_CrownIcon : Texture2D = null;
 var XPText : GameObject = null;
 var BarBGTexture : Texture2D = null;
 var m_LifeTextureContainer : Texture2D = null;
@@ -143,6 +144,12 @@ function SetColor(c:Color)
 			return;
 		}
 	}
+}
+
+function SetLayerRecursive( root:Transform, layer:int) {
+    root.gameObject.layer = layer;
+    for(var child:Transform in root)
+        SetLayerRecursive(child, layer);
 }
 
 function FadeOutLifeMeter(time:float)
@@ -493,42 +500,83 @@ function DrawGUI()
 			if(camWidth <= 0.5)
 			{
 				var dispSize : float = 96*camScale;
+				var team1PosY:float = camPos.y+Screen.height* m_Camera.camera.rect.height*0.05;
+				var team2PosY:float = camPos.y+Screen.height* m_Camera.camera.rect.height*0.15;				
+			
+			
 				
+				
+				if(m_Team == 1)
+				{
+					var v = team1PosY;
+					team1PosY = team2PosY;
+					team2PosY = v;
+				}
+				
+				var crownPosY:float = team1PosY;
+				if(GameStateManager.m_Team2Score > GameStateManager.m_Team1Score) 
+					crownPosY = team2PosY;
+				  
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
-				//GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.04, dispSize*0.7, dispSize*0.4), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team1PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				
 				GUI.color = GameStateManager.m_Team1Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), m_Team1Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team1PosY, dispSize, dispSize), m_Team1Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team1PosY+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,team1PosY, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
 				
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team2PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
 				
 				GUI.color = GameStateManager.m_Team2Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15, dispSize, dispSize), m_Team2Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.15, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team2PosY, dispSize, dispSize), m_Team2Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team2PosY+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,team2PosY, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+				
+				GUI.color = Color.white;
+				if(GameStateManager.m_Team2Score != GameStateManager.m_Team1Score) 
+					GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,crownPosY, dispSize*0.25, dispSize*0.25), m_CrownIcon);
+				
 			}
 			else	
 			{
 				dispSize = 64*camScale;
+				team1PosY = camPos.y+Screen.height* m_Camera.camera.rect.height*0.05;
+				team2PosY = camPos.y+Screen.height* m_Camera.camera.rect.height*0.2;
+			
 				
+			
+				
+				if(m_Team == 1)
+				{
+					v = team1PosY;
+					team1PosY = team2PosY;
+					team2PosY = v;
+				}
+				crownPosY = team1PosY;
+				if(GameStateManager.m_Team2Score > GameStateManager.m_Team1Score) 
+					crownPosY = team2PosY;
+		
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team1PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
 				
 				GUI.color = GameStateManager.m_Team1Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), m_Team1Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.05, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team1PosY, dispSize, dispSize), m_Team1Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team1PosY+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,team1PosY, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
 				
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team2PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
 				
 				GUI.color = GameStateManager.m_Team2Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2, dispSize, dispSize), m_Team2Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,camPos.y+Screen.height* m_Camera.camera.rect.height*0.2, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team2PosY, dispSize, dispSize), m_Team2Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team2PosY+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,team2PosY, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+				
+				GUI.color = Color.white;
+				if(GameStateManager.m_Team2Score != GameStateManager.m_Team1Score) 
+					GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,crownPosY, dispSize*0.25, dispSize*0.25), m_CrownIcon);
+				
 			}
 		}	
 		//draw flower meter
@@ -800,27 +848,34 @@ function DrawGUI()
 				GUI.DrawTexture(Rect(relPos.x+143*camScale,relPos.y+6*camScale, 96*camScale, 12*camScale), MeterBarTexture, ScaleMode.StretchToFill, true);
 				fPerc = 0;
 				
-				if(m_CurrLevel >= m_XPToLevel.length || m_NumUpgradesAvailable > 0)
+				if(m_CurrLevel >= m_XPToLevel.length)
 					fPerc = 1;
 				else
 					fPerc = Mathf.Min(m_CurrXP / m_XPToLevel[m_CurrLevel], 1);
 				GUI.color = Color(0.9+m_XPMeterFlashTimer,0.8+m_XPMeterFlashTimer,m_XPMeterFlashTimer,m_XPMeterFade);
 				GUI.DrawTexture(Rect(relPos.x+143*camScale,relPos.y+6*camScale, fPerc*96*camScale, 12*camScale), MeterBarTexture, ScaleMode.StretchToFill, true);
-				GUI.color = Color.white;
-				GUI.color.a = m_XPMeterFade;
-				GUI.DrawTexture(Rect(relPos.x+128*camScale, relPos.y, 24*camScale, 24*camScale), CoinTexture, ScaleMode.StretchToFill, true);
+				
+			
+				
 				GUI.color = Color(1-m_XPMeterFlashTimer*3,1-m_XPMeterFlashTimer*3,1*m_XPMeterFade-m_XPMeterFlashTimer*3*m_XPMeterFade);
 				//GUI.Label(Rect(relPos.x+8*camScale,relPos.y+3*camScale, 128, 34), "Lv "+(m_CurrLevel+1),SmallFontStyle);
 				GUI.color = Color.white;
-				if(m_NumUpgradesAvailable > 0)
+				if(GetComponent(LevelUpDecorator) != null)
 				{
 				
 					m_XPMeterFade = 1;
 					m_XPMeterFlashTimer = Mathf.Sin(Time.time*16) > 0 ? 1 : 0;
 					GUI.color = Color(1,1,1, (Mathf.Sin(Time.time*16) +1.5));
-					GUI.Label(Rect(relPos.x+143*camScale+99*camScale,relPos.y+3*camScale, 400*camScale, SmallFontStyle.fontSize), "DPad -> To Upgrade",SmallFontStyle);
+					GUI.Label(Rect(relPos.x+143*camScale+99*camScale,relPos.y+3*camScale, 400*camScale, SmallFontStyle.fontSize), "+1 Skill Point",SmallFontStyle);
 				}
-				
+				else
+				{
+						GUI.color = Color.white;
+						GUI.color.a = m_XPMeterFade;
+						GUI.DrawTexture(Rect(relPos.x+128*camScale, relPos.y, 24*camScale, 24*camScale), CoinTexture, ScaleMode.StretchToFill, true);
+						GUI.Label(Rect(relPos.x+143*camScale+99*camScale,relPos.y+3*camScale, 400*camScale, SmallFontStyle.fontSize), (m_NumUpgradesAvailable > 0 ? "x"+m_NumUpgradesAvailable.ToString() : ""), SmallFontStyle);
+				}
+				GUI.color = Color.white;
 			GUI.EndGroup();
 		GUI.EndGroup();
 		
@@ -1032,7 +1087,7 @@ function OnTriggerEnter(other:Collider)
 				networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
 		}
 		
-		else if(other.gameObject.tag == "Explosion" && other.gameObject.GetComponent(BombExplosionScript).m_Owner != gameObject)
+		else if(other.gameObject.tag == "Explosion" && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team)
 		{
 			Debug.Log("Why");
 			KillAndRespawn(true);
@@ -1361,8 +1416,10 @@ function Hurt()
 		if(GetComponent(FlasherDecorator) == null)
 		{
 			gameObject.AddComponent(FlasherDecorator);
+			GetComponent(FlasherDecorator).m_AffectedObj = transform.Find("Bee/NewBee/BeeArmor").gameObject;
 			GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
 			GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
+		
 		}
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
@@ -1455,6 +1512,16 @@ function Hurt()
 	{
 		GetNumFlowers();
 		m_CurrFlowerStreak++;
+		if(m_CurrFlowerStreak >= 4)
+		{
+			//this should be safe because technically if we ever got hit while taking a flower we would be knocked off
+			if(GetComponent(FlowerPowerDecorator) == null)
+			{
+				gameObject.AddComponent(FlowerPowerDecorator);
+				
+			}	
+		}
+		
 		m_WorkerBees--;
 		flowerDec.GetFlower().transform.Find("Flower_Minimap").renderer.material.color = color;
 		flowerDec.m_FlashTimer = 1;
@@ -1477,18 +1544,22 @@ function Hurt()
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
-			var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
-			kudosText.GetComponent(GUIText).material.color = Color.yellow;
-			kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
-			kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
-			//gameObject.GetComponent(BeeScript).m_Money +=  25;
-			if(flowerComp.m_NumBees > 1)
-				kudosText.GetComponent(GUIText).text = "+ "+(flowerComp.m_NumBees-1)+" Defense";
-			else
-				kudosText.GetComponent(GUIText).text = "Captured!";
-			
-			kudosText.GetComponent(KudosTextScript).m_CameraOwner = m_Camera;
-			kudosText.layer = LayerMask.NameToLayer("GUILayer_P"+(GetComponent(NetworkInputScript).m_ClientOwner+1));
+			//the flower power decorator displays its own message and we dont want this appearing undnerneath
+			if(GetComponent(FlowerPowerDecorator) == null)
+			{
+				var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
+				kudosText.GetComponent(GUIText).material.color = Color.yellow;
+				kudosText.GetComponent(KudosTextScript).m_Pos = transform.position;
+				kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
+				//gameObject.GetComponent(BeeScript).m_Money +=  25;
+				if(flowerComp.m_NumBees > 1)
+					kudosText.GetComponent(GUIText).text = "+ "+(flowerComp.m_NumBees-1)+" Defense";
+				else
+					kudosText.GetComponent(GUIText).text = "Captured!";
+				
+				kudosText.GetComponent(KudosTextScript).m_CameraOwner = m_Camera;
+				kudosText.layer = LayerMask.NameToLayer("GUILayer_P"+(GetComponent(NetworkInputScript).m_ClientOwner+1));
+			}
 		}
 		if(flowerComp.m_NumBees == 1)
 			GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+ " captured a flower");

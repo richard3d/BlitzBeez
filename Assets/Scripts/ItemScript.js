@@ -173,7 +173,7 @@ function OnCollisionStay(coll : Collision)
 	{
 		var kudosText:GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
 		kudosText.GetComponent(GUIText).material.color = Color.yellow;
-		kudosText.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+		kudosText.GetComponent(KudosTextScript).m_Pos = transform.position;
 		kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
 		kudosText.GetComponent(GUIText).fontSize = 32;
 		kudosText.GetComponent(GUIText).text = "Got "+m_ItemToGive.name+"!";

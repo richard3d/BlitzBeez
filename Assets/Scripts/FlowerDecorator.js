@@ -124,17 +124,17 @@ function Update () {
 	var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		var txt:GameObject= gameObject.Find("SwarmCountText");
-		txt.transform.position = m_Camera.camera.WorldToViewportPoint(m_Flower.transform.position - Vector3.up * transform.localScale.z*18);
-		txt.transform.position.y += 0.04;
-		txt.GetComponent(GUIText).enabled = true;
-		if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
-		{
-			txt.GetComponent(GUIText).material.color = Color.white;
-			txt.GetComponent(GUIText).text = "MAX";
-		}
-		else
-			txt.GetComponent(GUIText).enabled = false;
+		// var txt:GameObject= gameObject.Find("SwarmCountText");
+		// txt.transform.position = m_Camera.camera.WorldToViewportPoint(m_Flower.transform.position - Vector3.up * transform.localScale.z*18);
+		// txt.transform.position.y += 0.04;
+		// txt.GetComponent(GUIText).enabled = true;
+		// if(flowerComp.m_NumBees >= flowerComp.m_MaxBees)
+		// {
+			// txt.GetComponent(GUIText).material.color = Color.white;
+			// txt.GetComponent(GUIText).text = "MAX";
+		// }
+		// else
+			// txt.GetComponent(GUIText).enabled = false;
 	}
 	
 	if(m_LifeTimer < m_Lifetime)	
@@ -230,7 +230,7 @@ function Reset()
 function OnGUI()
 {
 	var flowerComp:FlowerScript = m_Flower.GetComponent(FlowerScript);
-	if(m_Flower == null || GetComponent(BeeScript).m_WorkerBees == 0)
+	if(m_Flower == null )
 		return;
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
@@ -247,27 +247,31 @@ function OnGUI()
 		// GUIUtility.RotateAroundPivot (-(m_LifeTimer/m_Lifetime)*1*359,  Vector2(pos.x, Screen.height-pos.y)); 
 		
 		
-		
-		GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).m_DroneAssignmentTexture);
-		var beeSize:float = 24+Mathf.Sin(Time.time*16)*2;
-		for(var i:int = 0; i < m_Flower.GetComponent(FlowerScript).m_NumBees; i++)
-		{
-			GUI.color = NetworkUtils.GetColor(gameObject);
-			GUI.DrawTexture(Rect(pos.x - 50 + i*32,Screen.height-pos.y +100, beeSize, beeSize), GetComponent(BeeScript).BeeTexture);
-			GUI.color = Color.white;
-			GUI.DrawTexture(Rect(pos.x - 50 + i*32,Screen.height-pos.y +100, beeSize, beeSize), GetComponent(BeeScript).BeeWingsTexture);
+		if(GetComponent(BeeScript).m_WorkerBees == 0)
+		{	
+			if(m_Flower.GetComponent(FlowerScript).m_NumBees == 0)
+				GUI.Label(Rect(pos.x - 100,Screen.height-pos.y +100, 256, 55), "Insufficient Drones!", GetComponent(BeeScript).SmallFontStyle);
 		}
-		//GUIUtility.RotateAroundPivot (Mathf.Min(m_LifeTimer/m_Lifetime,1)*359,  Vector2(pos.x, Screen.height-pos.y)); 
+		// GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).m_DroneAssignmentTexture);
+		// var beeSize:float = 24+Mathf.Sin(Time.time*16)*2;
+		// for(var i:int = 0; i < m_Flower.GetComponent(FlowerScript).m_NumBees; i++)
+		// {
+			// GUI.color = NetworkUtils.GetColor(gameObject);
+			// GUI.DrawTexture(Rect(pos.x - 50 + i*32,Screen.height-pos.y +100, beeSize, beeSize), GetComponent(BeeScript).BeeTexture);
+			// GUI.color = Color.white;
+			// GUI.DrawTexture(Rect(pos.x - 50 + i*32,Screen.height-pos.y +100, beeSize, beeSize), GetComponent(BeeScript).BeeWingsTexture);
+		// }
+		// //GUIUtility.RotateAroundPivot (Mathf.Min(m_LifeTimer/m_Lifetime,1)*359,  Vector2(pos.x, Screen.height-pos.y)); 
 		
-		if(m_FlashTimer > 0)
-		{
-			m_FlashTimer -= Time.deltaTime;
-			var origClr = GUI.color; 
-			GUI.color = Color(1,1,1, m_FlashTimer);
-			GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).m_AssignmentFlasherTexture);
-			//GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).ClockTexture);
-			GUI.color = origClr;
-		}
+		// if(m_FlashTimer > 0)
+		// {
+			// m_FlashTimer -= Time.deltaTime;
+			// var origClr = GUI.color; 
+			// GUI.color = Color(1,1,1, m_FlashTimer);
+			// GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).m_AssignmentFlasherTexture);
+			// //GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Flower.GetComponent(FlowerScript).ClockTexture);
+			// GUI.color = origClr;
+		// }
 		//GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y- width/2, width, width), m_Flower.GetComponent(FlowerScript).ClockHandTexture);
 	}
 }

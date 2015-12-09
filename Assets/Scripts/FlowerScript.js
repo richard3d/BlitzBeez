@@ -107,7 +107,7 @@ function OnCollisionEnter(coll : Collision)
 {
 	if(!Network.isServer)
 		return;
-	if (coll.gameObject.tag == "Explosion" && coll.gameObject.GetComponent(BombExplosionScript).m_Owner != m_Owner)
+	if (coll.gameObject.tag == "Explosion" && coll.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team)
 	{
 		if(Network.isServer && m_HP > 0)
 		{	

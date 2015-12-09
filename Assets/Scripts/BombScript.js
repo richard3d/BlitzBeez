@@ -168,6 +168,7 @@ function Explode()
 	var go : GameObject = gameObject.Instantiate(m_BombExplosion);
 	go.transform.position = transform.position;
 	go.transform.position.y = transform.position.y;
+	go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
 	Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 	
 	transform.eulerAngles = Vector3(0,0,0);

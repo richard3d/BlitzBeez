@@ -651,6 +651,7 @@ function KillBulletOriented(pos:Vector3, norm:Vector3)
 			//explosive
 			case 1: 
 				go = gameObject.Instantiate(m_BombExplosion, transform.position, Quaternion.identity);
+				go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
 				//go.transform.position = transform.position;
 				
 				Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
@@ -662,6 +663,20 @@ function KillBulletOriented(pos:Vector3, norm:Vector3)
 		}
 		
 
+	}
+	else
+	{
+		switch (m_BulletType)
+		{
+			//explosive
+			case 1: 
+			
+			break;
+			//scatter
+			case 2: 
+				go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
+			break;
+		}
 	}
 	if(m_HitSoundEffect != null)
 		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
@@ -681,18 +696,33 @@ function KillBullet(pos:Vector3)
 			//explosive
 			case 1: 
 				go = gameObject.Instantiate(m_BombExplosion, transform.position, Quaternion.identity);
+				go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
 				go.transform.position = transform.position;
 				
 				Camera.main.GetComponent(CameraScript).Shake(0.25,0.5);
 			break;
 			//scatter
 			case 2: 
-				
 			break;
 		}
 		
 
 	}
+	else
+	{
+		switch (m_BulletType)
+		{
+			//explosive
+			case 1: 
+			
+			break;
+			//scatter
+			case 2: 
+				go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
+			break;
+		}
+	}
+	
 	if(m_HitSoundEffect != null)
 		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
 	

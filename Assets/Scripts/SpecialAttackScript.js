@@ -9,6 +9,7 @@ function Start () {
 	var hitHive:GameObject = null;
 	var dmg : int = 5;
 	
+	//find and calc damage against hit hive, but do not do anything yet
 	var hitInfos:RaycastHit[] = Physics.SphereCastAll(transform.position, GetComponent(BoxCollider).size.x*0.5, transform.forward,500, 1<<LayerMask.NameToLayer("Hives"));
 	for(var hitInfo:RaycastHit in hitInfos)
 	{
@@ -24,8 +25,6 @@ function Start () {
 			diff.y = 0;
 			diff = diff - Vector3.Dot(diff, transform.forward)*transform.forward;	
 			dmg = (1 - Mathf.Min(diff.magnitude / GetComponent(BoxCollider).size.x*0.5, 1)) * 20 + 1;
-			
-			
 			break;
 		}
 	}	
@@ -41,7 +40,21 @@ function Start () {
 			continue;
 		if(Network.isServer)
 		{
-			hitInfo.transform.GetComponent(BeeScript).KillAndRespawn(true);
+			if(hitInfo.transform.GetComponent(InvincibilityDecorator) == null)
+				hitInfo.transform.GetComponent(BeeScript).KillAndRespawn(true);
+		}
+	}
+	
+	//look for flower collisions
+	hitInfos = Physics.SphereCastAll(transform.position, GetComponent(BoxCollider).size.x*0.5, transform.forward,500, 1<<LayerMask.NameToLayer("Flowers"));
+	for(var hitInfo:RaycastHit in hitInfos)
+	{
+		if(hitInfo.transform.GetComponent(FlowerScript).m_Owner == null ||
+ 	       hitInfo.transform.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Team == m_TeamOwner)
+			continue;
+		if(Network.isServer)
+		{
+			ServerRPC.Buffer( hitInfo.transform.gameObject.networkView, "SetHP", RPCMode.All, 0);
 		}
 	}
 	
@@ -100,8 +113,8 @@ function DoHitEffect(duration:float, delta:float, hitHive:GameObject, maxHits:in
 		kudosText.animation["KudosText"].time = 0;
 		kudosText.animation.Play("KudosText");
 		kudosText.GetComponent(GUIText).material.color =  hitCount %2 == 0 ? Color.yellow : Color.black;
-		kudosText.GetComponent(KudosTextScript).m_WorldPos = hitHive.transform.position;
-		kudosText.GetComponent(KudosTextScript).m_WorldPos.y = transform.position.y;
+		kudosText.GetComponent(KudosTextScript).m_Pos = hitHive.transform.position;
+		kudosText.GetComponent(KudosTextScript).m_Pos.y = transform.position.y;
 		kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
 		kudosText.GetComponent(GUIText).text = " "+hitCount+" Hits!";
 		kudosText.GetComponent(GUIText).fontSize = 64;
@@ -113,5 +126,7 @@ function DoHitEffect(duration:float, delta:float, hitHive:GameObject, maxHits:in
 }
 
 function Update () {
+
+	//if(m_Owner.
 
 }

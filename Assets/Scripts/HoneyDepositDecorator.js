@@ -56,7 +56,7 @@ function OnDestroy()
 		if(bonus > 0)
 		{	
 			var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
-			txt.GetComponent(KudosTextScript).m_WorldPos = transform.position;
+			txt.GetComponent(KudosTextScript).m_Pos = transform.position;
 			txt.GetComponent(UpdateScript).m_Lifetime = 2;
 			txt.GetComponent(GUIText).text = m_PollenCount+"x Bonus $"+bonus;
 			txt.GetComponent(GUIText).material.color = Color.yellow;
