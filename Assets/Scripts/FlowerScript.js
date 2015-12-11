@@ -81,19 +81,22 @@ function OnGUI()
 			var bottom:float = camPos.y +cam.rect.height*Screen.height;
 			var scrPos:Vector3 = cam.WorldToScreenPoint(transform.position+ Vector3.up * 24);
 			
-			if((Screen.height - scrPos.y > camPos.y) && (Screen.height - scrPos.y < bottom))
+			if(Vector3.Dot((transform.position - player.transform.position), cam.transform.forward) > 0)
 			{
-				var height = 12;
-				var width = 48;
-				if(m_ShieldEffect != null)
-				var percent:float = m_HP;
-				percent /= (m_NumBees * m_BaseHP);
-				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
-				GUI.color = Color(0.2,0.2,0.2,1.0);
-				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeTexture);
-				GUI.color = Color.red;
-				GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width*percent, height), m_LifeTexture);
-				GUI.color = Color.white;
+				if((Screen.height - scrPos.y > camPos.y) && (Screen.height - scrPos.y < bottom))
+				{
+					var height = 12;
+					var width = 48;
+					if(m_ShieldEffect != null)
+					var percent:float = m_HP;
+					percent /= (m_NumBees * m_BaseHP);
+					GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeBGTexture);
+					GUI.color = Color(0.2,0.2,0.2,1.0);
+					GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width, height), m_LifeTexture);
+					GUI.color = Color.red;
+					GUI.DrawTexture(Rect(scrPos.x- width*0.5, Screen.height - scrPos.y - height*0.5, width*percent, height), m_LifeTexture);
+					GUI.color = Color.white;
+				}
 			}
 		}
 	}

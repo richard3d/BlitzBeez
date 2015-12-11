@@ -38,7 +38,7 @@ function Start () {
 		m_Camera.GetComponent(CameraScript).m_Fixed = true;
 		m_Camera.GetComponent(CameraScript).m_Offset = -Vector3.forward *200 + Vector3.up *200;
 		m_Camera.GetComponent(CameraScript).m_Pitch = 45;
-		m_Camera.GetComponent(CameraScript).SnapToOffset();
+		m_Camera.GetComponent(CameraScript).SnapToAngle();
 		m_OrigCamOffset = m_Camera.GetComponent(CameraScript).m_DefaultOffset;
 	}	
 	

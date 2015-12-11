@@ -92,6 +92,19 @@ function OnGUI()
 
 }
 
+function SetPixelRect(rect:Rect)
+{
+	m_PixRect = rect;
+	if(m_AnchorCenter)
+	{
+		m_PixRect.x -= m_PixRect.width*0.5;
+		m_PixRect.y -= m_PixRect.height*0.5;
+	}
+	m_Rect.x = m_PixRect.x / Screen.width;
+	m_Rect.y = m_PixRect.y / Screen.height;
+	m_Rect.width = m_PixRect.width / Screen.width;
+	m_Rect.height = m_PixRect.height / Screen.height;
+}
 
 function OnDestroy()
 {

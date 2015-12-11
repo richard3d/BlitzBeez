@@ -46,6 +46,26 @@ function Start () {
 	
 }
 
+function OnNetworkInput(IN : InputState)
+{
+	if(!networkView.isMine)
+	{
+		return;
+	}
+	
+	// if(IN.GetAction(IN.DASH))
+	// {
+	
+		// if(Mathf.Abs(m_PrevSpeed - m_MaxSpeed) > 0.1 )
+		// {
+			// m_Lifetime	= 0.25;
+			// m_MaxSpeed += (m_PrevSpeed - m_MaxSpeed) * Time.deltaTime*4;
+		// }
+		// else
+			// m_Lifetime = 0;
+	// }
+}
+
 function Update () {
 	GetComponent(TrailRenderer).enabled = true;
 	if(m_Disabled)

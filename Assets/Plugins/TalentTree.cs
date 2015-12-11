@@ -12,6 +12,7 @@ public class Talent
 	public string m_Name;
 	public string m_Desc;
 	public string m_ImgName;
+	public int    m_Cost = 1;
 	public Dictionary<string, int> m_Stats = new Dictionary<string,int>();
 }
 
@@ -61,6 +62,8 @@ public class TalentTree : MonoBehaviour {
 		t.m_Name = xmlNode.Attributes["name"].Value;
 		t.m_Desc = xmlNode.Attributes["desc"].Value;
 		t.m_ImgName = xmlNode.Attributes["img"].Value;
+		if(xmlNode.Attributes["cost"] != null)
+		t.m_Cost = int.Parse(xmlNode.Attributes["cost"].Value);
 		
 		string stats = xmlNode.Attributes["stats"].Value;
 		char[] delimiters = {',' , ' '};

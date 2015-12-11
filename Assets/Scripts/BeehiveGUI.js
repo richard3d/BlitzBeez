@@ -8,7 +8,7 @@ var m_MenuHide:AudioClip = null;
 var m_BGTexture : Texture2D = null;
 var m_HexBGTexture : Texture2D = null;
 var m_TalentIcons:Texture2D[] = null;
-
+private var m_Coin : GameObject = null;	//just an imposter for the HUD
 
 
 var m_HexOffset:float = 0; 
@@ -87,16 +87,7 @@ function OnNetworkInput(IN : InputState)
 		return;
 	}
 	
-	if(IN.GetActionBuffered(IN.USE))
-	{
-		
-	//	if(Network.isServer && m_Fade >= 1)
-		//	networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
-			// ExitHive();
-		// else
-			// networkView.RPC("ExitHive", RPCMode.Server);
-			// networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
-	}
+	
 	
 	if(!m_bShow)
 		return;
@@ -104,11 +95,21 @@ function OnNetworkInput(IN : InputState)
 	{
 		var m_CurrLevel = GetComponent(BeeScript).m_CurrLevel-1;
 		//GetComponent(BeeControllerScript).m_Stats[m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_StatName] = m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_Value;
-		networkView.RPC("Upgrade", RPCMode.All, m_CurrSelIndex);
-		//networkView.RPC("Upgrade", RPCMode.All, m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_StatName,m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_Value);
+		var t:Talent = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;
+		if(t.m_Cost <= GetComponent(BeeScript).m_NumUpgradesAvailable)
+		{
+			networkView.RPC("Upgrade", RPCMode.All, m_CurrSelIndex);
+			//networkView.RPC("Upgrade", RPCMode.All, m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_StatName,m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_Value);
+			//if(Network.isServer )
+			//	networkView.RPC("ShowHiveGUI", RPCMode.All, 0);
+		}
 		
+	}
+	
+	if(IN.GetActionBuffered(IN.USE))
+	{
 		if(Network.isServer )
-			networkView.RPC("ShowHiveGUI", RPCMode.All, 0);
+				networkView.RPC("ShowHiveGUI", RPCMode.All, 0);
 	}
 	
 	if(IN.GetAction(IN.MOVE_UP) && IN.GetAction(IN.MOVE_LEFT))
@@ -156,6 +157,8 @@ function OnNetworkInput(IN : InputState)
 @RPC function Upgrade(selIndex:int)
 {
 	var t:Talent = TalentTree.m_Talents[m_Selection[selIndex]] as Talent;
+	if(t.m_Cost > GetComponent(BeeScript).m_NumUpgradesAvailable)
+		return;
 	for(var key:String in t.m_Stats.Keys)
 	{
 		var beeCtrlScript:BeeControllerScript = GetComponent(BeeControllerScript);
@@ -215,23 +218,42 @@ function Show(bShow : boolean)
 			animation.Play("BeeGUIOpen");
 			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(5,10,48);
 			m_Camera.GetComponent(CameraScript).m_FocalOffset.x = -10;
-			m_Camera.GetComponent(DepthOfFieldScatter).enabled = true;
-			m_Camera.GetComponent(DepthOfFieldScatter).focalLength = 42.5;
+		//	m_Camera.GetComponent(DepthOfFieldScatter).enabled = true;
+		//	m_Camera.GetComponent(DepthOfFieldScatter).focalLength = 42.5;
 			m_Camera.GetComponent(DepthOfFieldScatter).aperture = 18;
+			
 			transform.Find("Bee").localEulerAngles.z = 0;
+			m_Camera.GetComponent(CameraScript).m_CamPos = transform.position;
+			m_Camera.GetComponent(CameraScript).Snap();
+		
 			transform.Find("Bee/NewBee").animation.Play("idle");
 			GetComponent(BeeScript).SetGUIEnabled(false);
-			//m_Camera.animation["CameraDramaticZoom"].speed = 1;
-			//m_Camera.animation.Play("CameraDramaticZoom");
-			//m_CurrSelMenu.Push(m_MainMenu);
-			//m_MainMenu.m_MenuItems[0].m_Color = Color.yellow;
+			AudioSource.PlayClipAtPoint(m_MenuShow, Camera.main.transform.position);	
+
+			m_Coin = GameObject.Instantiate(Resources.Load("GameObjects/CoinImposter"));	
+			Debug.Log("cam "+m_Camera.camera.pixelRect);
+			var camWidth = m_Camera.camera.rect.width;
+			var camScale = m_Camera.camera.rect.width;
+			var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
 			
-		
-			AudioSource.PlayClipAtPoint(m_MenuShow, Camera.main.transform.position);		
+			if(m_Camera.camera.rect.y == 0.0 &&  m_Camera.camera.rect.height == 1)
+				camPos.y = 0;
+				
+			var bottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
+			var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
+			m_Coin.GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.camera.pixelRect.x,bottom - 64,64,64));
+			var h  =64;// m_Coin.transform.GetChild(0).GetComponent(GUIScript).m_Style.fontSize;
+			m_Coin.transform.GetChild(0).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.camera.pixelRect.x+68,bottom - 64,200, h));
+			m_Coin.transform.GetChild(1).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.camera.pixelRect.x+66,bottom - 62,200, h));			
+			m_Coin.transform.GetChild(0).GetComponent(GUIScript).m_Style.alignment = TextAnchor.MiddleLeft;
+			m_Coin.transform.GetChild(1).GetComponent(GUIScript).m_Style.alignment = TextAnchor.MiddleLeft;
+			
 	
 		}
 		else
 		{
+			
+			
 			Screen.showCursor = false;
 			m_Fade = 0;
 			
@@ -246,6 +268,14 @@ function Show(bShow : boolean)
 			GetComponent(BeeScript).SetGUIEnabled(true);
 			transform.Find("Bee/NewBee").animation.Play("fly");
 			AudioSource.PlayClipAtPoint(m_MenuHide, Camera.main.transform.position);
+			
+			if(m_Coin)
+				Destroy(m_Coin);
+			
+			if(GetComponent(RespawnDecorator) != null)
+			{
+				GetComponent(RespawnDecorator).RespawnPlayer();
+			}
 			
 		}
 	}
@@ -289,7 +319,17 @@ function OnGUI()
 			{	
 				var t:Talent = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;
 				//GUI.Label(Rect(camPos.x,camPos.y+camHeight*0.25, camWidth,camHeight*0.5), " ", m_GUISkin.label);
+				m_Coin.transform.GetChild(0).GetComponent(GUIScript).m_Text = "x"+GetComponent(BeeScript).m_NumUpgradesAvailable;
+				m_Coin.transform.GetChild(1).GetComponent(GUIScript).m_Text = "x"+GetComponent(BeeScript).m_NumUpgradesAvailable;
+				if(t.m_Cost > GetComponent(BeeScript).m_NumUpgradesAvailable)
+				{
+					GUI.color *= 0.45;
+					GUI.color.a =1;
+				}
 				GUI.Label(Rect(hexCenterPoint.x-64,hexCenterPoint.y-16, 128,32), t.m_Name, m_GUISkin.GetStyle("MenuHeading"));
+				
+				GUI.Label(Rect(hexCenterPoint.x-64,hexCenterPoint.y-16+m_GUISkin.GetStyle("MenuHeading").fontSize, 128,32), "COST: "+t.m_Cost.ToString(), m_GUISkin.GetStyle("MenuHeading"));
+				GUI.color = Color.white;
 				//GUI.Label(Rect(camPos.x,camBottom-30.0, camWidth,30), "", m_GUISkin.label);
 				//GUI.Label(Rect(camPos.x+camWidth*0.60+50,camPos.y+camHeight*0.70, 256,32), t.m_Desc, m_GUISkin.GetStyle("MenuText"));
 			}
@@ -301,6 +341,14 @@ function OnGUI()
 				offset *= m_HexOffset *camScaleY;
 				
 				var width:float = 190*camScaleY;
+				
+				if(i == 0)
+				{
+					m_GUISkin.GetStyle("MenuHeading").alignment = TextAnchor.MiddleLeft;
+					GUI.Label(Rect(camPos.x+width*0.5,hexCenterPoint.y-offset.y-width, 128,32), "R1:  Purchase Upgrade\nL1:  Exit", m_GUISkin.GetStyle("MenuHeading"));
+					m_GUISkin.GetStyle("MenuHeading").alignment = TextAnchor.MiddleCenter;
+				}
+				
 				if(m_CurrSelIndex == i)
 				{
 					GUI.color = Color.white;
@@ -308,18 +356,24 @@ function OnGUI()
 				}
 				else
 					GUI.color = new Color32(255,246,157,255);
-					
-				GUI.DrawTexture(Rect(hexCenterPoint.x+offset.x-width*0.5,hexCenterPoint.y-offset.y-width*0.5, width,width), m_HexBGTexture);
+				
 				t = TalentTree.m_Talents[m_Selection[i]] as Talent;
+				if(t.m_Cost > GetComponent(BeeScript).m_NumUpgradesAvailable)
+				{
+					GUI.color *= 0.5;
+					GUI.color.a =1;
+				}
+				GUI.DrawTexture(Rect(hexCenterPoint.x+offset.x-width*0.5,hexCenterPoint.y-offset.y-width*0.5, width,width), m_HexBGTexture);
+				
 				GUI.color = Color.black;
 				if(FindIcon(t.m_ImgName) != null)
 					GUI.DrawTexture(Rect(hexCenterPoint.x+offset.x-width*0.25,hexCenterPoint.y-offset.y-width*0.25, width*0.5,width*0.5), FindIcon(t.m_ImgName));
 				GUI.color = Color.white;
 			}
 			var beeCtrlScript:BeeControllerScript = GetComponent(BeeControllerScript);
-			 var count = 0;
-			 var statsPoint:Vector2 = Vector2(camPos.x+camWidth*0.60,camPos.y+camHeight*0.27);
-			 var fontSize = m_GUISkin.GetStyle("DescriptionText").fontSize;
+			var count = 0;
+			var statsPoint:Vector2 = Vector2(camPos.x+camWidth*0.60,camPos.y+camHeight*0.27);
+			var fontSize = m_GUISkin.GetStyle("DescriptionText").fontSize;
 			 // for(var s:String in beeCtrlScript.m_Stats.Keys)
 			 // {
 				// if(s == "Loadout" || s == "Powershot" || s == "Special_Rounds")

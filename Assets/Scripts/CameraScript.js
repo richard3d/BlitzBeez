@@ -193,18 +193,35 @@ function Update () {
 }
 
 //sets the camera to its offsets immediately rather than interpolate to them
-function SnapToOffset()
+function SnapToAngle()
 {
-	var m_WorldOffset:Vector3 = (m_Offset.x*Vector3.right+m_Offset.y*Vector3.up+m_Offset.z*Vector3.forward);
-	//m_CurrOffset = m_WorldOffset;
+	//this snaps the current offset vector to the rotation (positional interpolation still occurs, depending on offset.z)
+	var m_WorldOffset:Vector3 = (m_Offset.x*Vector3.right+m_Offset.y*Vector3.up+m_Offset.z*Vector3.forward);	
 	var desiredRot = m_Target.transform.localEulerAngles.y;
 	m_YRot = desiredRot;
 	m_WorldOffset = Quaternion.AngleAxis(desiredRot, Vector3.up) * m_CurrOffset;
+	m_CamPos += m_FocalOffset.x*m_Target.transform.right;
 	var m_CamWorldPos:Vector3 = m_CamPos + m_WorldOffset;
 	transform.position = m_CamWorldPos;
 	transform.LookAt(m_CamPos);
 	transform.localEulerAngles.x = m_Pitch;
 }
+
+function Snap()
+{
+	//this snaps the camera position and rotation to its default
+	var m_WorldOffset:Vector3 = (m_DefaultOffset.x*Vector3.right+m_DefaultOffset.y*Vector3.up+m_DefaultOffset.z*Vector3.forward);	
+	m_CurrOffset = m_WorldOffset;	
+	var desiredRot = m_Target.transform.localEulerAngles.y;
+	m_YRot = desiredRot;
+	m_WorldOffset = Quaternion.AngleAxis(desiredRot, Vector3.up) * m_CurrOffset;
+	m_CamPos += m_FocalOffset.x*m_Target.transform.right;
+	var m_CamWorldPos:Vector3 = m_CamPos + m_WorldOffset;
+	transform.position = m_CamWorldPos;
+	transform.LookAt(m_CamPos);
+	transform.localEulerAngles.x = m_Pitch;
+}
+
 
 function Shake(time : float , strength : float)
 {	
