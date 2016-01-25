@@ -61,7 +61,7 @@ function CountDown()
 		// m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 		// m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
 		// m_Camera.animation.Play("CameraLessDramaticZoom");
-		
+		transform.Find("Swarm"+gameObject.name).gameObject.layer = LayerMask.NameToLayer(guiLayer);
 		m_HeavenlyRays = GameObject.Instantiate(Resources.Load("GameObjects/HeavenlyRaysParticles"));	
 		m_HeavenlyRays.transform.position = transform.position - Vector3.up*30 - transform.forward * 10;
 		m_HeavenlyRays.transform.parent = transform;
@@ -138,7 +138,8 @@ function RespawnPlayer()
 			// m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
 			// m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
 			// m_Camera.animation.Play("CameraLessDramaticZoom");
-			
+			var guiLayer:String = "GUILayer_P"+(GetComponent(NetworkInputScript).m_ClientOwner+1);
+			transform.Find("Swarm"+gameObject.name).gameObject.layer = LayerMask.NameToLayer(guiLayer);
 			Destroy(m_HeavenlyRays);
 			Destroy(m_Halo);
 			

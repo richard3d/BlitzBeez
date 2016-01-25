@@ -335,18 +335,20 @@ function OnNetworkInput(IN : InputState)
 					var fireRate = m_LoadOut.m_BaseFireRate + (rate+1);
 					m_FireTimer = -1;///fireRate;//m_FireRate;
 				//	HandleShotLogic();
-					var shot:boolean = false;
-					for(var p : int = 0; p < m_LoadOut.m_Pylons.length; p++)
-					{
-						if(m_LoadOut.m_Pylons[p].CanShoot())
-						{
-							shot = true;
-						}
-					}
-					if(shot)
-					{
-						networkView.RPC("DecrementAmmo", RPCMode.All);
-					}
+					
+					GetComponent(BeeScript).m_Weapon.GetComponent(WeaponScript).Fire();
+					// var shot:boolean = false;
+					// for(var p : int = 0; p < m_LoadOut.m_Pylons.length; p++)
+					// {
+						// if(m_LoadOut.m_Pylons[p].CanShoot())
+						// {
+							// shot = true;
+						// }
+					// }
+					// if(shot)
+					// {
+						// networkView.RPC("DecrementAmmo", RPCMode.All);
+					// }
 				}
 			}
 		}
@@ -357,29 +359,30 @@ function OnNetworkInput(IN : InputState)
 	//handle upgrade action
 	if(IN.GetActionBuffered(IN.DPAD_RIGHT) && !m_ShootButtonHeld)
 	{
-		var beeScript = GetComponent(BeeScript);
-		if( beeScript.m_NumUpgradesAvailable > 0 && GetComponent(TreeHideDecorator) == null)
-		{
-			//handle upgrade
-			var six:int[] = new int[6];
-			var removedTalents:Array = new Array();
-			var validIndices:Array = new Array();
-			for(var i:int = 0; i < GetComponent(TalentTree).m_Talents.Count; i++)
-			{
-				validIndices.Add(i);
-			}
-			for(i = 0; i < 6; i++)
-			{
-				var indexSel:int = Random.Range(0,validIndices.Count-1);
-				six[i] = validIndices[indexSel];
-				validIndices.RemoveAt(indexSel);
-				//removedTalents.Add(GetComponent(TalentTree).m_Talents[six[i]]);
-				//GetComponent(TalentTree).m_Talents.RemoveAt(six[i]);
-			}
+		 var beeScript = GetComponent(BeeScript);
+		var i:int =0;
+		// if( beeScript.m_NumUpgradesAvailable > 0 && GetComponent(TreeHideDecorator) == null)
+		// {
+			// //handle upgrade
+			// var six:int[] = new int[6];
+			// var removedTalents:Array = new Array();
+			// var validIndices:Array = new Array();
+			// for(var i:int = 0; i < GetComponent(TalentTree).m_Talents.Count; i++)
+			// {
+				// validIndices.Add(i);
+			// }
+			// for(i = 0; i < 6; i++)
+			// {
+				// var indexSel:int = Random.Range(0,validIndices.Count-1);
+				// six[i] = validIndices[indexSel];
+				// validIndices.RemoveAt(indexSel);
+				// //removedTalents.Add(GetComponent(TalentTree).m_Talents[six[i]]);
+				// //GetComponent(TalentTree).m_Talents.RemoveAt(six[i]);
+			// }
 			
 			
-			networkView.RPC("EnterHive", RPCMode.All, six[0], six[1], six[2], six[3], six[4], six[5]);
-		}
+			// networkView.RPC("EnterHive", RPCMode.All, six[0], six[1], six[2], six[3], six[4], six[5]);
+		// }
 	}
 	
 	//handle flower power
@@ -582,42 +585,7 @@ function OnNetworkInput(IN : InputState)
 	
 }
 
-function HandleShotLogic()
-{	
-	var random =Random.Range(-1,1);
-	for(var i : int = 0; i < m_LoadOut.m_Pylons.length; i++)
-	{
-		if(m_LoadOut.m_Pylons[i].IsShooting())
-		{
-			var bulletPos : Vector3 = transform.right * m_LoadOut.m_Pylons[i].PosOffset.x + transform.up * m_LoadOut.m_Pylons[i].PosOffset.y + transform.forward * m_LoadOut.m_Pylons[i].PosOffset.z + transform.position;
-			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset+random, Vector3.up);
-			var bulletVel : Vector3 =  rot * transform.forward;// - (transform.right * halfSpread) + (i * 4) * transform.right;
-			var temp:Vector3 = bulletVel;
-			//bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
-			bulletVel.Normalize();
-			
-			var loadout = m_Stats["Loadout"];
-			if(loadout == 4)
-				bulletVel *= Random.Range(0.75,2);
-			bulletPos.y = transform.position.y;
-			
-			
-		
-			var go : GameObject = null;
-			go = BulletScript.SpawnBullet(m_LoadOut.m_Pylons[i].m_BulletInstance,bulletPos,Vector3.zero);
-			Debug.Log("Spawning bullet "+m_LoadOut.m_Pylons[i].m_BulletInstance.name + " for "+gameObject.name); 
-			//Uncomment this later if not using pool!!!
-			// if(m_LoadOut.m_Pylons[i].m_BulletInstance != null)
-				// go  = Network.Instantiate(m_LoadOut.m_Pylons[i].m_BulletInstance, bulletPos , Quaternion.identity, 0);	
-			// else
-				// go  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
-			
-			
-			//go.GetComponent(BulletScript).m_BulletType = m_Stats["Special_Rounds"];
-			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
-		}
-	}
-}
+
 
 @RPC function Dash()
 {
@@ -643,6 +611,39 @@ function HandleShotLogic()
 	
 }
 
+function HandleShotLogic()
+{	
+	var random =Random.Range(-1,1);
+	for(var i : int = 0; i < m_LoadOut.m_Pylons.length; i++)
+	{
+		if(m_LoadOut.m_Pylons[i].IsShooting())
+		{
+			var bulletPos : Vector3 = transform.right * m_LoadOut.m_Pylons[i].PosOffset.x + transform.up * m_LoadOut.m_Pylons[i].PosOffset.y + transform.forward * m_LoadOut.m_Pylons[i].PosOffset.z + transform.position;
+			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset+random, Vector3.up);
+			var bulletVel : Vector3 =  rot * transform.forward;
+			var temp:Vector3 = bulletVel;
+			//bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
+			bulletVel.Normalize();
+			bulletPos.y = transform.position.y;
+			
+			
+		
+			var go : GameObject = null;
+			go = BulletScript.SpawnBullet(m_LoadOut.m_Pylons[i].m_BulletInstance,bulletPos,Vector3.zero);
+			//Debug.Log("Spawning bullet "+m_LoadOut.m_Pylons[i].m_BulletInstance.name + " for "+gameObject.name); 
+			//Uncomment this later if not using pool!!!
+			// if(m_LoadOut.m_Pylons[i].m_BulletInstance != null)
+				// go  = Network.Instantiate(m_LoadOut.m_Pylons[i].m_BulletInstance, bulletPos , Quaternion.identity, 0);	
+			// else
+				// go  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
+			
+			
+			//go.GetComponent(BulletScript).m_BulletType = m_Stats["Special_Rounds"];
+			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
+		}
+	}
+}
+
 @RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3, decrementAmmo:boolean)
 {
 	//transform.Find("Bee/NewBee").animation.Stop();
@@ -651,44 +652,54 @@ function HandleShotLogic()
 	transform.Find("Bee/NewBee").animation["flyandshoot"].AddMixingTransform(transform.Find("Bee/NewBee/body/r_shoulder"));
 	transform.Find("Bee/NewBee").animation.Play("flyandshoot");
 	
+	//perform kick back
+	gameObject.AddComponent(ControlDisablerDecorator);
+	if(m_LoadOut.m_KickbackRecovery != 0)
+	{
+		GetComponent(ControlDisablerDecorator).SetLifetime(m_LoadOut.m_KickbackRecovery);
+		GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
+		GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
+	}
 	
 	var go : GameObject = gameObject.Find(bulletName);
-	go.GetComponent(BulletScript).m_Owner = gameObject;
-	go.GetComponent(BulletScript).m_PowerShot = false;
-	AudioSource.PlayClipAtPoint(go.GetComponent(BulletScript).m_SoundEffect, Camera.main.transform.position);
-	
-	//if(NetworkUtils.IsLocalGameObject(gameObject))
-	//	GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(0.35,1);
-	
-	
 	//make it so we dont collide with our own bullets
 	if(go.collider.enabled && collider.enabled)
 		Physics.IgnoreCollision(go.collider, collider);
-	//GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
-	//GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.25;
-	//set the position and velocity of the bullet
+				
+	go.GetComponent(BulletScript).m_Owner = gameObject;
+	go.GetComponent(BulletScript).m_PowerShot = false;
 	go.transform.position = pos;
 	go.GetComponent(UpdateScript).m_Vel = vel; 
 	go.transform.LookAt(pos+vel);
-//	go.transform.localEulerAngles.y += 45;
 	
-	//go.transform.localScale.x = 0.3;
-	//go.transform.localScale.z = 0.3;
+	if(go.GetComponent(BulletScript).m_BulletType == 2)
+	{
+		if(m_AimTarget != null)
+		{
+			//fifteen degrees is the most the player can be off by and still get some homing
+			go.GetComponent(BulletScript).m_Homing = Mathf.Max(0,1-Vector3.Angle(transform.forward, (m_AimTarget.transform.position - transform.position).normalized)/15);
+			Debug.Log("Homing "+go.GetComponent(BulletScript).m_Homing);
+			go.GetComponent(BulletScript).m_Tgt = m_AimTarget;
+			//Debug.Log("Homing "+go.GetComponent(BulletScript).m_Homing);
+			
+			//homing bullets are a little slower
+			go.GetComponent(UpdateScript).m_MaxSpeed = 500;
+			go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 500;
+		}
+		else
+		{
+			go.GetComponent(UpdateScript).m_MaxSpeed = 1000;
+			go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 1000;
+		}
+	}
+	
+
 	var color = NetworkUtils.GetColor(gameObject);
-	//Debug.Log(color);
-	//if(go.GetComponent(TrailRenderer)
 	if(go.GetComponent(TrailRenderer))
 	{
-	//go.GetComponent(TrailRenderer).startWidth = go.transform.localScale.x;
-	
-	go.GetComponent(TrailRenderer).material.color = color;
-	go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
+		go.GetComponent(TrailRenderer).material.color = color;
+		go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
 	}
-	// gameObject.AddComponent(ControlDisablerDecorator);
-	// GetComponent(ControlDisablerDecorator).SetLifetime(0.15);
-	// GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
-	// GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*0.35;
-
     go.renderer.material.SetColor("_Color",color);
 	go.renderer.material.SetColor("_Emission", color);
 	go.GetComponent(BulletScript).Start();

@@ -12,6 +12,7 @@ var m_Team:int = 0;
 var m_Meshes:GameObject[] = null;
 var m_SwarmInstance : GameObject = null;
 var m_WorkerBeeInstance : GameObject = null;
+var m_Weapon : GameObject = null;
 var m_DeathEffect : GameObject = null;
 var m_BurningEffect : GameObject = null;
 var m_HitEffect : GameObject = null;
@@ -485,6 +486,11 @@ function DrawGUI()
 		var bottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
 		var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
 		
+		//draw the time
+		var matchMins:int = (GameStateManager.m_MatchClock / 60);
+		var matchSecs:int = (GameStateManager.m_MatchClock) % 60;
+		GUI.Label(Rect(camPos.x+Screen.width* m_Camera.camera.rect.width*0.5, camPos.y, 200, 200), matchMins+":"+matchSecs,SmallFontStyle);
+		
 		//draw the game event messages
 		GameEventMessenger.DrawMessages(relPos.x-32,(bottom- 96 * camScale),SmallFontStyle);
 		
@@ -736,12 +742,7 @@ function DrawGUI()
 				GUI.DrawTexture(Rect(60*camScale ,0, 24*camScale, 24*camScale), ClockHandTexture);
 				GUIUtility.RotateAroundPivot (workerTimeRatio*359,  Vector2(60*camScale+12*camScale, 12*camScale)); 
 				GUI.Label(Rect(90*camScale,0,256*camScale,48*camScale), "--",SmallFontStyle);
-				if(!HasHive())
-				{
-					GUI.color = Color(1,1,0.5,Mathf.Sin(Time.time * 24) > 0 ? 1:0 );
-					//GUI.Label(Rect(relPos.x+70*camScale,relPos.y+41*camScale,256,256), "HIVE NEEDED",SmallFontStyle);
-					GUI.color = Color.white;
-				}
+
 			}
 			else	
 			{		
@@ -1017,6 +1018,7 @@ function OnBulletCollision(coll:BulletCollision)
 			if(coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team)
 			//if(coll.bullet.GetComponent(BulletScript).m_Owner != gameObject)
 			{
+				
 				//we got hit by a bullet
 				if(GetComponent(ItemDecorator) != null)
 				{
@@ -1089,7 +1091,6 @@ function OnTriggerEnter(other:Collider)
 		
 		else if(other.gameObject.tag == "Explosion" && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team)
 		{
-			Debug.Log("Why");
 			KillAndRespawn(true);
 		}
 		else if(other.gameObject.tag == "Bears" && other.gameObject.GetComponentInChildren(BearScript).m_RageTimer > 0)
@@ -1157,10 +1158,11 @@ function KillAndRespawn(splat:boolean)
 {
 	if(GetComponent(RespawnDecorator) != null)
 		return;
-	
-	ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, splat);
-	var pos:Vector3 = FindRespawnLocation();
-	ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);
+	//KillBee(true);
+	//Respawn(Vector3(0,0,0));
+	 ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, splat);
+	 var pos:Vector3 = FindRespawnLocation();
+	 ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);
 }
 
 function HasHive():boolean
@@ -1338,7 +1340,7 @@ function CalculateRank() : int
 @RPC function Respawn(pos:Vector3)
 {
 	m_Money = 0;
-	m_CurrXP = 0;
+	m_CurrXP *= 0.5f;
 	Debug.Log("Respawning");
 	
 	gameObject.AddComponent(RespawnDecorator);
@@ -1410,9 +1412,9 @@ function Hurt()
 	if(hp < m_HP && hp > 0)
 	{
 		//add invincibility decorator
-		gameObject.AddComponent(InvincibilityDecorator);
-		gameObject.GetComponent(InvincibilityDecorator).m_Blink = false;
-		GetComponent(InvincibilityDecorator).SetLifetime(0.1);
+		//gameObject.AddComponent(InvincibilityDecorator);
+		//gameObject.GetComponent(InvincibilityDecorator).m_Blink = false;
+		//GetComponent(InvincibilityDecorator).SetLifetime(0.1);
 		if(GetComponent(FlasherDecorator) == null)
 		{
 			gameObject.AddComponent(FlasherDecorator);

@@ -7,7 +7,9 @@ function Awake()
 {
 	gameObject.AddComponent(ControlDisablerDecorator);
 	GetComponent(BeeScript).m_Bounce = false;
+	GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Freeze = true;
 	GetComponent(UpdateScript).m_NetUpdateRotation = false;
+	
 	m_EnableVel = false;
 }
 
@@ -41,6 +43,7 @@ function OnDestroy()
 	gameObject.Destroy(m_Effect);
 	Destroy(GetComponent(ControlDisablerDecorator));
 	GetComponent(BeeScript).m_Bounce = true;
+	GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Freeze = false;
 	GetComponent(UpdateScript).m_NetUpdateRotation = true;
 	
 }

@@ -739,12 +739,15 @@ function GetGameObject() : GameObject
 		var body:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/NewBee");
 		var hand:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand");
 		
-		var gun:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/BeeGun"));
+		var gun:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SniperRifle"));
 		gun.transform.parent = hand;
 		gun.transform.position = hand.position;
 		gun.transform.localScale = Vector3(1,1,1);
 		gun.transform.localEulerAngles.z = -90;
 		gun.name = "gun";
+		gun.GetComponent(WeaponScript).m_Owner = m_Clients[clientID].m_GameObject;
+		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Weapon = gun;
+		
 		if(m_Clients[clientID].m_Swag != "")
 		{
 			Debug.Log("SWAGGING "+m_Clients[clientID].m_Swag);

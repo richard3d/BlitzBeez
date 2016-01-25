@@ -83,7 +83,7 @@ function OnGUI()
 			
 			if(Vector3.Dot((transform.position - player.transform.position), cam.transform.forward) > 0)
 			{
-				if((Screen.height - scrPos.y > camPos.y) && (Screen.height - scrPos.y < bottom))
+				if((Screen.height - scrPos.y > camPos.y) && (Screen.height - scrPos.y < bottom) && scrPos.x > camPos.x && scrPos.x < camPos.x + cam.rect.width*Screen.width)
 				{
 					var height = 12;
 					var width = 48;

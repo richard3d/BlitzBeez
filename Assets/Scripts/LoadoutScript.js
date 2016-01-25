@@ -2,6 +2,7 @@
 class Pylon
 {
 	var AngOffset : float = 0;    //trajectory angle relative measured from the nose of the bee
+	var AngRandomOffset : float = 0;    //amount of angle variation allowed +/-
 	var PosOffset : Vector3; //position offset in local space
 	var m_BulletInstance:GameObject = null;
 	var m_FireRateTimer:float = 0.01;
@@ -19,7 +20,7 @@ class Pylon
 	function Pylon() { PosOffset = Vector3(0,0,0); AngOffset = 0; } 
 	function CanShoot():boolean {  
 	
-			if((Time.time - m_PrevTime >= m_FireTime || m_BurstNum > 0) && PosOffset != Vector3.zero)
+			if((Time.time - m_PrevTime >= m_FireTime || m_BurstNum >= 0) && PosOffset != Vector3.zero)
 			{
 				 if(m_BurstNum <= 0)
 				 {
@@ -29,7 +30,7 @@ class Pylon
 				 m_PrevTime = Time.time;
 				return true;
 			}		
-			 m_PrevTime = Time.time;
+			// m_PrevTime = Time.time;
 			return false;
 		}
 	function IsShooting():boolean {
@@ -62,6 +63,8 @@ class LoadOut
 	var m_BaseFireRate:float = 6.5;
 	var m_BaseReloadSpeed:float = 1.5; //(really the time for the reload)
 	var m_BaseClipSize : int = 30;
+	var m_Kickback : float = 0;
+	var m_KickbackRecovery : float = 0;
 	var m_Pylons : Pylon[];
 	
 	function LoadOut() { m_Pylons = new Pylon[8]; }
@@ -89,12 +92,12 @@ class LoadOut
 				
 				m_Pylons[0].PosOffset = Vector3(-6, 0, 0);	
 				m_Pylons[0].m_FireRate = 0.1;
-				m_Pylons[0].m_FireTime = 0.15;
+				m_Pylons[0].m_FireTime = 0.19;
 				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/Bullet");
 				
 				m_Pylons[1].PosOffset = Vector3(6, 0, 0);
 				m_Pylons[1].m_FireRate = 0.1;
-				m_Pylons[1].m_FireTime = 0.15;
+				m_Pylons[1].m_FireTime = 0.19;
 				
 				m_Pylons[1].m_BulletInstance = Resources.Load("GameObjects/Bullet");
 			break;
@@ -109,29 +112,39 @@ class LoadOut
 				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/VelocityBullet");
 			break;
 			case 2:
-				// Spreadshot
+				// shotgun
+				m_Kickback = 0.45;
+				m_KickbackRecovery = 0.2;
 				m_BaseClipSize = 5;
-				m_Pylons[0].m_BurstCount = 1;
-				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
-				m_Pylons[0].m_FireRate = 0.17;
-				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/ShotgunBullet");
+				
+				for(i = 0; i < 1; i++)
+				{
+					m_Pylons[i].m_BurstCount = 1;
+					m_Pylons[i].PosOffset = Vector3(0, 0, 3);	
+					m_Pylons[i].m_FireRate = 0.17;
+					m_Pylons[i].m_BulletInstance = Resources.Load("GameObjects/ShotgunBullet");
+				}
 			break;
 			case 3:
-				// \/
-				m_BaseClipSize = 3;
-				m_Pylons[0].m_BurstCount = 1;
-				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
-				m_Pylons[0].m_FireRate = 0.17;
-				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/RocketBullet");
+				// Machine gun hose
+				m_BaseClipSize = 10;
+				m_Pylons[0].m_BurstCount = 3;
+				m_Pylons[0].m_FireRate = 0.1;
+				m_Pylons[0].m_FireTime = 0.1;
+				m_Pylons[0].AngOffset = 0;
+				m_Pylons[0].PosOffset = Vector3(0,0,3);
+				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/Bullet");
 			break;
 			case 4:
-				// \|/
-				m_BaseFireRate = 4.0;
-				m_Pylons[0].AngOffset = -8.0;
-				m_Pylons[0].PosOffset = Vector3(-1, 0, 0);
-				m_Pylons[1].AngOffset = 8.0;
-				m_Pylons[1].PosOffset = Vector3(1, 0, 0);
-				m_Pylons[2].PosOffset = Vector3(0, 0, 1);
+				//Rocket Launcher
+				m_Kickback = 0.35;
+				m_KickbackRecovery = 0.15;
+				m_BaseClipSize = 30;
+				m_Pylons[0].m_BurstCount = 1;
+				m_Pylons[0].PosOffset = Vector3(0, 0, 3);	
+				m_Pylons[0].m_FireRate = 0.01;
+				m_Pylons[0].m_FireTime = 1;
+				m_Pylons[0].m_BulletInstance = Resources.Load("GameObjects/RocketBullet");
 			break;
 			case 5:
 				// \\//

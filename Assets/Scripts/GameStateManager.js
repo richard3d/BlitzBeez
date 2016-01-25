@@ -14,6 +14,7 @@ static var MATCH_LOBBY : int = 4;
 
 static var m_CurrState:int = -1;
 var m_MatchTick : int = 3;
+static var m_MatchClock : float = 0;
 static var m_WinningTeam : int = -1;
 static var m_MVPPlayer : String = "";
 static var m_PointsToWin : int = 800;
@@ -33,6 +34,10 @@ function Start()
 
 function Update()
 {
+	if( m_CurrState == MATCH_PLAYING)
+	{
+		m_MatchClock += Time.deltaTime;
+	}
 }
 
 function UpdateScore()
@@ -207,7 +212,7 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 }
 
 //counts down the ticks till the matchs starts
-
+//this is called on both server and client
 @RPC private function  DoMatchTick()
 {
 
@@ -256,7 +261,9 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 		go.animation["FlashIntro"].time = 2.35;
 		go.animation.Play("FlashIntro");
 		txt.GetComponent(UpdateScript).m_Lifetime = 1.2;
+		m_MatchClock = 0;
 		SetState(MATCH_PLAYING);
+		
 		UpdateScore();
 		
 	}

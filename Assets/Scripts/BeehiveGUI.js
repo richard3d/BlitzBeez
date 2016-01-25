@@ -344,8 +344,13 @@ function OnGUI()
 				
 				if(i == 0)
 				{
+					if(GetComponent(BeeScript).m_NumUpgradesAvailable <= 0)
+						GUI.color.a = 0.5;
+					
 					m_GUISkin.GetStyle("MenuHeading").alignment = TextAnchor.MiddleLeft;
-					GUI.Label(Rect(camPos.x+width*0.5,hexCenterPoint.y-offset.y-width, 128,32), "R1:  Purchase Upgrade\nL1:  Exit", m_GUISkin.GetStyle("MenuHeading"));
+					GUI.Label(Rect(camPos.x+width*0.5,hexCenterPoint.y-offset.y-width, 128,32), "R1:  Purchase Upgrade", m_GUISkin.GetStyle("MenuHeading"));
+					GUI.color = Color.white;
+					GUI.Label(Rect(camPos.x+width*0.5,hexCenterPoint.y-offset.y-width + 32, 128,32), "L1:  Exit", m_GUISkin.GetStyle("MenuHeading"));
 					m_GUISkin.GetStyle("MenuHeading").alignment = TextAnchor.MiddleCenter;
 				}
 				
