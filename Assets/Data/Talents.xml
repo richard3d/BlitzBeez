@@ -4,15 +4,15 @@
 	<Talent name = "Inrease Max HP" img = "Heart2" desc = "Increases Max HP" stats = "Health:1" />
 	
 	<!--loadouts-->
-	<Talent name = "Machine Gun" img = "Twinshot" desc = "Continuous Fire" stats = "Loadout:3" cost = "1"/>
-	<Talent name = "Twin Shot" img = "Twinshot" desc = "Fire 2 Stingers at Once" stats = "Loadout:0" cost = "1"/>
-	<Talent name = "Burst Shot" img = "Spreadshot1" desc = "Fires 3 Round Bursts of High Velocity Stingers" stats = "Loadout:1" cost = "1"/>
-	<Talent name = "BB Shotgun" img = "Spreadshot" desc = "Spread fire array" stats = "Loadout:2" cost = "2"/>	
-	<Talent name = "Bazooka" img = "HomingMissile" desc = "Spread fire array" stats = "Loadout:3" cost = "4"/>
+	<Talent name = "Machine Gun" img = "Twinshot" desc = "Continuous Fire" stats = "Loadout:3" cost = "9999"/>
+	<Talent name = "Twin Shot" img = "Twinshot" desc = "Fire 2 Stingers at Once" stats = "Loadout:0" cost = "9999"/>
+	<Talent name = "Burst Shot" img = "Spreadshot1" desc = "Fires 3 Round Bursts of High Velocity Stingers" stats = "Loadout:1" cost = "9999"/>
+	<Talent name = "BB Shotgun" img = "Spreadshot" desc = "Spread fire array" stats = "Loadout:2" cost = "9999"/>	
+	<Talent name = "Bazooka" img = "HomingMissile" desc = "Spread fire array" stats = "Loadout:3" cost = "9999"/>
 	<!--powershots-->
 	<Talent name = "Laser Powershot" img = "LaserPowershot2" desc = "High Energy Beam That Cuts Through Multiple Opponents" stats = "Powershot:0" />
 	<Talent name = "Boomer Powershot" img = "ExplosivePowershot" desc = "Powershot Produces a Bomb Blast on Collision" stats = "Powershot:1, Speed:-1" />
-	<Talent name = "Scatter Powershot" img = "ScatterPowershot" desc = "Shoots out mini projectiles on collision" stats = "Powershot:2" />
+	<Talent name = "Scatter Powershot" img = "ScatterPowershot" desc = "Shoots out mini projectiles on collision" stats = "Powershot:2" cost = "9999" />
 	<Talent name = "Bulldozer Powershot" img = "BulldozerPowershot" desc = "Powershot barrels through destructible items" stats = "Powershot:3" />
 	
 	

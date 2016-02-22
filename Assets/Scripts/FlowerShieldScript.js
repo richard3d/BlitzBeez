@@ -26,7 +26,7 @@ function OnBulletCollision(coll:BulletCollision)
 		}
 		else
 		{
-			m_Owner.networkView.RPC("SetShieldHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_ShieldHP - 1);
+			m_Owner.networkView.RPC("SetShieldHP", RPCMode.All, m_Owner.GetComponent(BeeScript).m_ShieldHP - bs.m_BaseDmg);
 
 		}
 	}

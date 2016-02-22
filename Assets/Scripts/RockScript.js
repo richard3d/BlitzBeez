@@ -156,11 +156,12 @@ function OnBulletCollision(coll:BulletCollision)
 {
 	if(Network.isServer)
 	{		
+		var bs:BulletScript =coll.bullet.GetComponent(BulletScript);
 		if(m_HP == 3)
 			ServerRPC.Buffer(networkView, "CrackRock", RPCMode.All);
 		if(m_HP == 1 || coll.bullet.GetComponent(BulletScript).m_PowerShot)
 			ServerRPC.Buffer(networkView, "KillRock", RPCMode.All);
-		m_HP--;
+		m_HP -= bs.m_BaseDmg;
 	}
 }
 

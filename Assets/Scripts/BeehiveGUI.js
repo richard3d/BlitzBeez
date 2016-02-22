@@ -60,6 +60,11 @@ function Start () {
 	
 }
 
+function OnDisable()
+{
+	if(m_Coin)
+				Destroy(m_Coin);
+}
 
 function Update () {
 	

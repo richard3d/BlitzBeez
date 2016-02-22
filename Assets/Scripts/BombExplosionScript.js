@@ -5,7 +5,7 @@ function Start () {
 		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
 		for(var i:int = 0; i < players.length; i++)
 		{
-			if(players[i] != null &&  players[i].GetComponent(BeeScript).m_Camera != null && players[i].GetComponent(RespawnDecorator) == null)
+			if(players[i] != null && players[i].GetComponent(BeeScript) && players[i].GetComponent(BeeScript).m_Camera != null && players[i].GetComponent(RespawnDecorator) == null)
 			{
 				var cam:GameObject = players[i].GetComponent(BeeScript).m_Camera;
 				if(cam != null)

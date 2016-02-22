@@ -1026,7 +1026,7 @@ function OnBulletCollision(coll:BulletCollision)
 					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
 				}
 				
-				if(m_HP - 1 <= 0)
+				if(m_HP - coll.bullet.GetComponent(BulletScript).m_BaseDmg <= 0)
 				{
 					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
@@ -1039,7 +1039,7 @@ function OnBulletCollision(coll:BulletCollision)
 				else
 				{
 				
-					networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+					networkView.RPC("SetHP", RPCMode.All, m_HP - coll.bullet.GetComponent(BulletScript).m_BaseDmg);
 					
 					//notify shooting player of contact
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
@@ -1089,7 +1089,7 @@ function OnTriggerEnter(other:Collider)
 				networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
 		}
 		
-		else if(other.gameObject.tag == "Explosion" && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team)
+		else if(other.gameObject.tag == "Explosion" && (other.gameObject.GetComponent(BombExplosionScript).m_Owner != null && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team))
 		{
 			KillAndRespawn(true);
 		}

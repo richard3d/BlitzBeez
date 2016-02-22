@@ -1,5 +1,5 @@
 #pragma strict
-
+enum BulletType { Standard, Rocket, Sniper, Shotgun, NumBullets }
 private static var m_InstanceID : int = 0;
 var m_Projectile:boolean = true;	//this is used for the calculation (either velocity based or instantaneous)
 var m_Life : float = 1.25;
@@ -9,21 +9,20 @@ var m_HitEffect : GameObject = null;
 var m_BombExplosion:GameObject = null; 
 //var m_SoundEffect : AudioClip = null;
 var m_HitSoundEffect : AudioClip = null;
-
-
 var m_PowershotEffect:GameObject = null;
 
 private var m_LaserEffect : GameObject = null;
 private var m_NumHits: int = 0; //collision counter
 var m_PowerShot : boolean = false;
-var m_BulletType : int = -1;
+var m_BulletType : BulletType;
 var m_PowerShotType : int = -1;
 var m_Owner : GameObject = null;
 var m_Tgt : GameObject = null;
 var m_Homing : float = 0;
+var m_BaseDmg : int = 1;
 
 static var m_BulletPool:Array[] = new Array[10];
-static var m_PowerBulletPool:Array[] = new Array[5];
+static var m_PowerBulletPool:Array[] = new Array[BulletType.Shotgun];
 
 private var m_MarkedForDeath : boolean = false; //only applied to projectiles
 //private var m_TimeToCollision : float = 0;
@@ -71,9 +70,9 @@ static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : G
 	}
 	else
 	{
-		if(m_BulletPool[bs.m_BulletType+1] != null && m_BulletPool[bs.m_BulletType+1].length > 0)
+		if(m_BulletPool[bs.m_BulletType] != null && m_BulletPool[bs.m_BulletType].length > 0)
 		{
-			go = m_BulletPool[bs.m_BulletType+1].Shift();
+			go = m_BulletPool[bs.m_BulletType].Shift();
 			go.transform.position = pos;
 			go.GetComponent(UpdateScript).m_Vel = vel;
 			//go.transform.LookAt(pos+vel);
@@ -114,8 +113,8 @@ static function RecycleBullet(bullet:GameObject)
 	}
 	else
 	{
-		if(m_BulletPool[bs.m_BulletType+1] == null)
-			m_BulletPool[bs.m_BulletType+1] = new Array();
+		if(m_BulletPool[bs.m_BulletType] == null)
+			m_BulletPool[bs.m_BulletType] = new Array();
 		bullet.active = false;
 		for(var t:Transform in bullet.transform)
 		{
@@ -126,7 +125,7 @@ static function RecycleBullet(bullet:GameObject)
 		}
 		if(bullet.GetComponent(ParticleSystem) != null)
 			bullet.GetComponent(ParticleSystem).Clear();
-		m_BulletPool[bs.m_BulletType+1].Push(bullet);
+		m_BulletPool[bs.m_BulletType].Push(bullet);
 	}
 	bullet.GetComponent(BulletScript).m_Tgt = null;
 	bullet.GetComponent(BulletScript).m_Homing = 0;
@@ -269,7 +268,7 @@ function Start () {
 	
 	
 	// //Pick a target for homing bullets
-	 if(m_BulletType == 2)
+	 if(m_BulletType == BulletType.Rocket)
 		m_Life = 10;
 }
 
@@ -342,7 +341,7 @@ function Update () {
 		}
 	
 		//homing round seeking
-		if(m_BulletType == 2)
+		if(m_BulletType == BulletType.Rocket)
 		{
 			if(m_Tgt != null)
 			{//Physics.Linecast(transform.position,m_Tgt.transform.position,hit);
@@ -417,7 +416,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 		{
 			//standard (-1) laser {0} explosive (1) scatter(2) bull (3) homing spread (4)
 		    case 0:
-				 if(tag == "Rocks" || tag == "Terrain" || tag == "Trees" || tag == "ItemBoxes" ||  
+				 if(tag == "Player" || tag == "Rocks" || tag == "Terrain" || tag == "Trees" || tag == "ItemBoxes" ||  
 				   (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
 				   (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner != m_Owner))
 				   {
@@ -435,10 +434,10 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 						RemoveBullet(pos+diff);
 						return true;
 				   }
-				   else
-				   {
-						ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, coll.hit.point);
-				   }
+				   // else
+				   // {
+						// ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, coll.hit.point);
+				   // }
 			break;
 			case 2:
 				if( tag == "Player" || tag == "Rocks" || tag == "Terrain" || tag == "Trees" || tag == "ItemBoxes" ||  
@@ -524,102 +523,102 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 		switch (m_BulletType)
 		{
 			//ricochet type
-			case 0: 
-				refNorm = coll.hit.normal;
-				refNorm.y = 0;
-				refNorm.Normalize();
-				refVel = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
-				refVel.y = 0;
-				m_NumHits++;
-				//m_BulletType = -1;
-				refVel.Normalize();
-				GetComponent(UpdateScript).m_Vel = refVel*GetComponent(UpdateScript).m_MaxSpeed;
-				transform.LookAt(transform.position + GetComponent(UpdateScript).m_Vel);
-				ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+			// case 0: 
+				// refNorm = coll.hit.normal;
+				// refNorm.y = 0;
+				// refNorm.Normalize();
+				// refVel = Vector3.Reflect(GetComponent(UpdateScript).m_Vel, refNorm);
+				// refVel.y = 0;
+				// m_NumHits++;
+				// //m_BulletType = -1;
+				// refVel.Normalize();
+				// GetComponent(UpdateScript).m_Vel = refVel*GetComponent(UpdateScript).m_MaxSpeed;
+				// transform.LookAt(transform.position + GetComponent(UpdateScript).m_Vel);
+				// ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
 				
-				if(m_NumHits >= 2)
-				{
-					if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
-					  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
-					  (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner != m_Owner))
-					  {
+				// if(m_NumHits >= 2)
+				// {
+					// if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
+					  // (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
+					  // (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner != m_Owner))
+					  // {
 						
-							RemoveBullet(coll.hit.point);
-							return true;
-						}	
-						else if(tag == "Shield" )
-						{
-							if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
-							{
-								RemoveBullet(coll.hit.point);
-								return true;
-							}
-						}
-				}
-			break;
-			//penetration
-			case 1:
-				if(coll.hit.collider.gameObject.GetComponent(PenetrableScript) != null)
-				{
-					var sum = Dice.RollDice(1, 6);
-					if(sum/6.0 > (1-coll.hit.collider.gameObject.GetComponent(PenetrableScript).m_PercentChanceOfPenetration))
-					{
-						//m_BulletType = -1;
-						ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
-					}
-					else
-					{
+							// RemoveBullet(coll.hit.point);
+							// return true;
+						// }	
+						// else if(tag == "Shield" )
+						// {
+							// if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
+							// {
+								// RemoveBullet(coll.hit.point);
+								// return true;
+							// }
+						// }
+				// }
+			// break;
+			// //penetration
+			// // case 1:
+				// // if(coll.hit.collider.gameObject.GetComponent(PenetrableScript) != null)
+				// // {
+					// // var sum = Dice.RollDice(1, 6);
+					// // if(sum/6.0 > (1-coll.hit.collider.gameObject.GetComponent(PenetrableScript).m_PercentChanceOfPenetration))
+					// // {
+						// // //m_BulletType = -1;
+						// // ServerRPC.Buffer(networkView, "BulletHit", RPCMode.All, transform.position+transform.forward * transform.localScale.x);
+					// // }
+					// // else
+					// // {
 						
-						RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-						return true;
+						// // RemoveBullet(transform.position+transform.forward * transform.localScale.x);
+						// // return true;
 					
-					}
-				}
-				else
-				{
-					RemoveBullet(transform.position+transform.forward * transform.localScale.x);
-					return true;
-				}
-			break;
-			case 2:
-				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
-				  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
-				   (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team))
-				  {
+					// // }
+				// // }
+				// // else
+				// // {
+					// // RemoveBullet(transform.position+transform.forward * transform.localScale.x);
+					// // return true;
+				// // }
+			// // break;
+			// case 2:
+				// if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
+				  // (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner) ||
+				   // (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team))
+				  // {
 					
-						RemoveBullet(coll.hit.point);
-						return true;
-					}	
-					else if(tag == "Shield" )
-					{
-						if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
-						{
-							RemoveBullet(coll.hit.point);
-							return true;
-						}
-					}
-			break;
-			case 4:
-			if(tag == "Player" || tag == "Rocks" ||  tag == "Terrain" || tag == "Trees" || tag == "Bears" || tag == "ItemBoxes" ||
-				  (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner)||
-				    (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team))
-				  {
+						// RemoveBullet(coll.hit.point);
+						// return true;
+					// }	
+					// else if(tag == "Shield" )
+					// {
+						// if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
+						// {
+							// RemoveBullet(coll.hit.point);
+							// return true;
+						// }
+					// }
+			// break;
+			// case 4:
+			// if(tag == "Player" || tag == "Rocks" ||  tag == "Terrain" || tag == "Trees" || tag == "Bears" || tag == "ItemBoxes" ||
+				  // (tag == "Hives" && other.GetComponent(HiveScript).m_Owner != m_Owner)||
+				    // (tag == "Flowers" && other.GetComponent(FlowerScript).m_Owner != null && other.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team))
+				  // {
 					
-					RemoveBullet(coll.hit.point);
-					return true;
+					// RemoveBullet(coll.hit.point);
+					// return true;
 					
-				}
-				else if(tag == "Shield" )
-					{
-						if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
-						{
+				// }
+				// else if(tag == "Shield" )
+					// {
+						// if(other.GetComponent(FlowerShieldScript).m_Owner != m_Owner)
+						// {
 							
-							RemoveBullet(coll.hit.point);
-							return true;
+							// RemoveBullet(coll.hit.point);
+							// return true;
 							
-						}
-					}
-			break;
+						// }
+					// }
+			// break;
 			default:
 		
 				if((tag == "Player" && other.GetComponent(BeeDashDecorator) == null) || tag == "Rocks" ||   tag == "Terrain" || tag == "Trees" || tag == "Bears" ||  tag == "ItemBoxes" ||
@@ -724,17 +723,17 @@ function KillBulletOriented(pos:Vector3, norm:Vector3)
 	}
 	else
 	{
-		switch (m_BulletType)
-		{
-			//explosive
-			case 1: 
+		// switch (m_BulletType)
+		// {
+			// //explosive
+			// case 1: 
 			
-			break;
-			//scatter
-			case 2: 
-				go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
-			break;
-		}
+			// break;
+			// //scatter
+			// case 2: 
+				// go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
+			// break;
+		// }
 	}
 	if(m_HitSoundEffect != null)
 		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
@@ -779,13 +778,14 @@ function KillBullet(pos:Vector3, collision:boolean)
 			
 			break;
 			//rocket
-			case 2: 
+			case BulletType.Rocket: 
 				if(go != null)
 					go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
 			break;
-			case 4: 
+			case BulletType.Shotgun: 
 				if(collision)
 				{
+					//generate a hit effect for each pellet
 					for(var t:Transform in transform)
 					{
 						go  = gameObject.Instantiate(m_HitEffect,t.position,Quaternion.identity);

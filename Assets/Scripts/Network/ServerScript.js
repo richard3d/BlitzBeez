@@ -720,8 +720,9 @@ function GetGameObject() : GameObject
 				}
 			}
 		}
-		//set the client gameObejct color			
+		//set the client gameObejct color and facial features			
 		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).SetColor(m_Clients[clientID].m_SkinColor);
+		m_Clients[clientID].m_GameObject.GetComponent(BeeBlinkScript).SetLookIndexes(m_Clients[clientID].m_EyeIndex,m_Clients[clientID].m_MouthIndex);
 		
 		var mapIcon:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee_Minimap").gameObject;
 		mapIcon.renderer.material.SetColor("_TintColor", m_Clients[clientID].m_Color);
@@ -739,7 +740,18 @@ function GetGameObject() : GameObject
 		var body:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/NewBee");
 		var hand:Transform = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand");
 		
-		var gun:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SniperRifle"));
+		var gun:GameObject;
+		
+		if(m_Clients[clientID].m_Swag == "Scout")
+			gun	= GameObject.Instantiate(Resources.Load("GameObjects/Shotgun"));
+		else if(m_Clients[clientID].m_Swag == "Guardian")
+			gun	= GameObject.Instantiate(Resources.Load("GameObjects/RocketLauncher"));
+		else if(m_Clients[clientID].m_Swag == "Saboteur")
+			gun	= GameObject.Instantiate(Resources.Load("GameObjects/SniperRifle"));
+		else if(m_Clients[clientID].m_Swag == "Raider")
+			gun	= GameObject.Instantiate(Resources.Load("GameObjects/AssaultRifle1"));
+		else
+			gun	= GameObject.Instantiate(Resources.Load("GameObjects/AssaultRifle"));
 		gun.transform.parent = hand;
 		gun.transform.position = hand.position;
 		gun.transform.localScale = Vector3(1,1,1);

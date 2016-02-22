@@ -187,9 +187,9 @@ function OnBulletCollision(coll:BulletCollision)
 				//handle regular shot
 				else
 				{
-					if(m_HP-1 <= 0)
+					if(m_HP-bs.m_BaseDmg <= 0)
 						CoinScript.SpawnCoins(transform.position + Vector3.up *transform.localScale.magnitude, m_NumBees*3, coll.bullet.GetComponent(BulletScript).m_Owner);
-					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-1);					
+					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-bs.m_BaseDmg);					
 				}
 				
 				

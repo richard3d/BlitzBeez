@@ -136,52 +136,7 @@ function OnEnable()
 		}
 	}
 	
-	// var allJoined:boolean = true;
-		// for(i = 0; i < m_PlayerStates.length; i++)
-		// {
-			// if(m_PlayerStates[i].m_Joined && !m_PlayerStates[i].m_Ready)
-			// {
-				// allJoined = false;
-				// break;
-			// }
-		// }
-		
-		// // if(allJoined)
-		// // {
-			// // if(m_LocalPlayerScreen)
-			// // {
-				// // for(i = 0; i < m_PlayerStates.length; i++)
-				// // {
-					// // var guiScript : GUIScript = GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript);
-					// // guiScript.enabled = false;
-					// // GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
-					
-				// // }	
-				// // AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-				// // var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-				// // go.animation.Stop("FlashIntro");
-				// // go.animation["FlashIntro"].time = 2.35;
-				// // go.animation.Play("FlashIntro");
-				// // MenuExit(true);
-				// // MenuEnter(true);
-				// // if(Network.isServer)
-				// // {
-					// // MasterServer.RegisterHost("BeeHappy", SystemInfo.deviceName, "Bzzz death to all!");
-				// // }
-				
-			// // }
-			// // else
-			// // {
-				// // // AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
-				// // // go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-				// // // go.animation.Stop("FlashIntro");
-				// // // go.animation["FlashIntro"].time = 2.35;
-				// // // go.animation.Play("FlashIntro");
-				// // // MenuExit(true);
-				// // // CameraStart();
-				
-			// // }
-		// // }	
+	
 }
 
 function ResetMenu(left:boolean)
@@ -372,7 +327,7 @@ function Update () {
 						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
 					}
 					
-				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
+				//GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
 				GameObject.Find("Bee"+(i+1)).animation.enabled = true;
 				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.enabled = true;
 				if(GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag") != null)
@@ -564,7 +519,7 @@ function Update () {
 					if(Input.GetButtonDown("Joy"+i+" OK"))
 					{
 						m_PlayerStates[i].m_TeamChosen = true;
-						guiScript.m_Text = "< Choose Skin >";
+						guiScript.m_Text = "< Get a Look >";
 						//GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					}
@@ -591,7 +546,7 @@ function Update () {
 					
 					
 					currInput = Input.GetAxis("Joy"+i+" Strafe Left/Right")+Input.GetAxis("Joy"+i+" Dpad Left/Right");
-					guiScript.m_Text = "< Choose Skin >";
+					guiScript.m_Text = "< Get a Look >";
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = true;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_SkinPrevTexture;
 					GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
@@ -605,6 +560,7 @@ function Update () {
 						{
 							pColorIndices[i] -= 1;
 						}
+						GameObject.Find("P"+(i+1)).GetComponent(BeeBlinkScript).SetLook();
 						GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
 						SquishIcon(GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript));
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);			
@@ -616,7 +572,11 @@ function Update () {
 								if(GetComponent(ServerScript).GetClient(k) != null)
 								{
 									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
+									{
 										GetComponent(ServerScript).GetClient(k).m_SkinColor = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color;
+										GetComponent(ServerScript).GetClient(k).m_EyeIndex = GameObject.Find("P"+(i+1)).GetComponent(BeeBlinkScript).m_EyeIndex;
+										GetComponent(ServerScript).GetClient(k).m_MouthIndex = GameObject.Find("P"+(i+1)).GetComponent(BeeBlinkScript).m_MouthIndex;
+									}
 								}
 							}
 						}

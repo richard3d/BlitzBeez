@@ -388,11 +388,14 @@ function OnNetworkInput(IN : InputState)
 	//handle flower power
 	if(IN.GetActionBuffered(IN.DPAD_LEFT))
 	{
-		if(GetComponent(FlowerDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(RespawnDecorator) == null )
+		if(GetComponent(BeeScript).m_CurrFlowerStreak == 4)
 		{
-			if(gameObject.AddComponent(SpecialAttackDecorator) == null)
-				gameObject.AddComponent(SpecialAttackDecorator);
-			GetComponent(BeeScript).m_CurrFlowerStreak = 0;
+			if(GetComponent(FlowerDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(RespawnDecorator) == null )
+			{
+				if(gameObject.AddComponent(SpecialAttackDecorator) == null)
+					gameObject.AddComponent(SpecialAttackDecorator);
+				GetComponent(BeeScript).m_CurrFlowerStreak = 0;
+			}
 		}
 	}
 	
@@ -672,7 +675,7 @@ function HandleShotLogic()
 	go.GetComponent(UpdateScript).m_Vel = vel; 
 	go.transform.LookAt(pos+vel);
 	
-	if(go.GetComponent(BulletScript).m_BulletType == 2)
+	if(go.GetComponent(BulletScript).m_BulletType == BulletType.Rocket)
 	{
 		if(m_AimTarget != null)
 		{

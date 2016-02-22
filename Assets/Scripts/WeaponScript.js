@@ -4,7 +4,8 @@ var m_MuzzleEffect : GameObject = null;
 var m_AttachMuzzleEffect : boolean = true;
 var m_SoundEffect : AudioClip = null;
 var m_LoadOut : LoadOut;
-static var m_BulletPool:Array[] = new Array[10];
+
+var m_EffectPerRound : boolean = false;	//determines whether muzzle flash and sound effects should be generated for every bullet or just when the player pulls the trigger
 function Start () {
 	//m_LoadOut.CreateLoadOut(2);
 }
@@ -21,7 +22,6 @@ function Update () {
 			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset+random, Vector3.up);
 			var bulletVel : Vector3 =  rot * m_Owner.transform.forward;
 			var temp:Vector3 = bulletVel;
-			//bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
 			bulletVel.Normalize();
 			bulletPos.y = m_Owner.transform.position.y;
 			
@@ -88,6 +88,8 @@ function Fire()
 
 @RPC function InitRound(bulletName : String, pos : Vector3, vel : Vector3, decrementAmmo:boolean)
 {
+	if(m_EffectPerRound)
+		AudioSource.PlayClipAtPoint(m_SoundEffect, m_Owner.transform.position);
 	var go : GameObject = gameObject.Find(bulletName);
 	//make it so we dont collide with our own bullets
 	if(go.collider.enabled && m_Owner.collider.enabled)
@@ -107,7 +109,7 @@ function Fire()
 	}
 	
 	var aimTgt:GameObject = m_Owner.GetComponent(BeeControllerScript).m_AimTarget;
-	if(go.GetComponent(BulletScript).m_BulletType == 2)
+	if(go.GetComponent(BulletScript).m_BulletType == BulletType.Rocket)
 	{
 		if(aimTgt != null)
 		{
@@ -118,11 +120,13 @@ function Fire()
 			//Debug.Log("Homing "+go.GetComponent(BulletScript).m_Homing);
 			
 			//homing bullets are a little slower
+			go.GetComponent(UpdateScript).m_DefaultMaxSpeed = 500;
 			go.GetComponent(UpdateScript).m_MaxSpeed = 500;
 			go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 500;
 		}
 		else
 		{
+			go.GetComponent(UpdateScript).m_DefaultMaxSpeed =1000;
 			go.GetComponent(UpdateScript).m_MaxSpeed = 1000;
 			go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 1000;
 		}
@@ -140,25 +144,47 @@ function Fire()
 	go.GetComponent(BulletScript).Start();
 }
 
-static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : GameObject
-{
-	var bs:BulletScript = bulletType.GetComponent(BulletScript);
-	var go:GameObject = null;
+// static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : GameObject
+// {
+	// var bs:BulletScript = bulletType.GetComponent(BulletScript);
+	// var go:GameObject = null;
 	
-	if(bs.m_PowerShot)
-	{
-		// if(m_PowerBulletPool[bs.m_PowerShotType+1] != null && m_PowerBulletPool[bs.m_PowerShotType+1].length > 0)
+	// if(bs.m_PowerShot)
+	// {
+		// // if(m_PowerBulletPool[bs.m_PowerShotType+1] != null && m_PowerBulletPool[bs.m_PowerShotType+1].length > 0)
+		// // {
+			// // go = m_PowerBulletPool[bs.m_PowerShotType+1].Shift();
+			// // go.transform.position = pos;
+			// // go.GetComponent(UpdateScript).m_Vel = vel;
+			// // go.GetComponent(BulletScript).m_Life = 1.25;
+			// // go.active = true;	
+			// // for(var t:Transform in go.transform)
+			// // {
+				// // t.gameObject.active = true;
+				// // if(t.childCount > 0)
+					// // t.GetChild(0).gameObject.active = true;
+			// // }
+		// // }
+		// // else
+		// // {
+			// // //instantiate a new one
+			// // go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
+		// // }
+	// }
+	// else
+	// {
+		// if(m_BulletPool[bs.m_BulletType+1] != null && m_BulletPool[bs.m_BulletType+1].length > 0)
 		// {
-			// go = m_PowerBulletPool[bs.m_PowerShotType+1].Shift();
+			// go = m_BulletPool[bs.m_BulletType+1].Shift();
 			// go.transform.position = pos;
 			// go.GetComponent(UpdateScript).m_Vel = vel;
+			// //go.transform.LookAt(pos+vel);
 			// go.GetComponent(BulletScript).m_Life = 1.25;
+			// //go.GetComponent(BulletScript).Start();
 			// go.active = true;	
 			// for(var t:Transform in go.transform)
 			// {
 				// t.gameObject.active = true;
-				// if(t.childCount > 0)
-					// t.GetChild(0).gameObject.active = true;
 			// }
 		// }
 		// else
@@ -166,28 +192,6 @@ static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : G
 			// //instantiate a new one
 			// go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
 		// }
-	}
-	else
-	{
-		if(m_BulletPool[bs.m_BulletType+1] != null && m_BulletPool[bs.m_BulletType+1].length > 0)
-		{
-			go = m_BulletPool[bs.m_BulletType+1].Shift();
-			go.transform.position = pos;
-			go.GetComponent(UpdateScript).m_Vel = vel;
-			//go.transform.LookAt(pos+vel);
-			go.GetComponent(BulletScript).m_Life = 1.25;
-			//go.GetComponent(BulletScript).Start();
-			go.active = true;	
-			for(var t:Transform in go.transform)
-			{
-				t.gameObject.active = true;
-			}
-		}
-		else
-		{
-			//instantiate a new one
-			go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
-		}
-	}
-	return go;
-}
+	// }
+	// return go;
+// }

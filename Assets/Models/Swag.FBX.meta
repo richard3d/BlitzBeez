@@ -15,6 +15,10 @@ ModelImporter:
     4300020: NewBee
     4300022: Burner
     4300024: Astro
+    4300026: Scout
+    4300028: Raider
+    4300030: Guardian
+    4300032: Saboteur
   serializedVersion: 10
   materials:
     importMaterials: 1
@@ -59,19 +63,6 @@ ModelImporter:
       data:
         first: 111
         second: 605fa900
-    Astro:
-      data:
-        first: 1
-        second: b2860100
-      data:
-        first: 4
-        second: 921a0600
-      data:
-        first: 23
-        second: 70182300
-      data:
-        first: 33
-        second: b05a3200
     Beezus:
       data:
         first: 1
@@ -137,6 +128,19 @@ ModelImporter:
       data:
         first: 33
         second: a65a3200
+    Guardian:
+      data:
+        first: 1
+        second: b2860100
+      data:
+        first: 4
+        second: 921a0600
+      data:
+        first: 23
+        second: 70182300
+      data:
+        first: 33
+        second: b05a3200
     MageCap:
       data:
         first: 1
@@ -163,6 +167,45 @@ ModelImporter:
       data:
         first: 33
         second: a45a3200
+    Raider:
+      data:
+        first: 1
+        second: b6860100
+      data:
+        first: 4
+        second: 961a0600
+      data:
+        first: 23
+        second: 74182300
+      data:
+        first: 33
+        second: b45a3200
+    Saboteur:
+      data:
+        first: 1
+        second: b8860100
+      data:
+        first: 4
+        second: 981a0600
+      data:
+        first: 23
+        second: 76182300
+      data:
+        first: 33
+        second: b65a3200
+    Scout:
+      data:
+        first: 1
+        second: b4860100
+      data:
+        first: 4
+        second: 941a0600
+      data:
+        first: 23
+        second: 72182300
+      data:
+        first: 33
+        second: b25a3200
     Stetson:
       data:
         first: 1
