@@ -15,7 +15,7 @@ private static var m_InstanceID : int = 0;
 
 function Awake()
 {
-	animation.Play("Bomb");
+	GetComponent.<Animation>().Play("Bomb");
 	gameObject.name = "Bomb"+ ++m_InstanceID;
 }
 function Start () {
@@ -136,7 +136,7 @@ function Explode()
 	if(Network.isServer)
 	{
 	
-		ServerRPC.Buffer(networkView, "KillBomb", RPCMode.All);
+		ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillBomb", RPCMode.All);
 		ServerRPC.DeleteFromBuffer(gameObject);
 	}
 }
@@ -162,7 +162,7 @@ function Explode()
 	{
 		child.gameObject.active = false;
 	}
-	renderer.enabled = false;
+	GetComponent.<Renderer>().enabled = false;
 	
 	
 	var go : GameObject = gameObject.Instantiate(m_BombExplosion);

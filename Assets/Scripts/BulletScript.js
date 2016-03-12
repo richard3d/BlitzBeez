@@ -275,7 +275,7 @@ function Start () {
 function Update () {
 	if(!m_Projectile)
 		return;
-	rigidbody.velocity = Vector3(0,0,0);
+	GetComponent.<Rigidbody>().velocity = Vector3(0,0,0);
 	// if(m_Owner == null)
 		// return;
 	var up : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
@@ -388,7 +388,7 @@ function Update () {
 		if(m_LifeTimer <= 0.0)
 		{
 		
-			ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, gameObject.transform.position, false);
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillBullet", RPCMode.All, gameObject.transform.position, false);
 			ServerRPC.DeleteFromBuffer(gameObject);
 			//GameObject.Find("GameServer").GetComponent(ServerScript).m_SyncMsgsView.RPC("NetworkDestroy", RPCMode.All, gameObject.name);
 		}
@@ -465,7 +465,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 						refVel = rot*refNorm;
 						var go : GameObject  = Network.Instantiate(Resources.Load("GameObjects/FletchetBullet"), transform.position + refVel * 2, Quaternion.LookRotation(refVel, Vector3.up), 0);	
 						go.GetComponent(BulletScript).m_BulletType = 0;
-						m_Owner.networkView.RPC("Shot", RPCMode.All, go.name, go.transform.position+ refVel * 2, refVel * go.GetComponent(UpdateScript).m_MaxSpeed*Random.Range(0.6,1), false);
+						m_Owner.GetComponent.<NetworkView>().RPC("Shot", RPCMode.All, go.name, go.transform.position+ refVel * 2, refVel * go.GetComponent(UpdateScript).m_MaxSpeed*Random.Range(0.6,1), false);
 					}
 					
 					RemoveBullet(coll.hit.point);	
@@ -477,7 +477,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 				//these are objects we doze (pass through) and trigger a response out of (like destroying a rock)
 				if( tag == "Player" || tag == "Rocks"  || tag == "ItemBoxes")
 				{
-					ServerRPC.Buffer(networkView, "BulletHitOriented", RPCMode.All, transform.position+transform.forward * transform.localScale.x, GetComponent(UpdateScript).m_Vel.normalized);
+					ServerRPC.Buffer(GetComponent.<NetworkView>(), "BulletHitOriented", RPCMode.All, transform.position+transform.forward * transform.localScale.x, GetComponent(UpdateScript).m_Vel.normalized);
 					if(GetComponent(PauseDecorator) == null)
 					{
 						gameObject.AddComponent(PauseDecorator);
@@ -653,7 +653,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 	go.transform.LookAt(pos+norm);
 	if(m_PowerShot)
 	{
-		if(renderer.isVisible)
+		if(GetComponent.<Renderer>().isVisible)
 			Camera.main.GetComponent(CameraScript).Shake(0.25,2);
 	}
 }
@@ -664,7 +664,7 @@ function OnBulletCollision(coll:BulletCollision) : boolean
 	go.transform.position = pos;
 	if(m_PowerShot)
 	{
-		if(renderer.isVisible)
+		if(GetComponent.<Renderer>().isVisible)
 			Camera.main.GetComponent(CameraScript).Shake(0.25,2);
 	}
 }
@@ -676,7 +676,7 @@ function RemoveBulletOriented(pos:Vector3, norm:Vector3)
 	//otherwise the client destroys the bullet and another RPC arrives from the server due to second collision
 	if(m_LifeTimer > 0)
 	{
-		ServerRPC.Buffer(networkView, "KillBulletOriented", RPCMode.All, pos, norm);
+		ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillBulletOriented", RPCMode.All, pos, norm);
 		ServerRPC.DeleteFromBuffer(gameObject);
 	}
 	m_LifeTimer = -1;
@@ -689,7 +689,7 @@ function RemoveBullet(pos:Vector3)
 	//otherwise the client destroys the bullet and another RPC arrives from the server due to second collision
 	if(m_LifeTimer > 0)
 	{
-		ServerRPC.Buffer(networkView, "KillBullet", RPCMode.All, pos, true);
+		ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillBullet", RPCMode.All, pos, true);
 		ServerRPC.DeleteFromBuffer(gameObject);
 	}
 	m_LifeTimer = -1;

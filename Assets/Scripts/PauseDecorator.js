@@ -14,9 +14,9 @@ function Start () {
 		m_PrevAccel = GetComponent(UpdateScript).m_Accel;
 		m_PrevAngVel = GetComponent(UpdateScript).m_AngVel;
 		
-		if(animation != null && animation.isPlaying)
+		if(GetComponent.<Animation>() != null && GetComponent.<Animation>().isPlaying)
 		{
-			animation.Stop();
+			GetComponent.<Animation>().Stop();
 			m_PrevAnimating = true;
 		}
 	}
@@ -36,7 +36,7 @@ function Update () {
 	{
 		
 		if(Network.isServer)
-				ServerRPC.Buffer(networkView, "RemoveComponent",RPCMode.All, "PauseDecorator");
+				ServerRPC.Buffer(GetComponent.<NetworkView>(), "RemoveComponent",RPCMode.All, "PauseDecorator");
 	}
 
 }
@@ -48,8 +48,8 @@ function OnDestroy()
 	GetComponent(UpdateScript).m_Accel=  m_PrevAccel;
 	GetComponent(UpdateScript).m_AngVel=  m_PrevAngVel;
 	
-	if(animation != null && m_PrevAnimating)
+	if(GetComponent.<Animation>() != null && m_PrevAnimating)
 	{
-		animation.Play();
+		GetComponent.<Animation>().Play();
 	}
 }

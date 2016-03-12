@@ -54,7 +54,7 @@ function Update () {
 		if(Network.isServer)
 		{
 			var name : String = transform.parent == null ? "" : transform.parent.name;
-			networkView.RPC("LinkToParent", RPCMode.Others,  name);
+			GetComponent.<NetworkView>().RPC("LinkToParent", RPCMode.Others,  name);
 		}
 	}
 	m_PrevParent = transform.parent;
@@ -264,7 +264,7 @@ function MakeNetLive()
 	if(Network.isServer)
 	{
 		var viewID : NetworkViewID = Network.AllocateViewID();
-		ServerRPC.Buffer(networkView, "NetworkActivate", RPCMode.All, viewID);
+		ServerRPC.Buffer(GetComponent.<NetworkView>(), "NetworkActivate", RPCMode.All, viewID);
 	}
 }
 
@@ -273,7 +273,7 @@ function MakeNetLive(pos : Vector3, rot : Quaternion, vel : Vector3)
 	if(Network.isServer)
 	{
 		var viewID : NetworkViewID = Network.AllocateViewID();
-		ServerRPC.Buffer(networkView, "NetworkActivate2", RPCMode.All, viewID, pos, rot, vel);
+		ServerRPC.Buffer(GetComponent.<NetworkView>(), "NetworkActivate2", RPCMode.All, viewID, pos, rot, vel);
 	}
 }
 

@@ -9,9 +9,9 @@ private var previousPosition : Vector3;
 private var myRigidbody : Rigidbody; 
 //initialize values 
 function Awake() { 
-   myRigidbody = rigidbody; 
+   myRigidbody = GetComponent.<Rigidbody>(); 
    previousPosition = myRigidbody.position; 
-   minimumExtent = Mathf.Min(Mathf.Min(collider.bounds.extents.x, collider.bounds.extents.y), collider.bounds.extents.z); 
+   minimumExtent = Mathf.Min(Mathf.Min(GetComponent.<Collider>().bounds.extents.x, GetComponent.<Collider>().bounds.extents.y), GetComponent.<Collider>().bounds.extents.z); 
    partialExtent = minimumExtent*(1.0 - skinWidth); 
    sqrMinimumExtent = minimumExtent*minimumExtent; 
 } 

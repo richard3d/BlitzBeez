@@ -72,15 +72,15 @@ function Update () {
 		//Let cast 5 rays
 		var rays:Vector3[] = new Vector3[5];
 		var ScreenPts:Vector3[] = new Vector3[5];
-		ScreenPts[0] = Vector3(0,0,camera.nearClipPlane);
-		ScreenPts[1] = Vector3(Screen.width,0,camera.nearClipPlane);
-		ScreenPts[2] = Vector3(Screen.width,Screen.height,camera.nearClipPlane);
-		ScreenPts[3] = Vector3(0,Screen.height,camera.nearClipPlane);
-		ScreenPts[4] = Vector3(Screen.width*0.5,Screen.height*0.5,camera.nearClipPlane);
+		ScreenPts[0] = Vector3(0,0,GetComponent.<Camera>().nearClipPlane);
+		ScreenPts[1] = Vector3(Screen.width,0,GetComponent.<Camera>().nearClipPlane);
+		ScreenPts[2] = Vector3(Screen.width,Screen.height,GetComponent.<Camera>().nearClipPlane);
+		ScreenPts[3] = Vector3(0,Screen.height,GetComponent.<Camera>().nearClipPlane);
+		ScreenPts[4] = Vector3(Screen.width*0.5,Screen.height*0.5,GetComponent.<Camera>().nearClipPlane);
 		
 		for(var i:int = 0; i < 5; i++)
 		{
-			rays[i] = camera.ScreenToWorldPoint(ScreenPts[i]); 
+			rays[i] = GetComponent.<Camera>().ScreenToWorldPoint(ScreenPts[i]); 
 		}
 		
 		rays[0] = rays[0] - rays[4];

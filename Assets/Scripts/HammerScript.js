@@ -31,7 +31,7 @@ function Update () {
 	{
 		if(m_Lifetime <= 0 || m_Owner.GetComponent(RespawnDecorator) != null)
 		{
-			ServerRPC.Buffer(m_Owner.networkView, "RemoveComponent", RPCMode.All, "HammerDecorator");
+			ServerRPC.Buffer(m_Owner.GetComponent.<NetworkView>(), "RemoveComponent", RPCMode.All, "HammerDecorator");
 		}
 		else
 			m_Lifetime -= Time.deltaTime;
@@ -59,8 +59,8 @@ function Update () {
 	{
 		m_Owner = go;
 		go.AddComponent(HammerDecorator).m_Hammer = gameObject;
-		Debug.Log(go.renderer.material.color);
-		GetComponent(ParticleSystemRenderer).material.SetColor("_TintColor", go.renderer.material.color);
+		Debug.Log(go.GetComponent.<Renderer>().material.color);
+		GetComponent(ParticleSystemRenderer).material.SetColor("_TintColor", go.GetComponent.<Renderer>().material.color);
 	}
 }
 

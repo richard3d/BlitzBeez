@@ -23,8 +23,8 @@ function Awake()
 function Start () {
 
 	m_HP = m_BaseHP;
-	if(animation["SpawnHive"] != null)
-		animation.Play("SpawnHive");
+	if(GetComponent.<Animation>()["SpawnHive"] != null)
+		GetComponent.<Animation>().Play("SpawnHive");
 	m_InitPos = transform.position;
 	if(m_RespawnParticles != null)
 	{
@@ -36,7 +36,7 @@ function Start () {
 }
 
 function Update () {	
-	if(!animation.isPlaying)
+	if(!GetComponent.<Animation>().isPlaying)
 		transform.position.y = m_InitPos.y + Mathf.Sin(Time.time*6) *2;
 }
 
@@ -48,10 +48,10 @@ function OnGUI()
 		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
 		for(var player:GameObject in players)
 		{
-			var cam:Camera = player.GetComponent(BeeScript).m_Camera.camera;
+			var cam:Camera = player.GetComponent(BeeScript).m_Camera.GetComponent.<Camera>();
 			
 			var camPos:Vector2 = Vector2(cam.rect.x*Screen.width,Mathf.Abs(cam.rect.y - 0.5)*Screen.height);
-			if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
+			if(cam.GetComponent.<Camera>().rect.y == 0.0 &&  cam.GetComponent.<Camera>().rect.height == 1)
 				camPos.y = 0;
 			var bottom:float = camPos.y +cam.rect.height*Screen.height;
 			var scrPos:Vector3 = cam.WorldToScreenPoint(transform.position+ Vector3.up * transform.localScale.y * 1.25);
@@ -143,12 +143,12 @@ function DamageHive(dmgAmt:int)
 
 function ShowRecursive(p:Transform, show:boolean)
 {
-	if(p.gameObject.renderer != null)
-			p.gameObject.renderer.enabled = show;
+	if(p.gameObject.GetComponent.<Renderer>() != null)
+			p.gameObject.GetComponent.<Renderer>().enabled = show;
 	for(var t:Transform in p)
 	{
-		if(t.gameObject.renderer != null)
-			t.gameObject.renderer.enabled = show;
+		if(t.gameObject.GetComponent.<Renderer>() != null)
+			t.gameObject.GetComponent.<Renderer>().enabled = show;
 		ShowRecursive(t, show);
 	}
 }
@@ -185,7 +185,7 @@ function OnTriggerStay(other : Collider)
 		}
 		//call cash in on the bee
 		if(Network.isServer)
-			ServerRPC.Buffer(other.gameObject.networkView,"PollenCashIn", RPCMode.All, other.gameObject.name, gameObject.name);
+			ServerRPC.Buffer(other.gameObject.GetComponent.<NetworkView>(),"PollenCashIn", RPCMode.All, other.gameObject.name, gameObject.name);
 			///other.gameObject.networkView.RPC("PollenCashIn", RPCMode.All, other.gameObject.name, gameObject.name);
 	}
 	
@@ -200,7 +200,7 @@ function OnTriggerEnter(other:Collider)
 			if(Network.isServer && m_HP > 0)
 			{	
 				m_HP -= m_BaseHP/2;
-				ServerRPC.Buffer(m_Pedestal.networkView, "SetHiveHP",RPCMode.All,name, m_HP);	//we do this on the pedestal because it actually has a networkview (hives do not)
+				ServerRPC.Buffer(m_Pedestal.GetComponent.<NetworkView>(), "SetHiveHP",RPCMode.All,name, m_HP);	//we do this on the pedestal because it actually has a networkview (hives do not)
 			}
 		}
 	}
@@ -211,7 +211,7 @@ function OnTriggerEnter(other:Collider)
 			if(Network.isServer && m_HP > 0)
 			{	
 				m_HP -= m_BaseHP/4;
-				ServerRPC.Buffer(m_Pedestal.networkView, "SetHiveHP",RPCMode.All,name, m_HP);
+				ServerRPC.Buffer(m_Pedestal.GetComponent.<NetworkView>(), "SetHiveHP",RPCMode.All,name, m_HP);
 			}
 		}
 	}
@@ -224,7 +224,7 @@ function OnTriggerEnter(other:Collider)
 				if(Network.isServer && m_HP > 0)
 				{	
 					m_HP -= m_BaseHP/4;
-					ServerRPC.Buffer(m_Pedestal.networkView, "SetHiveHP",RPCMode.All,name, m_HP);
+					ServerRPC.Buffer(m_Pedestal.GetComponent.<NetworkView>(), "SetHiveHP",RPCMode.All,name, m_HP);
 				}
 			
 			}
@@ -256,7 +256,7 @@ function OnDestroy()
 		m_Pedestal.GetComponent(PollenNetworkScript).m_Owner = null;
 		m_Pedestal.GetComponent(HivePedestalScript).m_Activated = false;
 		m_Pedestal.GetComponent(HivePedestalScript).m_Hive = null;
-		m_Pedestal.renderer.material.mainTexture = m_Pedestal.GetComponent(HivePedestalScript).m_TempTexture;
+		m_Pedestal.GetComponent.<Renderer>().material.mainTexture = m_Pedestal.GetComponent(HivePedestalScript).m_TempTexture;
 	}
 	
 	if(m_ExplosionParticles != null && m_HP <= 0)

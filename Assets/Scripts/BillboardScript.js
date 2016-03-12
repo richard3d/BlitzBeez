@@ -21,7 +21,7 @@ function Draw() {
 	GL.PushMatrix();
 	
 	GL.LoadPixelMatrix();
-	renderer.material.SetPass(0);
+	GetComponent.<Renderer>().material.SetPass(0);
 	GL.Begin(GL.QUADS); // Quad
 	GL.Color(m_Color);
 	GL.TexCoord2(0,0);

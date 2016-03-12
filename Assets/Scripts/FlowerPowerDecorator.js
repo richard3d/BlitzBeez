@@ -29,7 +29,7 @@ function Start () {
 	m_SayainEffect.transform.localPosition.y = -3;
 	
 	m_LightEffect = GameObject.Instantiate(Resources.Load("GameObjects/CircularLightBeam"), transform.position, Quaternion.identity);
-	m_LightEffect.animation.Play();
+	m_LightEffect.GetComponent.<Animation>().Play();
 	m_LightEffect.transform.parent = gameObject.transform;
 
 	//this one deletes itself the other two (above and below) do not

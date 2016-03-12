@@ -24,7 +24,7 @@ function Update () {
 		if(m_Lifetime <= 0)
 		{
 			if(Network.isServer)
-				ServerRPC.Buffer(networkView, "RemoveComponent",RPCMode.All, "LevelUpDecorator");
+				ServerRPC.Buffer(GetComponent.<NetworkView>(), "RemoveComponent",RPCMode.All, "LevelUpDecorator");
 		}
 	}
 

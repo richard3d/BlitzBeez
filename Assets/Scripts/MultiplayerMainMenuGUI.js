@@ -21,9 +21,9 @@ public var m_PrevInput:float = 0;
 public var m_CurrInput:float = 0;
 
 function Start () {
-	GameObject.Find("MainBee").renderer.material.color = PlayerProfile.m_PlayerColor;
+	GameObject.Find("MainBee").GetComponent.<Renderer>().material.color = PlayerProfile.m_PlayerColor;
 	m_MenuPos.y = Screen.height*0.25;
-	GameObject.Find("BeeParticles").renderer.enabled = false;
+	GameObject.Find("BeeParticles").GetComponent.<Renderer>().enabled = false;
 	//m_Skin.GetStyle("MainButton").fixedWidth = 6.166 * m_Skin.GetStyle("MainButton").fontSize;
 }
 
@@ -35,7 +35,7 @@ function Show()
 {
 	m_ShowMainMenu = true;
 	AudioSource.PlayClipAtPoint(m_TitleIntroSound, Camera.main.transform.position);
-	GameObject.Find("BeeParticles").renderer.enabled = true;
+	GameObject.Find("BeeParticles").GetComponent.<Renderer>().enabled = true;
 }
 
 function Update () {
@@ -131,18 +131,18 @@ function ShowOptions()
 	m_ShowOptions = true;
 	m_ShowMainMenu = false;
 	Camera.main.GetComponent(TiltShift).enabled = true;
-	animation["MenuSlideRight"].time = 0;
-	animation["MenuSlideRight"].speed = 1;
-	animation.Play("MenuSlideRight");
+	GetComponent.<Animation>()["MenuSlideRight"].time = 0;
+	GetComponent.<Animation>()["MenuSlideRight"].speed = 1;
+	GetComponent.<Animation>().Play("MenuSlideRight");
 }
 
 function HideOptions()
 {
 	m_ShowMainMenu = true;
 	Camera.main.GetComponent(TiltShift).enabled = false;
-	animation["MenuSlideRight"].time = animation["MenuSlideRight"].length;
-	animation["MenuSlideRight"].speed = -1;
-	animation.Play("MenuSlideRight");
+	GetComponent.<Animation>()["MenuSlideRight"].time = GetComponent.<Animation>()["MenuSlideRight"].length;
+	GetComponent.<Animation>()["MenuSlideRight"].speed = -1;
+	GetComponent.<Animation>().Play("MenuSlideRight");
 }
 
 function OnGUI()
@@ -191,17 +191,17 @@ function OnGUI()
 
 		if (GUI.Button(Rect(0,0,256,defaultFont),"Start Game", m_Skin.GetStyle("MainButton")) || (Input.GetAxis("Joy0 OK") && GUI.GetNameOfFocusedControl() == "Create")) 
 		{
-			if(GameObject.Find("Title").animation.isPlaying == false)
+			if(GameObject.Find("Title").GetComponent.<Animation>().isPlaying == false)
 			{
-				GameObject.Find("Flash").animation.Stop("FlashIntro");
-				GameObject.Find("Flash").animation["FlashIntro"].time = 2.35;
-				GameObject.Find("Flash").animation.Play("FlashIntro");
+				GameObject.Find("Flash").GetComponent.<Animation>().Stop("FlashIntro");
+				GameObject.Find("Flash").GetComponent.<Animation>()["FlashIntro"].time = 2.35;
+				GameObject.Find("Flash").GetComponent.<Animation>().Play("FlashIntro");
 				
 				AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 				GetComponent(Animation).Play("CameraIntro");
 				GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_Timer = 999;
 				GameObject.Find("MainBee").GetComponent(MainMenuBeeScript).m_WorldPos = Vector3(0,20,0);
-				GameObject.Find("Title").animation.Stop();
+				GameObject.Find("Title").GetComponent.<Animation>().Stop();
 				GameObject.Find("Title").GetComponent(GUITexture).enabled = false;
 				Camera.main.GetComponent(MotionBlur).enabled = true;
 				this.enabled = false;

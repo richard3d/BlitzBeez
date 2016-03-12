@@ -11,11 +11,11 @@ function Start () {
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
 		Camera.main.GetComponent(CameraScript).Shake(m_Lifetime,0.5 );
-		Camera.main.animation["CameraDramaticZoom"].speed = 1;
-		Camera.main.animation.Play("CameraDramaticZoom");
+		Camera.main.GetComponent.<Animation>()["CameraDramaticZoom"].speed = 1;
+		Camera.main.GetComponent.<Animation>().Play("CameraDramaticZoom");
 	}
 
-	gameObject.Find("Swarm"+gameObject.name).renderer.enabled = false;
+	gameObject.Find("Swarm"+gameObject.name).GetComponent.<Renderer>().enabled = false;
 
 }
 
@@ -27,13 +27,13 @@ function Update () {
 		m_Lifetime -= Time.deltaTime;
 	else
 		if(Network.isServer)
-			ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "HoneyDepositDecorator");
+			ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "HoneyDepositDecorator");
 
 }
 
 function OnDestroy()
 {
-	gameObject.Find("Swarm"+gameObject.name).renderer.enabled = true;
+	gameObject.Find("Swarm"+gameObject.name).GetComponent.<Renderer>().enabled = true;
 	var bonus = m_PollenCount / 3 * 50;
 	gameObject.GetComponent(BeeScript).m_Money +=  bonus;
 	
@@ -49,9 +49,9 @@ function OnDestroy()
 	
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
-		Camera.main.animation["CameraDramaticZoom"].time = Camera.main.animation["CameraDramaticZoom"].length;
-		Camera.main.animation["CameraDramaticZoom"].speed = -1;
-		Camera.main.animation.Play("CameraDramaticZoom");
+		Camera.main.GetComponent.<Animation>()["CameraDramaticZoom"].time = Camera.main.GetComponent.<Animation>()["CameraDramaticZoom"].length;
+		Camera.main.GetComponent.<Animation>()["CameraDramaticZoom"].speed = -1;
+		Camera.main.GetComponent.<Animation>().Play("CameraDramaticZoom");
 		Camera.main.GetComponent(CameraScript).Shake(0.5,0.5 );
 		if(bonus > 0)
 		{	

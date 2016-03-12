@@ -49,7 +49,7 @@ function Update () {
 
 function OnNetworkInput(IN : InputState)
 {
-	if(!networkView.isMine || GetComponent(ControlDisablerDecorator) != null)
+	if(!GetComponent.<NetworkView>().isMine || GetComponent(ControlDisablerDecorator) != null)
 	{
 		return;
 	}
@@ -71,8 +71,8 @@ function OnNetworkInput(IN : InputState)
 		
 		if(Network.isServer)
 		{
-			ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
-			ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "ItemDecorator");
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "ThrowItem", RPCMode.All);
+			ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "ItemDecorator");
 		}
 		
 	}
@@ -101,8 +101,8 @@ function OnNetworkInput(IN : InputState)
 	
 	//unchain ourselves from the parent and dissable collision with the owner entity
 	m_Item.transform.parent = null;
-	if(m_Item != null && m_Item.collider != null && m_Item.collider.enabled && gameObject.collider.enabled)
-		Physics.IgnoreCollision(gameObject.collider, m_Item.collider, false);
+	if(m_Item != null && m_Item.GetComponent.<Collider>() != null && m_Item.GetComponent.<Collider>().enabled && gameObject.GetComponent.<Collider>().enabled)
+		Physics.IgnoreCollision(gameObject.GetComponent.<Collider>(), m_Item.GetComponent.<Collider>(), false);
 		
 	if(m_Item.tag == "Rocks")
 	{
@@ -178,8 +178,8 @@ function SetItem (go : GameObject, itemPosOffset : Vector3, itemOrientation : Ve
 	m_AngleOffset = itemOrientation;
 	m_WorldPosOffset = worldPosOffset;
 	m_WorldAngleOffset = worldAngleOffset;
-	if(go.collider != null)
-		Physics.IgnoreCollision(m_Item.collider, gameObject.collider, true);
+	if(go.GetComponent.<Collider>() != null)
+		Physics.IgnoreCollision(m_Item.GetComponent.<Collider>(), gameObject.GetComponent.<Collider>(), true);
 	
 	if(go.tag == "Rocks")
 	{

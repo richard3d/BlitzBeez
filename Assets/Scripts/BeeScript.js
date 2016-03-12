@@ -136,7 +136,7 @@ function SetColor(c:Color)
 	var go:GameObject = GameObject.Find(gameObject.name+"/Bee/NewBee/NewBee");
 
 	
-	for(var mat:Material in go.renderer.materials)
+	for(var mat:Material in go.GetComponent.<Renderer>().materials)
 	{
 		if(mat.name.Contains("BeeSkin"))
 		{
@@ -207,12 +207,12 @@ function IsGUIEnabled() : boolean
 function SetGUIEnabled(b:boolean)
 {
 	m_DrawGUI = b;
-	transform.Find("MinimapCamera").camera.enabled = b;
+	transform.Find("MinimapCamera").GetComponent.<Camera>().enabled = b;
 }
 
 function Update() {
 	
-	rigidbody.velocity = Vector3(0,0,0);
+	GetComponent.<Rigidbody>().velocity = Vector3(0,0,0);
 	var Terr:TerrainCollisionScript = GetComponent(TerrainCollisionScript);
 	var coll= Terr.m_TerrainInfo.collider;
 	
@@ -326,31 +326,31 @@ function Update() {
 			}
 		}
 		
-		if(Camera.main.transform.position.z > gameObject.Find("map").renderer.bounds.max.z)
+		if(Camera.main.transform.position.z > gameObject.Find("map").GetComponent.<Renderer>().bounds.max.z)
 		{
 			Camera.main.GetComponent(CameraScript).m_CamVel.z = 0;
-			Camera.main.GetComponent(CameraScript).m_CamPos.z = gameObject.Find("map").renderer.bounds.max.z;
+			Camera.main.GetComponent(CameraScript).m_CamPos.z = gameObject.Find("map").GetComponent.<Renderer>().bounds.max.z;
 		}
 		else
-		if(Camera.main.transform.position.z < gameObject.Find("map").renderer.bounds.min.z)
+		if(Camera.main.transform.position.z < gameObject.Find("map").GetComponent.<Renderer>().bounds.min.z)
 		{
 			Camera.main.GetComponent(CameraScript).m_CamVel.z = 0;
-			Camera.main.GetComponent(CameraScript).m_CamPos.z = gameObject.Find("map").renderer.bounds.min.z;
+			Camera.main.GetComponent(CameraScript).m_CamPos.z = gameObject.Find("map").GetComponent.<Renderer>().bounds.min.z;
 		}
 		
-		if(Camera.main.transform.position.x > gameObject.Find("map").renderer.bounds.max.x)
+		if(Camera.main.transform.position.x > gameObject.Find("map").GetComponent.<Renderer>().bounds.max.x)
 		{
 			Camera.main.GetComponent(CameraScript).m_CamVel.x = 0;
-			Camera.main.GetComponent(CameraScript).m_CamPos.x = gameObject.Find("map").renderer.bounds.max.x;
+			Camera.main.GetComponent(CameraScript).m_CamPos.x = gameObject.Find("map").GetComponent.<Renderer>().bounds.max.x;
 		}
 		else
-		if(Camera.main.transform.position.x < gameObject.Find("map").renderer.bounds.min.x)
+		if(Camera.main.transform.position.x < gameObject.Find("map").GetComponent.<Renderer>().bounds.min.x)
 		{
 			Camera.main.GetComponent(CameraScript).m_CamVel.x = 0;
-			Camera.main.GetComponent(CameraScript).m_CamPos.x = gameObject.Find("map").renderer.bounds.min.x;
+			Camera.main.GetComponent(CameraScript).m_CamPos.x = gameObject.Find("map").GetComponent.<Renderer>().bounds.min.x;
 		}
 		
-		var extent = Mathf.Max(gameObject.Find("map").renderer.bounds.extents.x, gameObject.Find("map").renderer.bounds.extents.z);
+		var extent = Mathf.Max(gameObject.Find("map").GetComponent.<Renderer>().bounds.extents.x, gameObject.Find("map").GetComponent.<Renderer>().bounds.extents.z);
 		if(Camera.main.orthographicSize < extent*0.5)
 		{
 			Camera.main.GetComponent(CameraScript).m_CamVel.y = 0;
@@ -385,7 +385,7 @@ function OnGUI()
 	//only draw our client info
 	if(NetworkUtils.IsLocalGameObject(gameObject) && m_Camera.active)
 	{
-		if(m_Camera.camera.rect.width < 1)
+		if(m_Camera.GetComponent.<Camera>().rect.width < 1)
 		{
 			FontStyle.fontSize = 24;
 			SmallFontStyle.fontSize = 16;
@@ -468,11 +468,11 @@ function DrawGUI()
 	
 		
 		//do camera location calculations
-		var camWidth = m_Camera.camera.rect.width;
-		var camScale = m_Camera.camera.rect.width;
-		var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
+		var camWidth = m_Camera.GetComponent.<Camera>().rect.width;
+		var camScale = m_Camera.GetComponent.<Camera>().rect.width;
+		var camPos:Vector2 = Vector2(m_Camera.GetComponent.<Camera>().rect.x*Screen.width,Mathf.Abs(m_Camera.GetComponent.<Camera>().rect.y - 0.5)*Screen.height);
 		
-		if(m_Camera.camera.rect.y == 0.0 &&  m_Camera.camera.rect.height == 1)
+		if(m_Camera.GetComponent.<Camera>().rect.y == 0.0 &&  m_Camera.GetComponent.<Camera>().rect.height == 1)
 			camPos.y = 0;
 		var relPos:Vector2 = Vector2(camPos.x+83*camScale, camPos.y+16*camScale);
 		
@@ -483,13 +483,13 @@ function DrawGUI()
 	
 		
 		
-		var bottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
-		var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
+		var bottom:float = camPos.y +m_Camera.GetComponent.<Camera>().rect.height*Screen.height;
+		var right:float = camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width;
 		
 		//draw the time
 		var matchMins:int = (GameStateManager.m_MatchClock / 60);
 		var matchSecs:int = (GameStateManager.m_MatchClock) % 60;
-		GUI.Label(Rect(camPos.x+Screen.width* m_Camera.camera.rect.width*0.5, camPos.y, 200, 200), matchMins+":"+matchSecs,SmallFontStyle);
+		GUI.Label(Rect(camPos.x+Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.5, camPos.y, 200, 200), matchMins+":"+matchSecs,SmallFontStyle);
 		
 		//draw the game event messages
 		GameEventMessenger.DrawMessages(relPos.x-32,(bottom- 96 * camScale),SmallFontStyle);
@@ -506,8 +506,8 @@ function DrawGUI()
 			if(camWidth <= 0.5)
 			{
 				var dispSize : float = 96*camScale;
-				var team1PosY:float = camPos.y+Screen.height* m_Camera.camera.rect.height*0.05;
-				var team2PosY:float = camPos.y+Screen.height* m_Camera.camera.rect.height*0.15;				
+				var team1PosY:float = camPos.y+Screen.height* m_Camera.GetComponent.<Camera>().rect.height*0.05;
+				var team2PosY:float = camPos.y+Screen.height* m_Camera.GetComponent.<Camera>().rect.height*0.15;				
 			
 			
 				
@@ -524,31 +524,31 @@ function DrawGUI()
 					crownPosY = team2PosY;
 				  
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team1PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25,team1PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
 				
 				GUI.color = GameStateManager.m_Team1Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team1PosY, dispSize, dispSize), m_Team1Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team1PosY+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,team1PosY, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25,team1PosY, dispSize, dispSize), m_Team1Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25,team1PosY+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25+dispSize,team1PosY, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
 				
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team2PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25,team2PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
 				
 				GUI.color = GameStateManager.m_Team2Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team2PosY, dispSize, dispSize), m_Team2Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,team2PosY+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25+dispSize,team2PosY, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25,team2PosY, dispSize, dispSize), m_Team2Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25,team2PosY+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25+dispSize,team2PosY, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
 				
 				GUI.color = Color.white;
 				if(GameStateManager.m_Team2Score != GameStateManager.m_Team1Score) 
-					GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.25,crownPosY, dispSize*0.25, dispSize*0.25), m_CrownIcon);
+					GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.25,crownPosY, dispSize*0.25, dispSize*0.25), m_CrownIcon);
 				
 			}
 			else	
 			{
 				dispSize = 64*camScale;
-				team1PosY = camPos.y+Screen.height* m_Camera.camera.rect.height*0.05;
-				team2PosY = camPos.y+Screen.height* m_Camera.camera.rect.height*0.2;
+				team1PosY = camPos.y+Screen.height* m_Camera.GetComponent.<Camera>().rect.height*0.05;
+				team2PosY = camPos.y+Screen.height* m_Camera.GetComponent.<Camera>().rect.height*0.2;
 			
 				
 			
@@ -564,24 +564,24 @@ function DrawGUI()
 					crownPosY = team2PosY;
 		
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team1PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18,team1PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
 				
 				GUI.color = GameStateManager.m_Team1Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team1PosY, dispSize, dispSize), m_Team1Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team1PosY+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,team1PosY, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18,team1PosY, dispSize, dispSize), m_Team1Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18,team1PosY+dispSize*0.9, dispSize*hive1Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18+dispSize,team1PosY, dispSize, dispSize), GameStateManager.m_Team1Score.ToString(), SmallFontStyle);
 				
 				GUI.color = Color.black;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team2PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18,team2PosY+dispSize*0.9, dispSize, dispSize*0.15), ReloadBarTexture);
 				
 				GUI.color = GameStateManager.m_Team2Color;
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team2PosY, dispSize, dispSize), m_Team2Icon);
-				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,team2PosY+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
-				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18+dispSize,team2PosY, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18,team2PosY, dispSize, dispSize), m_Team2Icon);
+				GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18,team2PosY+dispSize*0.9, dispSize*hive2Perc, dispSize*0.15), ReloadBarTexture);
+				GUI.Label(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18+dispSize,team2PosY, dispSize, dispSize), GameStateManager.m_Team2Score.ToString(), SmallFontStyle);
 				
 				GUI.color = Color.white;
 				if(GameStateManager.m_Team2Score != GameStateManager.m_Team1Score) 
-					GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.camera.rect.width*0.18,crownPosY, dispSize*0.25, dispSize*0.25), m_CrownIcon);
+					GUI.DrawTexture(Rect(camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width*0.18,crownPosY, dispSize*0.25, dispSize*0.25), m_CrownIcon);
 				
 			}
 		}	
@@ -613,7 +613,7 @@ function DrawGUI()
 				{
 					if(!Physics.Raycast(transform.position,(player.transform.position - transform.position).normalized, (player.transform.position - transform.position).magnitude,GetComponent(TerrainCollisionScript).m_TerrainLayer))
 					{
-						var pt:Vector3 = m_Camera.camera.WorldToScreenPoint(player.transform.position+Vector3.up *30);
+						var pt:Vector3 = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(player.transform.position+Vector3.up *30);
 						pt.y = Screen.height - pt.y - camPos.y;
 						pt.x = pt.x - camPos.x;
 						var rt:Rect = GUILayoutUtility.GetRect(new GUIContent(player.name), SmallFontStyle);
@@ -631,9 +631,9 @@ function DrawGUI()
 		//draw aim target
 		if(beeCtrlScript.m_AimTarget != null)
 		{
-			var tgt:Vector3 = m_Camera.camera.WorldToScreenPoint(beeCtrlScript.m_AimTarget.transform.position);
+			var tgt:Vector3 = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(beeCtrlScript.m_AimTarget.transform.position);
 			var dist = (beeCtrlScript.m_AimTarget.transform.position - transform.position).magnitude;
-			var aimPt:Vector3 = m_Camera.camera.WorldToScreenPoint(transform.position+transform.forward*dist);
+			var aimPt:Vector3 = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(transform.position+transform.forward*dist);
 			tgt.y = Screen.height-tgt.y;
 			aimPt.y = Screen.height - aimPt.y;
 			GUI.DrawTexture(Rect(tgt.x-24*camScale,tgt.y-24*camScale, 48*camScale, 48*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
@@ -646,24 +646,28 @@ function DrawGUI()
 		else
 		{
 			dist = 200;
-			aimPt = m_Camera.camera.WorldToScreenPoint(transform.position+transform.forward*dist);
+			aimPt = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(transform.position+transform.forward*dist);
 			aimPt.y = Screen.height-aimPt.y;
 			GUI.DrawTexture(Rect(aimPt.x-12*camScale,aimPt.y-12*camScale, 24*camScale, 24*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
 			
+			// dist = 800;
+			// aimPt = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(transform.position+transform.forward*dist);
+			// aimPt.y = Screen.height-aimPt.y;
+			// GUI.DrawTexture(Rect(aimPt.x-6*camScale,aimPt.y-6*camScale, 12*camScale, 12*camScale), m_AimTargetTexture, ScaleMode.ScaleToFit, true);
+			
+			//show the hit icon if we hit someone
 			if(m_HitTargetEntity)
 			{
-				
-				
-				tgt = m_Camera.camera.WorldToScreenPoint(m_HitTargetEntity.transform.position);
+				tgt = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(m_HitTargetEntity.transform.position);
 				tgt.y = Screen.height-tgt.y;	
 				GUI.color.a = m_HitTargetFade;
 				GUI.DrawTexture(Rect(tgt.x-48*camScale,tgt.y-48*camScale, 96*camScale, 96*camScale), m_HitTargetTexture, ScaleMode.ScaleToFit, true);
-				}
-			// }
+			}
+			
 		}
 		
-		GUI.BeginGroup(Rect(camPos.x ,camPos.y, Screen.width*camScale, Screen.height*m_Camera.camera.rect.height));	
-		var screenPos:Vector3 = m_Camera.camera.WorldToScreenPoint(gameObject.transform.position+gameObject.transform.right * 10);
+		GUI.BeginGroup(Rect(camPos.x ,camPos.y, Screen.width*camScale, Screen.height*m_Camera.GetComponent.<Camera>().rect.height));	
+		var screenPos:Vector3 = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(gameObject.transform.position+gameObject.transform.right * 10);
 		screenPos.y = Screen.height-screenPos.y - camPos.y;
 		screenPos.x = screenPos.x - camPos.x;
 			GUI.BeginGroup(Rect(screenPos.x+ 88* camScale, screenPos.y-64, 512,512));
@@ -684,16 +688,14 @@ function DrawGUI()
 			//ammo icon
 			
 			var ammo : int = 0;
-			if(GetComponentInChildren(ParticleEmitter) != null)
-				ammo  = GetComponentInChildren(ParticleEmitter).particleCount;
+			
+			ammo  = m_Weapon.GetComponent(WeaponScript).m_Ammo;
 			GUI.color.a = 0.75;
-			if(beeCtrlScript != null && beeCtrlScript.m_ReloadTimer > 0)
+			if(m_Weapon.GetComponent(WeaponScript).m_ReloadTimer > 0)
 			{
 				ammo = 0;
 				var reloadSpeed :float = beeCtrlScript.m_Stats["Reload_Speed"];
-				var base : float = beeCtrlScript.m_LoadOut.m_BaseReloadSpeed;
-				reloadSpeed = base -  ((reloadSpeed+1.0) /4.0)*base;
-				var ReloadPerc : float = beeCtrlScript.m_ReloadTimer/reloadSpeed;
+				var ReloadPerc : float = 1-m_Weapon.GetComponent(WeaponScript).m_ReloadTimer/m_Weapon.GetComponent(WeaponScript).m_ReloadTime;
 				
 				//fast reload bar
 				// GUI.DrawTexture(Rect(Screen.width - 255, Screen.height - 20, 15,12), HiveBarTexture, ScaleMode.StretchToFill, true);
@@ -757,7 +759,7 @@ function DrawGUI()
 			
 			GUI.color.a = 1;
 			reloadSpeed = beeCtrlScript.m_Stats["Powershot_Reload"];
-			base  = 1.5;
+			var base  = 1.5;
 			reloadSpeed = base -  ((reloadSpeed+1.0) /4.0)*base;
 			ReloadPerc = beeCtrlScript.m_PowershotReloadTimer/reloadSpeed;
 			
@@ -899,27 +901,27 @@ function Show(show:boolean)
 	{
 		for(var child:Transform in transform)
 		{
-			if(child.gameObject.renderer != null)
-				child.gameObject.renderer.enabled = false;
+			if(child.gameObject.GetComponent.<Renderer>() != null)
+				child.gameObject.GetComponent.<Renderer>().enabled = false;
 		}
-		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = false;
-		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = false;
-		transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand/gun").gameObject.renderer.enabled = false;
+		transform.Find("Bee/NewBee/NewBee").gameObject.GetComponent.<Renderer>().enabled = false;
+		transform.Find("Bee/NewBee/BeeArmor").gameObject.GetComponent.<Renderer>().enabled = false;
+		transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand/gun").gameObject.GetComponent.<Renderer>().enabled = false;
 		if(transform.Find("Bee/NewBee/body/head/swag") != null)
-			transform.Find("Bee/NewBee/body/head/swag").gameObject.renderer.enabled = false;
+			transform.Find("Bee/NewBee/body/head/swag").gameObject.GetComponent.<Renderer>().enabled = false;
 	}
 	else
 	{	
 		for(var child:Transform in transform)
 		{
-			if(child.gameObject.renderer != null)
-				child.gameObject.renderer.enabled = true;
+			if(child.gameObject.GetComponent.<Renderer>() != null)
+				child.gameObject.GetComponent.<Renderer>().enabled = true;
 		}
-		transform.Find("Bee/NewBee/NewBee").gameObject.renderer.enabled = true;
-		transform.Find("Bee/NewBee/BeeArmor").gameObject.renderer.enabled = true;
-		transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand/gun").gameObject.renderer.enabled = true;
+		transform.Find("Bee/NewBee/NewBee").gameObject.GetComponent.<Renderer>().enabled = true;
+		transform.Find("Bee/NewBee/BeeArmor").gameObject.GetComponent.<Renderer>().enabled = true;
+		transform.Find("Bee/NewBee/body/r_shoulder/r_arm/r_hand/gun").gameObject.GetComponent.<Renderer>().enabled = true;
 		if(transform.Find("Bee/NewBee/body/head/swag") != null)
-			transform.Find("Bee/NewBee/body/head/swag").gameObject.renderer.enabled = true;
+			transform.Find("Bee/NewBee/body/head/swag").gameObject.GetComponent.<Renderer>().enabled = true;
 	}
 }
 
@@ -979,7 +981,7 @@ function OnBulletCollision(coll:BulletCollision)
 		if(GetComponent(BeeDashDecorator) != null)
 		{
 			coll.bullet.GetComponent(UpdateScript).m_Vel = Vector3.Reflect(coll.bullet.GetComponent(UpdateScript).m_Vel, GetComponent(UpdateScript).m_Vel.normalized);
-			networkView.RPC("DeflectBullet", RPCMode.All);
+			GetComponent.<NetworkView>().RPC("DeflectBullet", RPCMode.All);
 		}
 		else
 		if(coll.bullet.GetComponent(BulletScript).m_PowerShot )
@@ -991,11 +993,11 @@ function OnBulletCollision(coll:BulletCollision)
 				if(GetComponent(ItemDecorator) != null)
 				{
 					//drop item if we have it out
-					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+					ServerRPC.Buffer(GetComponent.<NetworkView>(), "ThrowItem", RPCMode.All);
 				}
 				if(m_HP - 3 <= 0)
 				{
-					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+					GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
 					KillAndRespawn(true);
 					CoinScript.SpawnCoins(transform.position, 3, coll.bullet.GetComponent(BulletScript).m_Owner);
@@ -1005,7 +1007,7 @@ function OnBulletCollision(coll:BulletCollision)
 				else
 				{
 					
-					networkView.RPC("SetHP", RPCMode.All, m_HP - 3);
+					GetComponent.<NetworkView>().RPC("SetHP", RPCMode.All, m_HP - 3);
 					
 					//notify shooting player of contact
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
@@ -1023,12 +1025,12 @@ function OnBulletCollision(coll:BulletCollision)
 				if(GetComponent(ItemDecorator) != null)
 				{
 					//drop item if we have it out
-					ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+					ServerRPC.Buffer(GetComponent.<NetworkView>(), "ThrowItem", RPCMode.All);
 				}
 				
 				if(m_HP - coll.bullet.GetComponent(BulletScript).m_BaseDmg <= 0)
 				{
-					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+					GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
 					CoinScript.SpawnCoins(transform.position, 3, coll.bullet.GetComponent(BulletScript).m_Owner);
 					KillAndRespawn(true);
@@ -1039,7 +1041,7 @@ function OnBulletCollision(coll:BulletCollision)
 				else
 				{
 				
-					networkView.RPC("SetHP", RPCMode.All, m_HP - coll.bullet.GetComponent(BulletScript).m_BaseDmg);
+					GetComponent.<NetworkView>().RPC("SetHP", RPCMode.All, m_HP - coll.bullet.GetComponent(BulletScript).m_BaseDmg);
 					
 					//notify shooting player of contact
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
@@ -1056,7 +1058,7 @@ function OnCollisionEnter(coll : Collision) {
 	{
 		if(coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != gameObject)
 		{
-			networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(HammerScript).m_Owner).m_Name+" pounded "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
+			GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(HammerScript).m_Owner).m_Name+" pounded "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 			KillAndRespawn(true);
 		}
 	}
@@ -1072,7 +1074,7 @@ function OnTriggerEnter(other:Collider)
 			if(GetComponent(ItemDecorator) != null)
 			{
 				//drop item if we have it out
-				ServerRPC.Buffer(networkView, "ThrowItem", RPCMode.All);
+				ServerRPC.Buffer(GetComponent.<NetworkView>(), "ThrowItem", RPCMode.All);
 			}
 			var point : Vector3 = transform.position - other.transform.position;
 			var dot:float = Vector3.Dot(point, other.gameObject.transform.right);
@@ -1086,7 +1088,7 @@ function OnTriggerEnter(other:Collider)
 				KillAndRespawn(true);
 			}
 			else
-				networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+				GetComponent.<NetworkView>().RPC("SetHP", RPCMode.All, m_HP - 1);
 		}
 		
 		else if(other.gameObject.tag == "Explosion" && (other.gameObject.GetComponent(BombExplosionScript).m_Owner != null && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team))
@@ -1105,7 +1107,7 @@ function OnTriggerEnter(other:Collider)
 		else
 		if(other.gameObject.tag == "Water")
 		{
-			ServerRPC.Buffer(gameObject.networkView, "Drown", RPCMode.All,Vector3.up);	
+			ServerRPC.Buffer(gameObject.GetComponent.<NetworkView>(), "Drown", RPCMode.All,Vector3.up);	
 		}
 	
 	}
@@ -1139,8 +1141,8 @@ function FindRespawnLocation() : Vector3
 			if(locs[i].GetComponent(RespawnScript).m_TeamOwner == clientInfo.m_Side)
 			{
 				m_Hive = locs[i];
-				locs[i].renderer.material.color = clientInfo.m_Color;
-				locs[i].transform.Find("Swarm").gameObject.renderer.material.SetColor("_TintColor", clientInfo.m_Color);
+				locs[i].GetComponent.<Renderer>().material.color = clientInfo.m_Color;
+				locs[i].transform.Find("Swarm").gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", clientInfo.m_Color);
 				var offset:Vector3 = Vector3(Random.Range(-1,1), 0, Random.Range(-1,1));
 				offset = offset.normalized *locs[i].GetComponent(RespawnScript).m_Radius;
 				pos= locs[i].transform.position+offset;
@@ -1160,9 +1162,9 @@ function KillAndRespawn(splat:boolean)
 		return;
 	//KillBee(true);
 	//Respawn(Vector3(0,0,0));
-	 ServerRPC.Buffer(networkView, "KillBee", RPCMode.All, splat);
+	 ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillBee", RPCMode.All, splat);
 	 var pos:Vector3 = FindRespawnLocation();
-	 ServerRPC.Buffer(networkView,"Respawn", RPCMode.All,pos);
+	 ServerRPC.Buffer(GetComponent.<NetworkView>(),"Respawn", RPCMode.All,pos);
 }
 
 function HasHive():boolean
@@ -1258,11 +1260,11 @@ function CalculateRank() : int
 		var ps : ParticleSystem = gb.GetComponent(ParticleSystem) as ParticleSystem;
 		
 		var color = NetworkUtils.GetColor(gameObject);
-		gb.renderer.material.SetColor("_TintColor", color);
+		gb.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 		ps.startSize = 16;
 
 		ps = gb.transform.Find("GrenadeInnerExplosion").GetComponent(ParticleSystem) as ParticleSystem;
-		ps.gameObject.renderer.material.SetColor("_TintColor", color);
+		ps.gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 		ps.startSize = 10;
 		ps = gb.transform.Find("GrenadeRing").GetComponent(ParticleSystem) as ParticleSystem;
 		//ps.gameObject.renderer.material.SetColor("_TintColor", renderer.material.color);
@@ -1270,18 +1272,18 @@ function CalculateRank() : int
 		
 		var go : GameObject = gameObject.Instantiate(m_DeathEffect);
 		go.transform.position = transform.position;
-		go.renderer.material.color = color;
+		go.GetComponent.<Renderer>().material.color = color;
 		
 		var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
 		splatter.transform.position = GetComponent(TerrainCollisionScript).m_TerrainInfo.point + Vector3.up*01;
 		splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.up);
-		splatter.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
+		splatter.GetComponent.<Renderer>().material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
 		splatter.transform.localScale *= 1.5;
 		
 		var deathEffect:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/ExplosionParticles"));
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
-		deathEffect.transform.GetChild(0).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
-		deathEffect.transform.GetChild(1).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
+		deathEffect.transform.GetChild(0).gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
+		deathEffect.transform.GetChild(1).gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
 		// for(var i:int = 0; i < 6; i++)
 		// {
 			// var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
@@ -1438,7 +1440,7 @@ function Hurt()
 		if(Network.isServer)
 		{
 			var pos:Vector3 = FindRespawnLocation();
-			networkView.RPC("Respawn", RPCMode.All, pos);
+			GetComponent.<NetworkView>().RPC("Respawn", RPCMode.All, pos);
 		}
 	}
 	
@@ -1462,7 +1464,7 @@ function Hurt()
 			if(GetComponent(ItemDecorator) != null &&
 			   GetComponent(ItemDecorator).GetItem().tag == "Rocks")
 			   {
-				 networkView.RPC("ThrowRock",RPCMode.All,GetComponent(ItemDecorator).GetItem().name);
+				 GetComponent.<NetworkView>().RPC("ThrowRock",RPCMode.All,GetComponent(ItemDecorator).GetItem().name);
 			   }
 		}
 	}
@@ -1487,7 +1489,7 @@ function Hurt()
 	var go : GameObject = gameObject.Instantiate(m_WorkerBeeInstance);
 	go.GetComponent(WorkerBeeScript).m_Owner = gameObject;
 	var color = NetworkUtils.GetColor(gameObject);
-	go.renderer.material.color= color;
+	go.GetComponent.<Renderer>().material.color= color;
 	//Debug.Log("adding swarm to "+tgt);
 	if(tgt != "")
 	{
@@ -1525,7 +1527,7 @@ function Hurt()
 		}
 		
 		m_WorkerBees--;
-		flowerDec.GetFlower().transform.Find("Flower_Minimap").renderer.material.color = color;
+		flowerDec.GetFlower().transform.Find("Flower_Minimap").GetComponent.<Renderer>().material.color = color;
 		flowerDec.m_FlashTimer = 1;
 		flowerDec.Reset();
 		flowerDec.m_SwarmCreated = true;
@@ -1602,7 +1604,7 @@ function Hurt()
 	
 		
 		//flowerDec.GetFlower().GetComponent(PollenNetworkScript).m_Owner = gameObject;
-		flowerDec.GetFlower().animation.Play("Flower");
+		flowerDec.GetFlower().GetComponent.<Animation>().Play("Flower");
 		AudioSource.PlayClipAtPoint(flowerComp.m_BuildComplete, transform.position);
 	}
 	
@@ -1616,8 +1618,8 @@ function Hurt()
 	
 	go.GetComponent(BeeParticleScript).m_Owner = gameObject;
 	var color = NetworkUtils.GetColor(gameObject);
-	go.renderer.material.color= color;
-	go.renderer.material.SetColor("_TintColor", color);
+	go.GetComponent.<Renderer>().material.color= color;
+	go.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 	//Debug.Log("adding swarm to "+tgt);
 	if(tgt != "")
 	{
@@ -1693,7 +1695,7 @@ function Hurt()
 		GetComponent(HoneyDepositDecorator).m_PollenCount = m_PollenCount;
 		m_Honey += (m_PollenCount+ ((m_PollenCount / 3) *2));
 		
-		audio.PlayClipAtPoint(m_CashInSound, transform.position);
+		GetComponent.<AudioSource>().PlayClipAtPoint(m_CashInSound, transform.position);
 		
 		// if(NetworkUtils.IsControlledGameObject(gameObject))
 		// {
@@ -1732,7 +1734,7 @@ function Hurt()
 	GameEventMessenger.QueueMessage(NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" built a hive");
 	var go : GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Hive"));
 	go.name = go.name+gameObject.name;
-	go.renderer.material.color = m_Color;
+	go.GetComponent.<Renderer>().material.color = m_Color;
 	go.transform.position = pos; 
 	//go.transform.localScale *= 20;
 	go.GetComponent(HiveScript).m_Owner = gameObject;
@@ -1742,12 +1744,12 @@ function Hurt()
 	if(NetworkUtils.IsLocalGameObject(gameObject) )
 	{
 		var txt : GameObject  = gameObject.Find("GUITexture");	
-		txt.transform.position = m_Camera.camera.WorldToViewportPoint(transform.position);
+		txt.transform.position = m_Camera.GetComponent.<Camera>().WorldToViewportPoint(transform.position);
 		txt.transform.position.y += 0.03;
 		if(!txt.GetComponent(GUITexture).enabled)
 		{
 			txt.GetComponent(GUITexture).enabled = true;
-			txt.animation.Play();
+			txt.GetComponent.<Animation>().Play();
 		}
 	}
 	GetComponent(PedestalDecorator).m_Pedestal.GetComponent(PollenNetworkScript).m_Owner = gameObject;

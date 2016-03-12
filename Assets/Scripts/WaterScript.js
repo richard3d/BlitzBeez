@@ -25,9 +25,9 @@ function Update () {
 	transform.position.y = m_OrigPosition.y +m_Height+ Mathf.Sin(Time.time) *2;
 
 	var amt = Time.deltaTime;
-	renderer.material.mainTextureOffset.y -= amt*0.02;
-	var offset = renderer.material.GetTextureOffset ("_BumpMap");
-	renderer.material.SetTextureOffset ("_BumpMap", Vector2(0,offset.y+amt*0.02));
+	GetComponent.<Renderer>().material.mainTextureOffset.y -= amt*0.02;
+	var offset = GetComponent.<Renderer>().material.GetTextureOffset ("_BumpMap");
+	GetComponent.<Renderer>().material.SetTextureOffset ("_BumpMap", Vector2(0,offset.y+amt*0.02));
 
 }
 

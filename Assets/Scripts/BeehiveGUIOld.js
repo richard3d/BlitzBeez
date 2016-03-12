@@ -91,7 +91,7 @@ function Start () {
 	 }
 	 
 	 //register event listeners
-	 m_MenuListener.m_nView = networkView;
+	 m_MenuListener.m_nView = GetComponent.<NetworkView>();
 	 m_WeaponsMenu.RegisterEventListener(m_MenuListener);
 	 m_StatsMenu.RegisterEventListener(m_MenuListener);
 	 m_HiveMenu.RegisterEventListener(m_MenuListener);
@@ -123,7 +123,7 @@ function Update () {
 function OnNetworkInput(IN : InputState)
 {
 
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}
@@ -131,7 +131,7 @@ function OnNetworkInput(IN : InputState)
 	{
 		
 		if(Network.isServer && m_Fade >= 1)
-			networkView.RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
+			GetComponent.<NetworkView>().RPC("ShowHiveGUI", RPCMode.All, 0, "Hive");
 			// ExitHive();
 		// else
 			// networkView.RPC("ExitHive", RPCMode.Server);
@@ -176,7 +176,7 @@ function Show(bShow : boolean)
 	
 	if(m_bShow)
 	{
-		Screen.showCursor = true;
+		Cursor.visible = true;
 		Debug.Log("Showing");
 		m_MainSelIndex = 0;
 		//m_CurrSelMenu.Push(m_MainMenu);
@@ -184,7 +184,7 @@ function Show(bShow : boolean)
 	}
 	else
 	{
-		Screen.showCursor = false;
+		Cursor.visible = false;
 		
 		m_Fade = 0;
 		Camera.main.orthographicSize = 100;

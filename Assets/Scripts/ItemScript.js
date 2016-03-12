@@ -11,14 +11,14 @@ function Start () {
 
 	if(transform.parent != null && transform.parent.gameObject.tag == "Trees")
 	{	
-		renderer.enabled = false;
+		GetComponent.<Renderer>().enabled = false;
 	}
 	GetComponent(UpdateScript).m_Accel.y = -289.8;
 }
 
 function Update () {
     
-	rigidbody.velocity = Vector3(0,0,0);
+	GetComponent.<Rigidbody>().velocity = Vector3(0,0,0);
 	var Comp : UpdateScript = GetComponent(UpdateScript) as UpdateScript;
 	if(Comp == null)
 		return;
@@ -40,7 +40,7 @@ function Update () {
 						transform.position.y = Terr.m_TerrainInfo.point.y+0.2;
 						Comp.m_Vel.y *= -0.75;
 						if(Mathf.Abs(Comp.m_Vel.y) > 25)
-							networkView.RPC("ItemCollision", RPCMode.All);
+							GetComponent.<NetworkView>().RPC("ItemCollision", RPCMode.All);
 						//Debug.Log(Comp.m_Vel.y+ " "+Comp.m_Accel.magnitude*Time.deltaTime);
 						if(Mathf.Abs(Comp.m_Vel.y) > 10)
 						{
@@ -59,7 +59,7 @@ function Update () {
 						transform.position.y = size+Terr.m_TerrainInfo.point.y;
 						Comp.m_Vel.y *= -0.75;
 						if(Mathf.Abs(Comp.m_Vel.y) > 25)
-							networkView.RPC("ItemCollision", RPCMode.All);
+							GetComponent.<NetworkView>().RPC("ItemCollision", RPCMode.All);
 						if(Comp.m_Vel.magnitude < 0.1)
 						{
 							//Debug.Log("Setting zero");
@@ -95,7 +95,7 @@ function Update () {
 		if(m_BlinkTimer	< 0)
 		{
 			m_BlinkTimer = 0.1;
-			renderer.enabled = !renderer.enabled;
+			GetComponent.<Renderer>().enabled = !GetComponent.<Renderer>().enabled;
 			//GetComponentInChildren(Renderer).enabled = !GetComponentInChildren(Renderer).enabled;
 			for(var t :Transform in transform)
 			{
@@ -113,7 +113,7 @@ function OnTriggerEnter(coll:Collider)
 	{
 		if(Network.isServer && gameObject.tag != "Coins")
 		{
-			ServerRPC.Buffer(networkView, "AddItemToPlayerInvetory", RPCMode.All, coll.gameObject.name);
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "AddItemToPlayerInvetory", RPCMode.All, coll.gameObject.name);
 			ServerRPC.DeleteFromBuffer(gameObject);
 		}
 	}
@@ -185,13 +185,13 @@ function OnCollisionStay(coll : Collision)
 		if(go.GetComponent(BeeScript).m_Inventory[0].m_Item == null)
 		{	
 			go.GetComponent(BeeScript).m_Inventory[0].m_Item = m_ItemToGive;
-			go.GetComponent(BeeScript).m_Inventory[0].m_Img = renderer.material.mainTexture;
+			go.GetComponent(BeeScript).m_Inventory[0].m_Img = GetComponent.<Renderer>().material.mainTexture;
 		}
 		else
 		if(go.GetComponent(BeeScript).m_Inventory[1].m_Item == null)
 		{	
 			go.GetComponent(BeeScript).m_Inventory[1].m_Item = m_ItemToGive;
-			go.GetComponent(BeeScript).m_Inventory[1].m_Img = renderer.material.mainTexture;
+			go.GetComponent(BeeScript).m_Inventory[1].m_Img = GetComponent.<Renderer>().material.mainTexture;
 		}
 	}
 	Destroy(gameObject);

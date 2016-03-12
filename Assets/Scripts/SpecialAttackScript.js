@@ -54,7 +54,7 @@ function Start () {
 			continue;
 		if(Network.isServer)
 		{
-			ServerRPC.Buffer( hitInfo.transform.gameObject.networkView, "SetHP", RPCMode.All, 0);
+			ServerRPC.Buffer( hitInfo.transform.gameObject.GetComponent.<NetworkView>(), "SetHP", RPCMode.All, 0);
 		}
 	}
 	
@@ -65,7 +65,7 @@ function Start () {
 	{
 		var hp:int = hitHive.GetComponent(HiveScript).m_HP;
 		if(Network.isServer)
-					hitHive.networkView.RPC("DamageHive", RPCMode.All, dmg);
+					hitHive.GetComponent.<NetworkView>().RPC("DamageHive", RPCMode.All, dmg);
 	
 		var d = m_Duration/dmg;
 		DoHitEffect(3.0, d,hitHive, hp);
@@ -91,7 +91,7 @@ function DoHitEffect(duration:float, delta:float, hitHive:GameObject, maxHits:in
 		var pos:Vector3 = hitHive.GetComponent(MeshFilter).mesh.vertices[vertIndex];
 		pos = hitHive.transform.TransformPoint(pos);
 		var hitEffect:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/SpecialAttackHitEffect"), pos,Quaternion.identity);
-		audio.PlayClipAtPoint(m_HitSoundEffect, hitHive.transform.position);
+		GetComponent.<AudioSource>().PlayClipAtPoint(m_HitSoundEffect, hitHive.transform.position);
 		if(hitHive.GetComponent(FlasherDecorator) == null)
 		{
 			hitHive.AddComponent(FlasherDecorator);
@@ -109,9 +109,9 @@ function DoHitEffect(duration:float, delta:float, hitHive:GameObject, maxHits:in
 		}
 		
 		kudosText.name = "HitText";
-		kudosText.animation.Stop();
-		kudosText.animation["KudosText"].time = 0;
-		kudosText.animation.Play("KudosText");
+		kudosText.GetComponent.<Animation>().Stop();
+		kudosText.GetComponent.<Animation>()["KudosText"].time = 0;
+		kudosText.GetComponent.<Animation>().Play("KudosText");
 		kudosText.GetComponent(GUIText).material.color =  hitCount %2 == 0 ? Color.yellow : Color.black;
 		kudosText.GetComponent(KudosTextScript).m_Pos = hitHive.transform.position;
 		kudosText.GetComponent(KudosTextScript).m_Pos.y = transform.position.y;

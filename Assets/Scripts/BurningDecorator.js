@@ -29,7 +29,7 @@ function Update () {
 		{
 			if(Network.isServer)
 			{
-				ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "BurningDecorator");
+				ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "BurningDecorator");
 			}
 		}
 		m_NumDashes++;
@@ -46,12 +46,12 @@ function Update () {
 				var m_HP:int = GetComponent(BeeScript).m_HP;
 				if(m_HP - 1 <= 0)
 				{
-					networkView.RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" burned to a crisp");
+					GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" burned to a crisp");
 					GetComponent(BeeScript).KillAndRespawn(true);
 				}
 				else
 				{
-					networkView.RPC("SetHP", RPCMode.All, m_HP - 1);
+					GetComponent.<NetworkView>().RPC("SetHP", RPCMode.All, m_HP - 1);
 				}
 			}
 		}
@@ -62,7 +62,7 @@ function Update () {
 function OnDestroy()
 {
 	m_BurningEffect.transform.parent = null;
-	m_BurningEffect.renderer.enabled = true;
+	m_BurningEffect.GetComponent.<Renderer>().enabled = true;
 	m_BurningEffect.GetComponent(ParticleSystem).enableEmission = false;
 	m_BurningEffect.GetComponent(ParticleAutoDestructScript).enabled = true;
 	m_BurningEffect.GetComponent(ParticleAutoDestructScript).m_Lifetime = 2;

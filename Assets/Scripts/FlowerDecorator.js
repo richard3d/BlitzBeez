@@ -44,19 +44,19 @@ function Start () {
 	{
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
-			m_Flower.audio.Play();
+			m_Flower.GetComponent.<AudioSource>().Play();
 		}
 		m_ProgressEffect = GameObject.Instantiate(m_Flower.GetComponent(FlowerScript).m_ProgressEffectInstance);
 		m_ProgressEffect.transform.position = m_Flower.transform.position + Vector3.up * 6;
 		m_ProgressEffect.transform.localScale = Vector3(25,0,25);
-		m_ProgressEffect.renderer.material.SetColor("_Emission", NetworkUtils.GetColor(gameObject)*0.5);
+		m_ProgressEffect.GetComponent.<Renderer>().material.SetColor("_Emission", NetworkUtils.GetColor(gameObject)*0.5);
 	}
 
 	var color = NetworkUtils.GetColor(gameObject);
 	m_FlowerShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Flower.transform.position + Vector3.up * 16,Quaternion.identity);
 	m_FlowerShieldEffect.name = "FlowerShield";
 	m_FlowerShieldEffect.transform.localEulerAngles = Vector3(0,180,0);
-	m_FlowerShieldEffect.animation.Play();
+	m_FlowerShieldEffect.GetComponent.<Animation>().Play();
 	m_FlowerShieldEffect.GetComponent(FlowerShieldScript).m_Owner = gameObject;
 
 }
@@ -69,7 +69,7 @@ function SetLifetime(life:float)
 function OnNetworkInput(IN : InputState)
 {
 	
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}
@@ -87,7 +87,7 @@ function OnNetworkInput(IN : InputState)
 	
 	if(!IN.GetAction(IN.USE))
 	{
-		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "FlowerDecorator");
+		ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "FlowerDecorator");
 	}
 	
 	
@@ -107,7 +107,7 @@ function Update () {
 			transform.eulerAngles = Vector3(0,0,0);
 			
 		if(m_ProgressEffect != null)
-			m_ProgressEffect.renderer.material.SetFloat("_Cutoff", 1.0);
+			m_ProgressEffect.GetComponent.<Renderer>().material.SetFloat("_Cutoff", 1.0);
 		return;
 	}
 
@@ -142,7 +142,7 @@ function Update () {
 		m_LifeTimer += Time.deltaTime;
 		
 		if(m_ProgressEffect != null)
-			m_ProgressEffect.renderer.material.SetFloat("_Cutoff", 1.01-Mathf.Min(m_LifeTimer/m_Lifetime,1));
+			m_ProgressEffect.GetComponent.<Renderer>().material.SetFloat("_Cutoff", 1.01-Mathf.Min(m_LifeTimer/m_Lifetime,1));
 		//m_ProgressEffect.transform.eulerAngles.y = transform.eulerAngles.y+180;
 	}
 	else
@@ -177,7 +177,7 @@ function Update () {
 				if(GetComponent(BeeScript).m_WorkerBees > 0)
 				{
 					offset  = Vector3(0,200,0);
-					ServerRPC.Buffer(networkView,"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
+					ServerRPC.Buffer(GetComponent.<NetworkView>(),"AddWorkerBee", RPCMode.All,m_Flower.name, offset);
 					m_NumWorkersAdded++;
 					CoinScript.SpawnCoins(transform.position + Vector3.up *transform.localScale.magnitude*4 ,m_NumWorkersAdded * 3,gameObject);
 					// if(Network.isServer)
@@ -237,7 +237,7 @@ function OnGUI()
 	{
 		var width : float = 100;
 		var perc : float =   Mathf.Min(m_LifeTimer/m_Lifetime,1) * width;	
-		var pos : Vector3 = m_Camera.camera.WorldToScreenPoint(m_Flower.transform.position + Vector3.up * transform.localScale.z*6);
+		var pos : Vector3 = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(m_Flower.transform.position + Vector3.up * transform.localScale.z*6);
 		//GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y, width, 10), m_Flower.GetComponent(FlowerScript).BaseTexture);
 	//	GUI.DrawTexture(Rect(pos.x- width* 0.5,Screen.height-pos.y,perc,10), m_Flower.GetComponent(FlowerScript).LifeTexture);
 		
@@ -279,17 +279,17 @@ function OnGUI()
 
 function OnDestroy()
 {
-	m_Flower.audio.Stop();
-	m_Flower.collider.enabled = true;
+	m_Flower.GetComponent.<AudioSource>().Stop();
+	m_Flower.GetComponent.<Collider>().enabled = true;
 	Destroy(m_FlowerShieldEffect);
 	m_Flower.GetComponent(FlowerScript).m_Occupied = false;
 	
 	if(m_Flower.GetComponent(FlowerScript).m_ShieldEffect != null)
 	{
-		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.renderer.enabled = true;
-		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").renderer.enabled = true;
-		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
-		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.GetComponent.<Renderer>().enabled = true;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Renderer>().enabled = true;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Animation>().Stop();
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Animation>().Play("FlowerShield");
 	}
 	
 	if(!m_SwarmCreated)
@@ -321,12 +321,12 @@ function OnDestroy()
 			shield.name = "Shield";
 			shield.transform.position = m_Flower.transform.position;
 			color.a  = 0.5;
-			shield.renderer.material.SetColor("_TintColor", color);
+			shield.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 			color*=0.5;
 			color.a = 0.392*0.5;
-			shield.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
+			shield.transform.Find("ShieldSphere").GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 			m_Flower.GetComponent(FlowerScript).m_ShieldEffect = shield;
-			m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+			m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Animation>().Play("FlowerShield");
 			//m_ShieldEffect.transform.parent = m_Flower.transform;
 			
 			
@@ -381,11 +381,11 @@ function SetFlower(flower : GameObject)
 {
 	m_Flower = flower;
 	
-	m_Flower.collider.enabled = false;
+	m_Flower.GetComponent.<Collider>().enabled = false;
 	if(m_Flower.GetComponent(FlowerScript).m_ShieldEffect != null)
 	{
-		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.renderer.enabled = false;
-		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").renderer.enabled = false;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.GetComponent.<Renderer>().enabled = false;
+		m_Flower.GetComponent(FlowerScript).m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Renderer>().enabled = false;
 	}
 	
 }

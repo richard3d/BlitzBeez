@@ -23,7 +23,7 @@ function Update () {
 		else
 		{
 			transform.localScale = Vector3.Lerp(m_EndScale, m_StartScale, m_Lifetimer/m_Lifetime);
-			renderer.material.SetColor("_TintColor",Color.Lerp(m_EndColor, m_StartColor,m_Lifetimer/m_Lifetime));
+			GetComponent.<Renderer>().material.SetColor("_TintColor",Color.Lerp(m_EndColor, m_StartColor,m_Lifetimer/m_Lifetime));
 		}
 	}
 

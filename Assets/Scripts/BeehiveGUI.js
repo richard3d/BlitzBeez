@@ -44,7 +44,7 @@ function Start () {
 		m_Camera = GetComponent(BeeScript).m_Camera;
 		if(m_Camera)
 		{
-			if(m_Camera.camera.rect.height < 1)
+			if(m_Camera.GetComponent.<Camera>().rect.height < 1)
 			{
 				m_GUISkin.GetStyle("MenuText").fontSize = 18; 
 				m_GUISkin.GetStyle("DescriptionText").fontSize = 18;
@@ -87,7 +87,7 @@ function Update () {
 
 function OnNetworkInput(IN : InputState)
 {
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}
@@ -103,7 +103,7 @@ function OnNetworkInput(IN : InputState)
 		var t:Talent = TalentTree.m_Talents[m_Selection[m_CurrSelIndex]] as Talent;
 		if(t.m_Cost <= GetComponent(BeeScript).m_NumUpgradesAvailable)
 		{
-			networkView.RPC("Upgrade", RPCMode.All, m_CurrSelIndex);
+			GetComponent.<NetworkView>().RPC("Upgrade", RPCMode.All, m_CurrSelIndex);
 			//networkView.RPC("Upgrade", RPCMode.All, m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_StatName,m_LvlUpSelections[m_CurrLevel].m_Selections[m_CurrSelIndex].m_Value);
 			//if(Network.isServer )
 			//	networkView.RPC("ShowHiveGUI", RPCMode.All, 0);
@@ -114,32 +114,32 @@ function OnNetworkInput(IN : InputState)
 	if(IN.GetActionBuffered(IN.USE))
 	{
 		if(Network.isServer )
-				networkView.RPC("ShowHiveGUI", RPCMode.All, 0);
+				GetComponent.<NetworkView>().RPC("ShowHiveGUI", RPCMode.All, 0);
 	}
 	
 	if(IN.GetAction(IN.MOVE_UP) && IN.GetAction(IN.MOVE_LEFT))
 	{
-		networkView.RPC("SetSelectionIndex",RPCMode.All, 5);
+		GetComponent.<NetworkView>().RPC("SetSelectionIndex",RPCMode.All, 5);
 	}
 	else if(IN.GetAction(IN.MOVE_UP)&& IN.GetAction(IN.MOVE_RIGHT))
 	{
-		networkView.RPC("SetSelectionIndex",RPCMode.All, 1);
+		GetComponent.<NetworkView>().RPC("SetSelectionIndex",RPCMode.All, 1);
 	}
 	else if(IN.GetAction(IN.MOVE_UP))
 	{
-		networkView.RPC("SetSelectionIndex",RPCMode.All, 0);
+		GetComponent.<NetworkView>().RPC("SetSelectionIndex",RPCMode.All, 0);
 	}
 	else if(IN.GetAction(IN.MOVE_BACK) && IN.GetAction(IN.MOVE_LEFT))
 	{
-		networkView.RPC("SetSelectionIndex",RPCMode.All, 4);
+		GetComponent.<NetworkView>().RPC("SetSelectionIndex",RPCMode.All, 4);
 	}
 	else if(IN.GetAction(IN.MOVE_BACK) && IN.GetAction(IN.MOVE_RIGHT))
 	{
-		networkView.RPC("SetSelectionIndex",RPCMode.All, 2);
+		GetComponent.<NetworkView>().RPC("SetSelectionIndex",RPCMode.All, 2);
 	}
 	else if(IN.GetAction(IN.MOVE_BACK))
 	{
-		networkView.RPC("SetSelectionIndex",RPCMode.All, 3);
+		GetComponent.<NetworkView>().RPC("SetSelectionIndex",RPCMode.All, 3);
 	}
 }
 
@@ -215,12 +215,12 @@ function Show(bShow : boolean)
 	{
 		if(m_bShow)
 		{
-			Screen.showCursor = true;
+			Cursor.visible = true;
 			Debug.Log("Showing");
 			m_CurrSelIndex = 0;
-			animation["BeeGUIOpen"].time = 0;
-			animation["BeeGUIOpen"].speed = 1;
-			animation.Play("BeeGUIOpen");
+			GetComponent.<Animation>()["BeeGUIOpen"].time = 0;
+			GetComponent.<Animation>()["BeeGUIOpen"].speed = 1;
+			GetComponent.<Animation>().Play("BeeGUIOpen");
 			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(5,10,48);
 			m_Camera.GetComponent(CameraScript).m_FocalOffset.x = -10;
 		//	m_Camera.GetComponent(DepthOfFieldScatter).enabled = true;
@@ -231,25 +231,25 @@ function Show(bShow : boolean)
 			m_Camera.GetComponent(CameraScript).m_CamPos = transform.position;
 			m_Camera.GetComponent(CameraScript).Snap();
 		
-			transform.Find("Bee/NewBee").animation.Play("idle");
+			transform.Find("Bee/NewBee").GetComponent.<Animation>().Play("idle");
 			GetComponent(BeeScript).SetGUIEnabled(false);
 			AudioSource.PlayClipAtPoint(m_MenuShow, Camera.main.transform.position);	
 
 			m_Coin = GameObject.Instantiate(Resources.Load("GameObjects/CoinImposter"));	
-			Debug.Log("cam "+m_Camera.camera.pixelRect);
-			var camWidth = m_Camera.camera.rect.width;
-			var camScale = m_Camera.camera.rect.width;
-			var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
+			Debug.Log("cam "+m_Camera.GetComponent.<Camera>().pixelRect);
+			var camWidth = m_Camera.GetComponent.<Camera>().rect.width;
+			var camScale = m_Camera.GetComponent.<Camera>().rect.width;
+			var camPos:Vector2 = Vector2(m_Camera.GetComponent.<Camera>().rect.x*Screen.width,Mathf.Abs(m_Camera.GetComponent.<Camera>().rect.y - 0.5)*Screen.height);
 			
-			if(m_Camera.camera.rect.y == 0.0 &&  m_Camera.camera.rect.height == 1)
+			if(m_Camera.GetComponent.<Camera>().rect.y == 0.0 &&  m_Camera.GetComponent.<Camera>().rect.height == 1)
 				camPos.y = 0;
 				
-			var bottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
-			var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
-			m_Coin.GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.camera.pixelRect.x,bottom - 64,64,64));
+			var bottom:float = camPos.y +m_Camera.GetComponent.<Camera>().rect.height*Screen.height;
+			var right:float = camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width;
+			m_Coin.GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x,bottom - 64,64,64));
 			var h  =64;// m_Coin.transform.GetChild(0).GetComponent(GUIScript).m_Style.fontSize;
-			m_Coin.transform.GetChild(0).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.camera.pixelRect.x+68,bottom - 64,200, h));
-			m_Coin.transform.GetChild(1).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.camera.pixelRect.x+66,bottom - 62,200, h));			
+			m_Coin.transform.GetChild(0).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x+68,bottom - 64,200, h));
+			m_Coin.transform.GetChild(1).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x+66,bottom - 62,200, h));			
 			m_Coin.transform.GetChild(0).GetComponent(GUIScript).m_Style.alignment = TextAnchor.MiddleLeft;
 			m_Coin.transform.GetChild(1).GetComponent(GUIScript).m_Style.alignment = TextAnchor.MiddleLeft;
 			
@@ -259,19 +259,19 @@ function Show(bShow : boolean)
 		{
 			
 			
-			Screen.showCursor = false;
+			Cursor.visible = false;
 			m_Fade = 0;
 			
 			//hide the menu
-			animation["BeeGUIOpen"].speed = -1;
-			animation["BeeGUIOpen"].time = animation["BeeGUIOpen"].length;
-			animation.Play("BeeGUIOpen");
+			GetComponent.<Animation>()["BeeGUIOpen"].speed = -1;
+			GetComponent.<Animation>()["BeeGUIOpen"].time = GetComponent.<Animation>()["BeeGUIOpen"].length;
+			GetComponent.<Animation>().Play("BeeGUIOpen");
 			
 			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
 			m_Camera.GetComponent(CameraScript).m_FocalOffset.x = 0;
 			m_Camera.GetComponent(DepthOfFieldScatter).enabled = false;
 			GetComponent(BeeScript).SetGUIEnabled(true);
-			transform.Find("Bee/NewBee").animation.Play("fly");
+			transform.Find("Bee/NewBee").GetComponent.<Animation>().Play("fly");
 			AudioSource.PlayClipAtPoint(m_MenuHide, Camera.main.transform.position);
 			
 			if(m_Coin)
@@ -293,20 +293,20 @@ function OnGUI()
 		if(m_Fade < 1 && m_bShow)
 		{
 			m_Fade += Time.deltaTime * 2;
-			m_Camera.camera.orthographicSize -= Time.deltaTime * 90;
+			m_Camera.GetComponent.<Camera>().orthographicSize -= Time.deltaTime * 90;
 		}
 		
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject)) 
 		{
-			var camScaleX  = m_Camera.camera.rect.width;
-			var camScaleY  = m_Camera.camera.rect.height;
+			var camScaleX  = m_Camera.GetComponent.<Camera>().rect.width;
+			var camScaleY  = m_Camera.GetComponent.<Camera>().rect.height;
 		
-			var camWidth = m_Camera.camera.rect.width*Screen.width;
-			var camHeight = m_Camera.camera.rect.height*Screen.height;
-			var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(1.0-(m_Camera.camera.rect.y+m_Camera.camera.rect.height) )*Screen.height);
+			var camWidth = m_Camera.GetComponent.<Camera>().rect.width*Screen.width;
+			var camHeight = m_Camera.GetComponent.<Camera>().rect.height*Screen.height;
+			var camPos:Vector2 = Vector2(m_Camera.GetComponent.<Camera>().rect.x*Screen.width,Mathf.Abs(1.0-(m_Camera.GetComponent.<Camera>().rect.y+m_Camera.GetComponent.<Camera>().rect.height) )*Screen.height);
 			
-			var camBottom:float = camPos.y +m_Camera.camera.rect.height*Screen.height;
+			var camBottom:float = camPos.y +m_Camera.GetComponent.<Camera>().rect.height*Screen.height;
 			//var right:float = camPos.x + Screen.width* m_Camera.camera.rect.width;
 			//var camPixWidth = m_Camera.camera.rect.width*
 			//draw background

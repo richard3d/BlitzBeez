@@ -63,7 +63,7 @@ function OnTriggerStay(coll : Collider)
 				if(!txt.GetComponent(GUITexture).enabled)
 				{
 					txt.GetComponent(GUITexture).enabled = true;
-					txt.animation.Play();
+					txt.GetComponent.<Animation>().Play();
 				}
 			}
 		}
@@ -99,8 +99,8 @@ function OnTriggerExit(coll : Collider)
 
 function Activate()
 {
-	m_TempTexture = renderer.material.mainTexture;
-	renderer.material.mainTexture = m_ActivatedTexture;
+	m_TempTexture = GetComponent.<Renderer>().material.mainTexture;
+	GetComponent.<Renderer>().material.mainTexture = m_ActivatedTexture;
 	m_Activated = true;
 }
 

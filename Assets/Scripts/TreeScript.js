@@ -35,7 +35,7 @@ function OnTriggerStay(coll : Collider)
 				if(!txt.GetComponent(GUITexture).enabled)
 				{
 					//txt.GetComponent(GUITexture).enabled = true;
-					txt.animation.Play();
+					txt.GetComponent.<Animation>().Play();
 				}
 			}
 		}
@@ -68,10 +68,10 @@ function OnTriggerEnter(coll : Collider)
 	if(coll.gameObject.tag == "Player")
 	{		
 		//burn the player if the fire animation is playing
-		if(animation.isPlaying && coll.gameObject.GetComponent(BurningDecorator) == null)
+		if(GetComponent.<Animation>().isPlaying && coll.gameObject.GetComponent(BurningDecorator) == null)
 		{
 			if(coll.gameObject.GetComponent(BeeScript).m_HP-1 > 0)
-				coll.gameObject.networkView.RPC("Burn", RPCMode.All);
+				coll.gameObject.GetComponent.<NetworkView>().RPC("Burn", RPCMode.All);
 			else	
 				coll.gameObject.GetComponent(BeeScript).KillAndRespawn(true);
 		}
@@ -146,7 +146,7 @@ function OnCollisionEnter(coll : Collision)
 				player.GetComponent(TreeHideDecorator).m_Tree == gameObject)
 			{
 				diff.y = 0;
-				ServerRPC.Buffer(player.networkView, "KillBee", RPCMode.All, true);
+				ServerRPC.Buffer(player.GetComponent.<NetworkView>(), "KillBee", RPCMode.All, true);
 				//player.networkView.RPC("RemoveTreeDecorator", RPCMode.All, -diff);
 				
 			}
@@ -180,8 +180,8 @@ function OnCollisionEnter(coll : Collision)
 	go.transform.parent = gameObject.transform;
 	go.transform.position = gameObject.transform.position;
 	go.transform.position.y = 7;
-	animation.Stop();
-	animation.Play();	
+	GetComponent.<Animation>().Stop();
+	GetComponent.<Animation>().Play();	
 }
 
 function OnCollisionStay(coll : Collision)

@@ -23,10 +23,10 @@ function Update () {
 			m_HideTimer -= Time.deltaTime;
 			if(m_HideTimer <= 0)
 			{
-				renderer.enabled = false;
+				GetComponent.<Renderer>().enabled = false;
 				for(var t:Transform in transform)
 				{
-					t.renderer.enabled = false;
+					t.GetComponent.<Renderer>().enabled = false;
 				}
 				
 			}
@@ -54,7 +54,7 @@ function Update () {
 					transform.position.y = Terr.m_TerrainInfo.point.y+transform.localScale.y;
 					Comp.m_Vel = Vector3(0,0,0);
 					Comp.m_Accel = Vector3(0,0,0);
-					ServerRPC.Buffer(networkView,"ArmMine", RPCMode.All); 
+					ServerRPC.Buffer(GetComponent.<NetworkView>(),"ArmMine", RPCMode.All); 
 					
 				}	
 			}
@@ -69,7 +69,7 @@ function OnTriggerEnter(coll : Collider)
 		Debug.Log(coll.gameObject.tag);
 		if(/*m_Owner != coll.gameObject &&*/(coll.gameObject.tag == "Player" || coll.gameObject.tag == "Bears") && m_Armed)
 		{
-			ServerRPC.Buffer(networkView,"TriggerMine", RPCMode.All); 
+			ServerRPC.Buffer(GetComponent.<NetworkView>(),"TriggerMine", RPCMode.All); 
 			
 		}
 	}
@@ -78,10 +78,10 @@ function OnTriggerEnter(coll : Collider)
 @RPC function TriggerMine()
 {
 	m_TriggerTimer = 0.5;
-	renderer.enabled = true;
+	GetComponent.<Renderer>().enabled = true;
 	for(var t:Transform in transform)
 	{
-		t.renderer.enabled = true;
+		t.GetComponent.<Renderer>().enabled = true;
 	}
 }
 
@@ -91,7 +91,7 @@ function OnTriggerEnter(coll : Collider)
 	//var rds:Renderer[] = GetComponentsInChildren(Renderer);
 	for(var t:Transform in transform)
 	{
-		t.renderer.material.color = Color.red;
+		t.GetComponent.<Renderer>().material.color = Color.red;
 	}
 	m_HideTimer=1;
 }
@@ -116,7 +116,7 @@ function Explode()
 	if(Network.isServer)
 	{
 		
-		ServerRPC.Buffer(networkView, "KillMine", RPCMode.All);
+		ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillMine", RPCMode.All);
 		ServerRPC.DeleteFromBuffer(gameObject);
 	}
 }
@@ -139,7 +139,7 @@ function Explode()
 	{
 		child.gameObject.active = false;
 	}
-	renderer.enabled = false;
+	GetComponent.<Renderer>().enabled = false;
 	
 	
 	var go : GameObject = gameObject.Instantiate(m_MineExplosion);

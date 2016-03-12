@@ -13,7 +13,7 @@ private var m_InitialPos : Vector3;
 function Start () {
 
 	m_InitialPos = transform.position;
-	animation.Play("BearWalk");
+	GetComponent.<Animation>().Play("BearWalk");
 
 }
 
@@ -29,10 +29,10 @@ function Update () {
 		if(m_RageTimer <= 0)
 		{
 			transform.parent.GetComponent(NavMeshAgent).speed = 1;
-			animation["BearWalk"].speed = 1;
+			GetComponent.<Animation>()["BearWalk"].speed = 1;
 		}
 		
-		if(renderer.isVisible)
+		if(GetComponent.<Renderer>().isVisible)
 		{
 			Camera.main.GetComponent(CameraScript).Shake(0.1, 1);
 		}
@@ -44,7 +44,7 @@ function Update () {
 		if(m_RespawnTimer <= 0)
 		{
 			if(Network.isServer)
-				gameObject.networkView.RPC("Respawn", RPCMode.All);
+				gameObject.GetComponent.<NetworkView>().RPC("Respawn", RPCMode.All);
 		}
 	}
 	
@@ -91,8 +91,8 @@ function Update () {
 		norm.Normalize();
 		if(dist < 35 && bee.GetComponent(RespawnDecorator) == null && m_RespawnTimer <= 0)
 		{
-			if(!animation.IsPlaying("BearAttack"))
-				animation.Play("BearAttack");
+			if(!GetComponent.<Animation>().IsPlaying("BearAttack"))
+				GetComponent.<Animation>().Play("BearAttack");
 			if(GetComponent(FlasherDecorator) == null)
 			{
 				// gameObject.AddComponent(FlasherDecorator);
@@ -101,10 +101,10 @@ function Update () {
 				// GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
 			}
 		}	
-		else if(!animation.IsPlaying("BearAttack"))
+		else if(!GetComponent.<Animation>().IsPlaying("BearAttack"))
 		{
-			if(!animation.IsPlaying("BearWalk"))
-				animation.Play("BearWalk");
+			if(!GetComponent.<Animation>().IsPlaying("BearWalk"))
+				GetComponent.<Animation>().Play("BearWalk");
 		}		
 		// var diff : Vector3 = bee.transform.position - transform.parent.position;
 		// if(diff.magnitude < dist )
@@ -152,7 +152,7 @@ function Step()
 		transform.parent.GetComponent(NavMeshAgent).enabled = true;
 		transform.parent.GetComponent(NavMeshAgent).ResetPath();
 	}
-	animation.Play("BearWalk");
+	GetComponent.<Animation>().Play("BearWalk");
 	Destroy(GetComponent(FlasherDecorator));
 	Destroy(transform.GetChild(0).gameObject);	
 }
@@ -168,7 +168,7 @@ function OnBulletCollision(coll:BulletCollision)
 			if(m_RageTimer > 0)
 			{
 		
-				gameObject.networkView.RPC("BlastOff", RPCMode.All);
+				gameObject.GetComponent.<NetworkView>().RPC("BlastOff", RPCMode.All);
 			}
 		}
 		else
@@ -182,7 +182,7 @@ function OnBulletCollision(coll:BulletCollision)
 			GetComponent(MovementDecorator).m_MaxSpeed = 0;
 			GetComponent(MovementDecorator).m_Lifetime = 0.15;
 		}
-		gameObject.networkView.RPC("onBulletHit", RPCMode.All,m_HP);
+		gameObject.GetComponent.<NetworkView>().RPC("onBulletHit", RPCMode.All,m_HP);
 		
 		return;
 	}
@@ -205,7 +205,7 @@ function OnBulletCollision(coll:BulletCollision)
 				GetComponent(FlasherDecorator).m_NumberOfFlashes = 100;
 			}
 			transform.parent.GetComponent(NavMeshAgent).speed = 35;
-			animation["BearWalk"].speed = 4;
+			GetComponent.<Animation>()["BearWalk"].speed = 4;
 		}
 	}
 		
@@ -225,12 +225,12 @@ function OnCollisionEnter(coll:Collision)
 	{
 		if(coll.gameObject.tag == "Explosion")
 		{
-			gameObject.networkView.RPC("BlastOff", RPCMode.All);
+			gameObject.GetComponent.<NetworkView>().RPC("BlastOff", RPCMode.All);
 		}
 		else
 		if(coll.gameObject.tag == "Hammer")
 		{
-			gameObject.networkView.RPC("BlastOff", RPCMode.All);
+			gameObject.GetComponent.<NetworkView>().RPC("BlastOff", RPCMode.All);
 		}
 	}
 }
@@ -245,8 +245,8 @@ function OnCollisionEnter(coll:Collision)
 	transform.parent.GetComponent(UpdateScript).m_Vel = Vector3.up * speed+Vector3.right * speed;//transform.parent.GetComponent(NavMeshAgent).velocity;
 	transform.parent.GetComponent(UpdateScript).m_Accel = Vector3(0,-3000, 0);
 	transform.parent.GetComponent(UpdateScript).m_AngVel = Vector3(0,0,speed*5);
-	animation["BearWalk"].speed = 1;
-	animation.Stop("BearWalk");
+	GetComponent.<Animation>()["BearWalk"].speed = 1;
+	GetComponent.<Animation>().Stop("BearWalk");
 	//transform.parent.gameObject.AddComponent(PauseDecorator);
 	//transform.parent.GetComponent(PauseDecorator).m_MaxSpeed = 0;
 	//transform.parent.GetComponent(PauseDecorator).m_Lifetime = 0.15;

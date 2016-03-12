@@ -122,7 +122,7 @@ public class ServerRPC
 				bool found = false;
 				for (int k = 0 ; k < rpcs[i].args.Length; k++)
 				{
-					if(rpcs[i].args[k].ToString().IndexOf(go.name) > -1 || (go.GetComponent("NetworkView")!= null && go.networkView.viewID.ToString() == rpcs[i].args[k].ToString()))
+					if(rpcs[i].args[k].ToString().IndexOf(go.name) > -1 || (go.GetComponent("NetworkView")!= null && go.GetComponent<NetworkView>().viewID.ToString() == rpcs[i].args[k].ToString()))
 					{
 					//	Debug.Log("Removing "+go.name + " " + rpcs[i].args[k].ToString() + " "+rpcs[i].func);
 						rpcs.RemoveAt(i);

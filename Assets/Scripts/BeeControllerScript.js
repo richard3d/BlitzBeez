@@ -47,7 +47,6 @@ var m_PowerShotParticlesInstance : GameObject = null;
 var m_Drag : float = 1; 
 
 var m_FireRate : float = 5;
-var m_FireTimer : float  = 0;
 var m_ReloadTime : float = 1;
 var m_ReloadTimer : float = 0;
 var m_PowershotReloadTimer : float = 0;
@@ -75,7 +74,6 @@ function SetShootButtonTimeHeld( time : float )
 
 function Start () {
 
-	m_FireTimer = 0;
 	//AudioSource.PlayClipAtPoint(m_FlySound, Camera.main.transform.position, 0.75);
 	m_WorkerGenTimer = m_WorkerGenTime;
 	m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
@@ -87,27 +85,23 @@ function Start () {
 
 function Update()
 {
-
-	HandleShotLogic();
-	if(m_FireTimer > 0)
-		m_FireTimer -= Time.deltaTime;
-	if(m_ReloadTimer > 0)
-	{
-		m_ReloadTimer -= Time.deltaTime;
-		if(m_ReloadTimer <= 0)
-		{
-			m_ReloadJam = false;
-			if(GetComponentInChildren(ParticleRenderer) != null)
-				GetComponentInChildren(ParticleRenderer).enabled = true;
-			// GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].time = GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].length;
-			// GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].speed = -1;
-			// GetComponentInChildren(ParticleRenderer).animation.Play("BeeSwarmReload");
-			//GetComponentInChildren(ParticleRenderer).animation.Play();
-			var clip:int = m_Stats["Clip_Size"];
-			if(m_Swarm.active)
-				m_Swarm.GetComponent(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
-		}
-	}
+	// if(m_ReloadTimer > 0)
+	// {
+		// m_ReloadTimer -= Time.deltaTime;
+		// if(m_ReloadTimer <= 0)
+		// {
+			// m_ReloadJam = false;
+			// if(GetComponentInChildren(ParticleRenderer) != null)
+				// GetComponentInChildren(ParticleRenderer).enabled = true;
+			// // GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].time = GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].length;
+			// // GetComponentInChildren(ParticleRenderer).animation["BeeSwarmReload"].speed = -1;
+			// // GetComponentInChildren(ParticleRenderer).animation.Play("BeeSwarmReload");
+			// //GetComponentInChildren(ParticleRenderer).animation.Play();
+			// var clip:int = m_Stats["Clip_Size"];
+			// if(m_Swarm.active)
+				// m_Swarm.GetComponent(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+		// }
+	// }
 	
 	if(m_PowershotReloadTimer > 0)
 	{
@@ -135,12 +129,9 @@ function Update()
 		if(m_WorkerGenTimer <= 0)
 		{
 			if(Network.isServer)
-				networkView.RPC("GenerateWorkerBee", RPCMode.All);
+				GetComponent.<NetworkView>().RPC("GenerateWorkerBee", RPCMode.All);
 		}
 	}
-	
-//	if(m_DashTimer > 0)
-//		m_DashTimer -= Time.deltaTime;
 	
 	if(m_StaminaTimer > 0)
 	{
@@ -174,7 +165,7 @@ function StaminaRecharge()
 
 function OnNetworkInput(IN : InputState)
 {
-	if(!networkView.isMine || GetComponent(ControlDisablerDecorator) != null)
+	if(!GetComponent.<NetworkView>().isMine || GetComponent(ControlDisablerDecorator) != null)
 	{
 		return;
 	}
@@ -258,7 +249,7 @@ function OnNetworkInput(IN : InputState)
 				
 				m_StaminaTimer = 1/(0.5 + (stam+1.0)*0.35);
 				//m_DashTimer = 1/dashTime;
-				networkView.RPC("Dash", RPCMode.All);
+				GetComponent.<NetworkView>().RPC("Dash", RPCMode.All);
 				
 			}
 		}
@@ -270,7 +261,7 @@ function OnNetworkInput(IN : InputState)
 			    if( m_DashButtonTimeHeld < m_RTBRequiredHoldTime && 
 				   m_DashButtonTimeHeld + Time.deltaTime >= m_RTBRequiredHoldTime)
 				{
-					networkView.RPC("ReturnToBase", RPCMode.All);
+					GetComponent.<NetworkView>().RPC("ReturnToBase", RPCMode.All);
 				}
 				m_DashButtonTimeHeld += Time.deltaTime;
 			}
@@ -294,7 +285,7 @@ function OnNetworkInput(IN : InputState)
 			   m_ShootButtonTimeHeld + Time.deltaTime >= m_PowerShotRequiredHoldTime)
 			{
 				//if(GetComponentInChildren(ParticleEmitter).particles.length >= 5 && GetComponentInChildren(ParticleRenderer).enabled != false)
-					networkView.RPC("AddPowerShotEffect", RPCMode.All);
+					GetComponent.<NetworkView>().RPC("AddPowerShotEffect", RPCMode.All);
 			}
 			m_ShootButtonTimeHeld += Time.deltaTime;
 		}
@@ -315,40 +306,24 @@ function OnNetworkInput(IN : InputState)
 				var powerShot:int = m_Stats["Powershot"];
 				if(powerShot == 4)
 				{
-					networkView.RPC("PowerShot", RPCMode.All, "null");
+					GetComponent.<NetworkView>().RPC("PowerShot", RPCMode.All, "null");
 				
 				}
 				else
 				{
 					//var go : GameObject = Network.Instantiate(m_PowerBulletInstance[powerShot+1], transform.position, transform.rotation, 0);
 					var go : GameObject = BulletScript.SpawnBullet(m_PowerBulletInstance[powerShot+1], transform.position, Vector3.zero);
-					networkView.RPC("PowerShot", RPCMode.All, go.name);
+					GetComponent.<NetworkView>().RPC("PowerShot", RPCMode.All, go.name);
 				}
 			//	}
 			}
 			else
 			{
 				//regular shot
-				if(m_FireTimer <= 0 && m_ReloadTimer <= 0)
+				if(m_ReloadTimer <= 0)
 				{	
 					var rate : float = m_Stats["Fire_Rate"];
-					var fireRate = m_LoadOut.m_BaseFireRate + (rate+1);
-					m_FireTimer = -1;///fireRate;//m_FireRate;
-				//	HandleShotLogic();
-					
 					GetComponent(BeeScript).m_Weapon.GetComponent(WeaponScript).Fire();
-					// var shot:boolean = false;
-					// for(var p : int = 0; p < m_LoadOut.m_Pylons.length; p++)
-					// {
-						// if(m_LoadOut.m_Pylons[p].CanShoot())
-						// {
-							// shot = true;
-						// }
-					// }
-					// if(shot)
-					// {
-						// networkView.RPC("DecrementAmmo", RPCMode.All);
-					// }
 				}
 			}
 		}
@@ -359,7 +334,7 @@ function OnNetworkInput(IN : InputState)
 	//handle upgrade action
 	if(IN.GetActionBuffered(IN.DPAD_RIGHT) && !m_ShootButtonHeld)
 	{
-		 var beeScript = GetComponent(BeeScript);
+		var beeScript = GetComponent(BeeScript);
 		var i:int =0;
 		// if( beeScript.m_NumUpgradesAvailable > 0 && GetComponent(TreeHideDecorator) == null)
 		// {
@@ -413,7 +388,7 @@ function OnNetworkInput(IN : InputState)
 				if(GetComponent(ItemDecorator) == null &&
 				   m_NearestObject.GetComponent(ObjectRespawnDecorator) == null)
 				{
-					ServerRPC.Buffer(networkView, "PickupRock", RPCMode.All, m_NearestObject.name);
+					ServerRPC.Buffer(GetComponent.<NetworkView>(), "PickupRock", RPCMode.All, m_NearestObject.name);
 				}
 			}
 			else
@@ -423,7 +398,7 @@ function OnNetworkInput(IN : InputState)
 				if(GetComponent(ItemDecorator) == null && GetComponent(TreeHideDecorator) == null)
 				{
 					HideInTree(m_NearestObject.name);
-					networkView.RPC("HideInTree", RPCMode.Others, m_NearestObject.name);
+					GetComponent.<NetworkView>().RPC("HideInTree", RPCMode.Others, m_NearestObject.name);
 				}
 			}
 			else
@@ -440,12 +415,12 @@ function OnNetworkInput(IN : InputState)
 					   m_NearestObject.GetComponent(FlowerScript).m_Owner.GetComponent(BeeScript).m_Team != GetComponent(BeeScript).m_Team)
 						return;
 						
-						ServerRPC.Buffer(networkView, "UseFlower", RPCMode.All, m_NearestObject.name);
+						ServerRPC.Buffer(GetComponent.<NetworkView>(), "UseFlower", RPCMode.All, m_NearestObject.name);
 					//}
 				}
 				else
 				{
-					networkView.RPC("DenyFlower", RPCMode.All);
+					GetComponent.<NetworkView>().RPC("DenyFlower", RPCMode.All);
 				}
 				
 			}
@@ -464,7 +439,7 @@ function OnNetworkInput(IN : InputState)
 			{
 			    if(GetComponent(ItemDecorator) == null && GetComponent(TeleportDecorator) == null)
 			    {
-				 	ServerRPC.Buffer(networkView,"UseTeleporter", RPCMode.All, m_NearestObject.name);
+				 	ServerRPC.Buffer(GetComponent.<NetworkView>(),"UseTeleporter", RPCMode.All, m_NearestObject.name);
 			    }
 			}
 		
@@ -477,8 +452,8 @@ function OnNetworkInput(IN : InputState)
 				var viewID : NetworkViewID= Network.AllocateViewID();
 				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[1].m_Item.name,"", transform.position, Quaternion.identity, viewID ,  0);
 				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[1].m_Item.name,go.name, transform.position, Quaternion.identity, viewID, 0);
-				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
-				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 1);	
+				ServerRPC.Buffer(go.GetComponent.<NetworkView>(), "ActivateItem", RPCMode.All, gameObject.name);	
+				ServerRPC.Buffer(GetComponent.<NetworkView>(), "UseItem", RPCMode.All, 1);	
 			}
 			else
 			if(beeScript.m_Inventory[0].m_Item != null && GetComponent(ItemDecorator) == null && !m_ShootButtonHeld)
@@ -486,8 +461,8 @@ function OnNetworkInput(IN : InputState)
 				viewID = Network.AllocateViewID();
 				go = GameObject.Find("GameServer").GetComponent(ServerScript).NetworkInstantiate(beeScript.m_Inventory[0].m_Item.name,"", transform.position, Quaternion.identity, viewID ,  0);
 				ServerRPC.Buffer(GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView, "NetworkInstantiate", RPCMode.Others, beeScript.m_Inventory[0].m_Item.name,go.name, transform.position, Quaternion.identity, viewID, 0);
-				ServerRPC.Buffer(go.networkView, "ActivateItem", RPCMode.All, gameObject.name);	
-				ServerRPC.Buffer(networkView, "UseItem", RPCMode.All, 0);	
+				ServerRPC.Buffer(go.GetComponent.<NetworkView>(), "ActivateItem", RPCMode.All, gameObject.name);	
+				ServerRPC.Buffer(GetComponent.<NetworkView>(), "UseItem", RPCMode.All, 0);	
 			}
 			else
 			{
@@ -567,20 +542,20 @@ function OnNetworkInput(IN : InputState)
 	{
 		if(GetComponent(TreeHideDecorator) == null)
 		{	
-			if(GetComponent(ItemDecorator) == null && m_ReloadTimer <= 0)
+			if(GetComponent(ItemDecorator) == null && GetComponent(BeeScript).m_Weapon.GetComponent(WeaponScript).m_ReloadTimer <= 0)
 			{
-				networkView.RPC("Reload", RPCMode.All);
+				GetComponent.<NetworkView>().RPC("Reload", RPCMode.All);
 			}
-			else if(m_ReloadTimer > 0)
+			else if(GetComponent(BeeScript).m_Weapon.GetComponent(WeaponScript).m_ReloadTimer > 0)
 			{
-				var reload:float = m_Stats["Reload_Speed"];
-				reload = m_LoadOut.m_BaseReloadSpeed -  ((reload+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+				//var reload:float = m_Stats["Reload_Speed"];
+				var reload = 0;//m_LoadOut.m_BaseReloadSpeed -  ((reload+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
 				if(!m_ReloadJam && 1-m_ReloadTimer/reload >= 0.22 && 1-m_ReloadTimer/reload<= 0.38)
 				{
-					networkView.RPC("QuickReload", RPCMode.All);
+					GetComponent.<NetworkView>().RPC("QuickReload", RPCMode.All);
 				}
 				else
-					networkView.RPC("ReloadJammed", RPCMode.All);
+					GetComponent.<NetworkView>().RPC("ReloadJammed", RPCMode.All);
 				
 			}
 		}
@@ -614,100 +589,69 @@ function OnNetworkInput(IN : InputState)
 	
 }
 
-function HandleShotLogic()
-{	
-	var random =Random.Range(-1,1);
-	for(var i : int = 0; i < m_LoadOut.m_Pylons.length; i++)
-	{
-		if(m_LoadOut.m_Pylons[i].IsShooting())
-		{
-			var bulletPos : Vector3 = transform.right * m_LoadOut.m_Pylons[i].PosOffset.x + transform.up * m_LoadOut.m_Pylons[i].PosOffset.y + transform.forward * m_LoadOut.m_Pylons[i].PosOffset.z + transform.position;
-			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset+random, Vector3.up);
-			var bulletVel : Vector3 =  rot * transform.forward;
-			var temp:Vector3 = bulletVel;
-			//bulletVel =	Quaternion.AngleAxis(random ,Vector3.up)*transform.forward ;
-			bulletVel.Normalize();
-			bulletPos.y = transform.position.y;
-			
-			
-		
-			var go : GameObject = null;
-			go = BulletScript.SpawnBullet(m_LoadOut.m_Pylons[i].m_BulletInstance,bulletPos,Vector3.zero);
-			//Debug.Log("Spawning bullet "+m_LoadOut.m_Pylons[i].m_BulletInstance.name + " for "+gameObject.name); 
-			//Uncomment this later if not using pool!!!
-			// if(m_LoadOut.m_Pylons[i].m_BulletInstance != null)
-				// go  = Network.Instantiate(m_LoadOut.m_Pylons[i].m_BulletInstance, bulletPos , Quaternion.identity, 0);	
-			// else
-				// go  = Network.Instantiate(m_BulletInstance, bulletPos , Quaternion.identity, 0);	
-			
-			
-			//go.GetComponent(BulletScript).m_BulletType = m_Stats["Special_Rounds"];
-			networkView.RPC("Shot", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
-		}
-	}
-}
 
-@RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3, decrementAmmo:boolean)
-{
-	//transform.Find("Bee/NewBee").animation.Stop();
-	transform.Find("Bee/NewBee").animation.Stop("flyandshoot");
-	transform.Find("Bee/NewBee").animation["flyandshoot"].layer = 2;
-	transform.Find("Bee/NewBee").animation["flyandshoot"].AddMixingTransform(transform.Find("Bee/NewBee/body/r_shoulder"));
-	transform.Find("Bee/NewBee").animation.Play("flyandshoot");
+
+// @RPC function Shot(bulletName : String, pos : Vector3, vel : Vector3, decrementAmmo:boolean)
+// {
+	// //transform.Find("Bee/NewBee").animation.Stop();
+	// transform.Find("Bee/NewBee").GetComponent.<Animation>().Stop("flyandshoot");
+	// transform.Find("Bee/NewBee").GetComponent.<Animation>()["flyandshoot"].layer = 2;
+	// transform.Find("Bee/NewBee").GetComponent.<Animation>()["flyandshoot"].AddMixingTransform(transform.Find("Bee/NewBee/body/r_shoulder"));
+	// transform.Find("Bee/NewBee").GetComponent.<Animation>().Play("flyandshoot");
 	
-	//perform kick back
-	gameObject.AddComponent(ControlDisablerDecorator);
-	if(m_LoadOut.m_KickbackRecovery != 0)
-	{
-		GetComponent(ControlDisablerDecorator).SetLifetime(m_LoadOut.m_KickbackRecovery);
-		GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
-		GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
-	}
+	// //perform kick back
+	// gameObject.AddComponent(ControlDisablerDecorator);
+	// if(m_LoadOut.m_KickbackRecovery != 0)
+	// {
+		// GetComponent(ControlDisablerDecorator).SetLifetime(m_LoadOut.m_KickbackRecovery);
+		// GetComponent(UpdateScript).m_Accel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
+		// GetComponent(UpdateScript).m_Vel = -transform.forward * GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
+	// }
 	
-	var go : GameObject = gameObject.Find(bulletName);
-	//make it so we dont collide with our own bullets
-	if(go.collider.enabled && collider.enabled)
-		Physics.IgnoreCollision(go.collider, collider);
+	// var go : GameObject = gameObject.Find(bulletName);
+	// //make it so we dont collide with our own bullets
+	// if(go.GetComponent.<Collider>().enabled && GetComponent.<Collider>().enabled)
+		// Physics.IgnoreCollision(go.GetComponent.<Collider>(), GetComponent.<Collider>());
 				
-	go.GetComponent(BulletScript).m_Owner = gameObject;
-	go.GetComponent(BulletScript).m_PowerShot = false;
-	go.transform.position = pos;
-	go.GetComponent(UpdateScript).m_Vel = vel; 
-	go.transform.LookAt(pos+vel);
+	// go.GetComponent(BulletScript).m_Owner = gameObject;
+	// go.GetComponent(BulletScript).m_PowerShot = false;
+	// go.transform.position = pos;
+	// go.GetComponent(UpdateScript).m_Vel = vel; 
+	// go.transform.LookAt(pos+vel);
 	
-	if(go.GetComponent(BulletScript).m_BulletType == BulletType.Rocket)
-	{
-		if(m_AimTarget != null)
-		{
-			//fifteen degrees is the most the player can be off by and still get some homing
-			go.GetComponent(BulletScript).m_Homing = Mathf.Max(0,1-Vector3.Angle(transform.forward, (m_AimTarget.transform.position - transform.position).normalized)/15);
-			Debug.Log("Homing "+go.GetComponent(BulletScript).m_Homing);
-			go.GetComponent(BulletScript).m_Tgt = m_AimTarget;
-			//Debug.Log("Homing "+go.GetComponent(BulletScript).m_Homing);
+	// if(go.GetComponent(BulletScript).m_BulletType == BulletType.Rocket)
+	// {
+		// if(m_AimTarget != null)
+		// {
+			// //fifteen degrees is the most the player can be off by and still get some homing
+			// go.GetComponent(BulletScript).m_Homing = Mathf.Max(0,1-Vector3.Angle(transform.forward, (m_AimTarget.transform.position - transform.position).normalized)/15);
+			// Debug.Log("Homing "+go.GetComponent(BulletScript).m_Homing);
+			// go.GetComponent(BulletScript).m_Tgt = m_AimTarget;
+			// //Debug.Log("Homing "+go.GetComponent(BulletScript).m_Homing);
 			
-			//homing bullets are a little slower
-			go.GetComponent(UpdateScript).m_MaxSpeed = 500;
-			go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 500;
-		}
-		else
-		{
-			go.GetComponent(UpdateScript).m_MaxSpeed = 1000;
-			go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 1000;
-		}
-	}
+			// //homing bullets are a little slower
+			// go.GetComponent(UpdateScript).m_MaxSpeed = 500;
+			// go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 500;
+		// }
+		// else
+		// {
+			// go.GetComponent(UpdateScript).m_MaxSpeed = 1000;
+			// go.GetComponent(UpdateScript).m_Vel = go.GetComponent(UpdateScript).m_Vel.normalized * 1000;
+		// }
+	// }
 	
 
-	var color = NetworkUtils.GetColor(gameObject);
-	if(go.GetComponent(TrailRenderer))
-	{
-		go.GetComponent(TrailRenderer).material.color = color;
-		go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
-	}
-    go.renderer.material.SetColor("_Color",color);
-	go.renderer.material.SetColor("_Emission", color);
-	go.GetComponent(BulletScript).Start();
+	// var color = NetworkUtils.GetColor(gameObject);
+	// if(go.GetComponent(TrailRenderer))
+	// {
+		// go.GetComponent(TrailRenderer).material.color = color;
+		// go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
+	// }
+    // go.GetComponent.<Renderer>().material.SetColor("_Color",color);
+	// go.GetComponent.<Renderer>().material.SetColor("_Emission", color);
+	// go.GetComponent(BulletScript).Start();
 	
-}
+// }
 
 function OnPlayerTurn(ang:float)
 {
@@ -745,7 +689,7 @@ function OnPlayerTurn(ang:float)
 	m_ReloadTimer = 0;
 	GetComponentInChildren(ParticleRenderer).enabled = true;
 	var clip:int = m_Stats["Clip_Size"];
-	GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
+	//GetComponentInChildren(BeeParticleScript).SetNumParticles(m_LoadOut.m_BaseClipSize + (clip+1) * m_LoadOut.m_BaseClipSize);
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
 		AudioSource.PlayClipAtPoint(m_ReloadSound, transform.position);
@@ -764,8 +708,7 @@ function OnPlayerTurn(ang:float)
 @RPC function Reload()
 {
 	//Debug.Log("Reload Standard");
-	m_ReloadTimer = m_Stats["Reload_Speed"];
-	m_ReloadTimer = m_LoadOut.m_BaseReloadSpeed -  ((m_ReloadTimer+1.0) /4.0)*m_LoadOut.m_BaseReloadSpeed;
+	
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 	//GetComponentInChildren(ParticleRenderer).animation.Play();
 	if(NetworkUtils.IsControlledGameObject(gameObject))
@@ -786,24 +729,24 @@ function OnPlayerTurn(ang:float)
 	powerShot.name = "PowerShotEffect";
 	powerShot.transform.position = transform.position;
 	powerShot.transform.parent = transform;
-	audio.PlayClipAtPoint(m_PowerShotEffectSound, transform.position);
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Stop();
-	GameObject.Find(gameObject.name+"/Bee/NewBee").animation.Play("charge_powershot");
+	GetComponent.<AudioSource>().PlayClipAtPoint(m_PowerShotEffectSound, transform.position);
+	GameObject.Find(gameObject.name+"/Bee/NewBee").GetComponent.<Animation>().Stop();
+	GameObject.Find(gameObject.name+"/Bee/NewBee").GetComponent.<Animation>().Play("charge_powershot");
 }
 
 function PowershotAnim()
 {
 	var bee:GameObject = GameObject.Find(gameObject.name+"/Bee/NewBee");
-	bee.animation.Stop();
-	bee.animation.Play("powershot");
+	bee.GetComponent.<Animation>().Stop();
+	bee.GetComponent.<Animation>().Play("powershot");
 	
-	while(bee.animation["powershot"].time < bee.animation["powershot"].length)
+	while(bee.GetComponent.<Animation>()["powershot"].time < bee.GetComponent.<Animation>()["powershot"].length)
 	{
 		yield WaitForSeconds(1.0/30.0);
 	}
 	
-	bee.animation.Stop("powershot");
-	bee.animation.Play("fly");
+	bee.GetComponent.<Animation>().Stop("powershot");
+	bee.GetComponent.<Animation>().Play("fly");
 }
 
 @RPC function PowerShot(bulletName : String)
@@ -829,26 +772,14 @@ function PowershotAnim()
 			go.GetComponent(TrailRenderer).startWidth = 0.6* 10;
 			go.GetComponent(TrailRenderer).time = 0.14;
 			
-			go.renderer.material.SetColor("_TintColor", color);
+			go.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 			go.GetComponent(TrailRenderer).material.SetColor("_TintColor", color);
 		}
 		
 		go.GetComponent(BulletScript).Start();
 		
 	}
-	else
-	{
-		if(Network.isServer)
-		{
-			m_Stats["Loadout"] = 8;
-			m_Stats["Special_Rounds"] = 2;
-			m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
-			HandleShotLogic();
-			m_Stats["Loadout"] = -1;
-			m_Stats["Special_Rounds"] = -1;
-			m_LoadOut.CreateLoadOut(m_Stats["Loadout"]);
-		}
-	}
+	
 	var trgt : Transform = transform.Find("PowerShotEffect");
 	if(trgt != null)
 		Destroy(trgt.gameObject);

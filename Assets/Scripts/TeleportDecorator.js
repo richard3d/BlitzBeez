@@ -38,7 +38,7 @@ function Start()
 function OnNetworkInput(IN : InputState)
 {
 	
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}
@@ -52,7 +52,7 @@ function OnNetworkInput(IN : InputState)
 	
 	if(!IN.GetAction(IN.DASH) && m_ReturnToBase)
 	{
-		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "TeleportDecorator");
+		ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "TeleportDecorator");
 		
 	}
 	
@@ -74,7 +74,7 @@ function Update () {
 			
 			gameObject.AddComponent(ControlDisablerDecorator);
 			GetComponent(BeeScript).Show(false);
-			collider.enabled = false;
+			GetComponent.<Collider>().enabled = false;
 			GetComponentInChildren(TrailRenderer).enabled = false;
 			
 			var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/PickupEffect"),transform.position,Quaternion.identity);
@@ -143,7 +143,7 @@ function Update () {
 			if(Network.isServer)
 			{
 				AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_RespawnSound, Camera.main.transform.position);
-				ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "TeleportDecorator");
+				ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "TeleportDecorator");
 				
 			}
 		}
@@ -167,7 +167,7 @@ function OnDestroy()
 	if(m_TeleportEffect != null)
 			Destroy(m_TeleportEffect);
 	
-	collider.enabled = true;
+	GetComponent.<Collider>().enabled = true;
 	gameObject.transform.localScale = Vector3(2,2,2);
 	//gameObject.animation.Play("SpawnPlayer");
 	

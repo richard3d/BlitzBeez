@@ -20,7 +20,7 @@ function Update () {
 		m_BlinkTimer -= Time.deltaTime;
 		if(m_BlinkTimer <= 0)
 		{
-			renderer.enabled = !renderer.enabled;
+			GetComponent.<Renderer>().enabled = !GetComponent.<Renderer>().enabled;
 			m_BlinkTimer = m_BlinkFreq;
 		}
 	}
@@ -29,7 +29,7 @@ function Update () {
 	if(m_Lifetime < 0)
 	{
 		if(m_Blink)
-			renderer.enabled  = true;
+			GetComponent.<Renderer>().enabled  = true;
 		
 			Destroy(this);
 	}
@@ -40,5 +40,5 @@ function OnDestroy()
 {
 
 	if(m_Blink)
-		renderer.enabled  = true;
+		GetComponent.<Renderer>().enabled  = true;
 }

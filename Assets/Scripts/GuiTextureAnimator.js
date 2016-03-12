@@ -15,7 +15,7 @@ function Animate()
 		m_CurrFrame++;
 		if(m_CurrFrame >= m_Frames.length)
 			m_CurrFrame = 0;
-		guiTexture.texture = m_Frames[m_CurrFrame];
+		GetComponent.<GUITexture>().texture = m_Frames[m_CurrFrame];
 		if(m_CurrFrame == 0)
 			yield WaitForSeconds(0.5);
 		else

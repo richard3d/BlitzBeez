@@ -23,8 +23,8 @@ function Start () {
 	{
 	
 		//m_Flower.audio.Play();
-		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
-		m_Camera.animation.Play("CameraLessDramaticZoom");
+		m_Camera.GetComponent.<Animation>()["CameraLessDramaticZoom"].speed = 1;
+		m_Camera.GetComponent.<Animation>().Play("CameraLessDramaticZoom");
 	}
 	GetComponent(BeeScript).Show(false);
 }
@@ -42,7 +42,7 @@ function Update () {
 	
 	//if we are hiding and the tree is burning (basically an animation is playing
 	//then we need to hurt the bee
-	if(m_Tree.animation.isPlaying && Network.isServer)
+	if(m_Tree.GetComponent.<Animation>().isPlaying && Network.isServer)
 	{
 		//RemoveTreeDecorator(m_DisplaceVector);
 		//networkView.RPC("RemoveTreeDecorator", RPCMode.Others,m_DisplaceVector);
@@ -55,7 +55,7 @@ function Update () {
 function OnNetworkInput(IN : InputState)
 {
 	
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}
@@ -93,7 +93,7 @@ function OnNetworkInput(IN : InputState)
 	if(IN.GetActionBuffered(IN.USE))
 	{
 	
-		networkView.RPC("UnHideFromTree", RPCMode.All,m_DisplaceVector);
+		GetComponent.<NetworkView>().RPC("UnHideFromTree", RPCMode.All,m_DisplaceVector);
 		//RemoveTreeDecorator(m_DisplaceVector);
 		//networkView.RPC("RemoveTreeDecorator", RPCMode.Others,m_DisplaceVector);
 	}
@@ -111,7 +111,7 @@ function Hide(tree : GameObject)
 	Debug.Log("Hiding");
 	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, m_Camera.transform.position);
 	m_Tree = tree;
-	collider.enabled = false;
+	GetComponent.<Collider>().enabled = false;
 	
 	//gameObject.transform.position = tree.transform.position;
 	
@@ -124,9 +124,9 @@ function OnDestroy()
 {
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
-		m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
-		m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
-		m_Camera.animation.Play("CameraLessDramaticZoom");
+		m_Camera.GetComponent.<Animation>()["CameraLessDramaticZoom"].time = m_Camera.GetComponent.<Animation>()["CameraDramaticZoom"].length;
+		m_Camera.GetComponent.<Animation>()["CameraLessDramaticZoom"].speed = -1;
+		m_Camera.GetComponent.<Animation>().Play("CameraLessDramaticZoom");
 	}
 	AudioSource.PlayClipAtPoint(GetComponent(BeeControllerScript).m_HideSound, m_Camera.transform.position);
 	
@@ -142,7 +142,7 @@ function OnDestroy()
 	transform.position = m_Tree.transform.position + m_DisplaceVector * (m_OrigPosition-m_Tree.transform.position).magnitude;
 	transform.position.y = m_OrigPosition.y;
 	GameObject.Instantiate(m_Tree.GetComponent(TreeScript).m_LeafParticles,transform.position+Vector3(0,5,0), Quaternion.identity);
-	collider.enabled = true;
+	GetComponent.<Collider>().enabled = true;
 	GetComponent(UpdateScript).m_Vel = m_DisplaceVector * GetComponent(UpdateScript).m_DefaultMaxSpeed;
 	if(gameObject.GetComponent(BeeDashDecorator) == null)
 		gameObject.AddComponent(BeeDashDecorator);

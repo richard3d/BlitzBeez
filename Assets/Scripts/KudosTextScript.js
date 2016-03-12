@@ -16,11 +16,11 @@ function Update () {
 	{
 		m_Delay -= Time.deltaTime;
 		GetComponent(GUIText).enabled = false;
-		animation.Stop();
+		GetComponent.<Animation>().Stop();
 		if(m_Delay <= 0)
 		{
 			GetComponent(UpdateScript).m_Lifetime = 2;
-			animation.Play();
+			GetComponent.<Animation>().Play();
 			GetComponent(GUIText).enabled = true;
 		}
 	}
@@ -35,12 +35,12 @@ function Update () {
 			if(m_AttachedObject != null)
 			{
 				if(Vector3.Dot(m_CameraOwner.transform.forward, (m_AttachedObject.transform.position + m_Pos - m_CameraOwner.transform.position).normalized) > 0)
-					gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_AttachedObject.transform.position + m_Pos);
+					gameObject.transform.position = m_CameraOwner.GetComponent.<Camera>().WorldToViewportPoint(m_AttachedObject.transform.position + m_Pos);
 			}
 			else
 			{
 				if(Vector3.Dot(m_CameraOwner.transform.forward, (m_Pos - m_CameraOwner.transform.position).normalized) > 0)
-					gameObject.transform.position = m_CameraOwner.camera.WorldToViewportPoint(m_Pos);
+					gameObject.transform.position = m_CameraOwner.GetComponent.<Camera>().WorldToViewportPoint(m_Pos);
 			}
 		}
 	}

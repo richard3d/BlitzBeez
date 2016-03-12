@@ -62,7 +62,7 @@ function Flash()
 			child.gameObject.AddComponent(FlasherDecorator);
 			child.gameObject.GetComponent(FlasherDecorator).m_NumberOfFlashes = 15;
 		}
-		child.gameObject.animation.Play();
+		child.gameObject.GetComponent.<Animation>().Play();
 		var impactEffect:GameObject =  GameObject.Instantiate(Resources.Load("GameObjects/ImpactEffect"));
 		
 		impactEffect.transform.position = child.transform.position;
@@ -124,7 +124,7 @@ function CalcScore()
 			honey += ( GetCurrentLevel()+1 /** child.GetComponent(FlowerScript).m_NumBees*/);
 		}
 		
-		ServerRPC.Buffer(currOwner.networkView, "SetHoneyPoints", RPCMode.All, currOwner.GetComponent(BeeScript).m_Honey+honey);
+		ServerRPC.Buffer(currOwner.GetComponent.<NetworkView>(), "SetHoneyPoints", RPCMode.All, currOwner.GetComponent(BeeScript).m_Honey+honey);
 	}
 	else
 	{
@@ -132,7 +132,7 @@ function CalcScore()
 		{
 			var owner:GameObject = child.GetComponent(FlowerScript).m_Owner; 
 			if(owner != null)
-				ServerRPC.Buffer(owner.networkView, "SetHoneyPoints", RPCMode.All, owner.GetComponent(BeeScript).m_Honey+1);	
+				ServerRPC.Buffer(owner.GetComponent.<NetworkView>(), "SetHoneyPoints", RPCMode.All, owner.GetComponent(BeeScript).m_Honey+1);	
 		}
 	}
 }

@@ -23,7 +23,7 @@ function Update () {
 			if(m_DurationTimer <= 0)
 			{
 				m_Active = false;
-				networkView.RPC("OnSwitch", RPCMode.All, false);
+				GetComponent.<NetworkView>().RPC("OnSwitch", RPCMode.All, false);
 			}
 		}	
 	}
@@ -39,7 +39,7 @@ function OnTriggerEnter(other:Collider)
 			if(!m_Active)
 			{
 				m_Active = true;
-				networkView.RPC("OnSwitch", RPCMode.All, true);
+				GetComponent.<NetworkView>().RPC("OnSwitch", RPCMode.All, true);
 			}
 		}
 	}
@@ -52,11 +52,11 @@ function OnTriggerEnter(other:Collider)
 	if(m_Active)
 	{
 		m_DurationTimer = m_Duration;
-		renderer.material.mainTextureOffset = Vector2(0.5,0);
+		GetComponent.<Renderer>().material.mainTextureOffset = Vector2(0.5,0);
 	}
 	else
 	{
-		renderer.material.mainTextureOffset = Vector2(0,0);
+		GetComponent.<Renderer>().material.mainTextureOffset = Vector2(0,0);
 	}
 	for (var go:GameObject in m_SwitchListeners)
 	{

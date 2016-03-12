@@ -38,7 +38,7 @@ function Start () {
 	// m_TracerParticles.GetComponent(ParticleSystem).startRotation += 0.785;
 	
 	var parts : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashParticles"),transform.position, Quaternion.identity);
-	parts.GetComponent(ParticleSystem).renderer.material.color = Color.white;
+	parts.GetComponent(ParticleSystem).GetComponent.<Renderer>().material.color = Color.white;
 	parts.transform.position = transform.position;
 	parts.transform.parent = transform;
 	
@@ -48,7 +48,7 @@ function Start () {
 
 function OnNetworkInput(IN : InputState)
 {
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}

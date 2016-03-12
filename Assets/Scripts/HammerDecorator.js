@@ -55,7 +55,7 @@ function Update()
 
 function OnNetworkInput(IN : InputState)
 {
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}

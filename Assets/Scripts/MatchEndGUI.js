@@ -42,7 +42,7 @@ function Update () {
 			
 			
 			rot.eulerAngles = Vector3(0,180,260);
-			var flag2:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Flag_Backwards"),Camera.main.transform.position + Vector3(18.6,12,26), rot);
+			var flag2:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/Flag_Backwards"),Camera.main.transform.position + Vector3(28.7,13.8,26), rot);
 			
 			
 			
@@ -76,18 +76,18 @@ function Update () {
 				if(player.GetComponent(BeeScript).m_Team == GameStateManager.m_WinningTeam)
 				{
 					var c:ClientNetworkInfo = NetworkUtils.GetClientObjectFromGameObject(player);
-					flag.transform.Find("InteractiveCloth").renderer.material.color	= c.m_Color;
-					flag2.transform.Find("InteractiveCloth").renderer.material.color	= c.m_Color;
+					flag.transform.Find("InteractiveCloth").GetComponent.<Renderer>().material.color	= c.m_Color;
+					flag2.transform.Find("InteractiveCloth").GetComponent.<Renderer>().material.color	= c.m_Color;
 					
 					if(GameStateManager.m_WinningTeam == 0)
 					{
-						flag.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team1IconTexture;
-						flag2.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team1IconTexture;
+						flag.transform.Find("InteractiveCloth").GetComponent.<Renderer>().material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team1IconTexture;
+						flag2.transform.Find("InteractiveCloth").GetComponent.<Renderer>().material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team1IconTexture;
 					}
 					else
 					{
-						flag.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team2IconTexture;
-						flag2.transform.Find("InteractiveCloth").renderer.material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team2IconTexture;
+						flag.transform.Find("InteractiveCloth").GetComponent.<Renderer>().material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team2IconTexture;
+						flag2.transform.Find("InteractiveCloth").GetComponent.<Renderer>().material.mainTexture = GameObject.Find("GameServer").GetComponent(MultiplayerLobbyGUI).m_Team2IconTexture;
 					}
 					count++;
 					Camera.main.fov = 60;
@@ -95,19 +95,19 @@ function Update () {
 					bee.name = bee.name + count;
 					if( count % 2)
 					{
-						bee.animation.Stop();
-						GameObject.Find(bee.name+"/NewBee").animation.Stop();
-						GameObject.Find(bee.name+"/NewBee").animation.Play("celebrate");
-						GameObject.Find(bee.name+"/NewBee").animation["celebrate"].speed = 0.75;
+						bee.GetComponent.<Animation>().Stop();
+						GameObject.Find(bee.name+"/NewBee").GetComponent.<Animation>().Stop();
+						GameObject.Find(bee.name+"/NewBee").GetComponent.<Animation>().Play("celebrate");
+						GameObject.Find(bee.name+"/NewBee").GetComponent.<Animation>()["celebrate"].speed = 0.75;
 					}
 					else
 					{
 						//bee.animation.Stop();
-						bee.animation.Stop();
-						GameObject.Find(bee.name+"/NewBee").animation.Stop();
-						GameObject.Find(bee.name+"/NewBee").animation.Play("celebrate");
-						GameObject.Find(bee.name+"/NewBee").animation["celebrate"].time = 1;
-						GameObject.Find(bee.name+"/NewBee").animation["celebrate"].speed = 0.65;
+						bee.GetComponent.<Animation>().Stop();
+						GameObject.Find(bee.name+"/NewBee").GetComponent.<Animation>().Stop();
+						GameObject.Find(bee.name+"/NewBee").GetComponent.<Animation>().Play("celebrate");
+						GameObject.Find(bee.name+"/NewBee").GetComponent.<Animation>()["celebrate"].time = 1;
+						GameObject.Find(bee.name+"/NewBee").GetComponent.<Animation>()["celebrate"].speed = 0.65;
 					}
 					GameObject.Find(bee.name+"/NewBee/NewBee").layer = LayerMask.NameToLayer("FullScreenGUI");
 					GameObject.Find(bee.name+"/NewBee/BeeArmor").layer = LayerMask.NameToLayer("FullScreenGUI");
@@ -127,7 +127,7 @@ function Update () {
 					else
 						bee.transform.localScale= Vector3(0,0,0);
 					bee.transform.eulerAngles.x = 300;
-					bee.renderer.enabled = true;
+					bee.GetComponent.<Renderer>().enabled = true;
 					
 					m_Bees.Add(bee);
 					//GetComponent(GUIScript).enabled = true;
@@ -185,7 +185,7 @@ function ShowWinnerText()
 {
 	var str:String = "Team "+(GameStateManager.m_WinningTeam+1)+" Wins!";
 	var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/MatchStartGUI"));
-	var rect:Rect = new Rect(0,0,1,0.3);
+	var rect:Rect = new Rect(0,-0.4,1,1);
 	txt.GetComponent(GUIScript).m_Text =  str;
 	txt.GetComponent(GUIScript).m_FontSize = 95;
 	txt.GetComponent(GUIScript).m_Depth = -999999;

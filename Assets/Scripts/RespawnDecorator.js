@@ -52,10 +52,10 @@ function CountDown()
 	var guiLayer:String = "GUILayer_P"+(GetComponent(NetworkInputScript).m_ClientOwner+1);
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		m_OldMask = m_Camera.camera.cullingMask;
-		m_Camera.camera.cullingMask = 1 << LayerMask.NameToLayer(guiLayer);
-		m_Camera.camera.clearFlags =  CameraClearFlags.SolidColor;
-		m_Camera.camera.backgroundColor = Color32(49, 140, 219, 255);
+		m_OldMask = m_Camera.GetComponent.<Camera>().cullingMask;
+		m_Camera.GetComponent.<Camera>().cullingMask = 1 << LayerMask.NameToLayer(guiLayer);
+		m_Camera.GetComponent.<Camera>().clearFlags =  CameraClearFlags.SolidColor;
+		m_Camera.GetComponent.<Camera>().backgroundColor = Color32(49, 140, 219, 255);
 		m_Camera.GetComponent(CameraScript).m_CollisionEnabled = false;
 		m_Camera.GetComponent(MotionBlur).enabled = false;
 		// m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
@@ -105,7 +105,7 @@ function CountDown()
 		}
 		
 		
-		networkView.RPC("EnterHive", RPCMode.All, six[0], six[1], six[2], six[3], six[4], six[5]);
+		GetComponent.<NetworkView>().RPC("EnterHive", RPCMode.All, six[0], six[1], six[2], six[3], six[4], six[5]);
 	//}
 }
 
@@ -131,8 +131,8 @@ function RespawnPlayer()
 			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
 			m_Camera.GetComponent(CameraScript).Snap();
 			
-			m_Camera.camera.cullingMask = m_OldMask;
-			m_Camera.camera.clearFlags = CameraClearFlags.Skybox;
+			m_Camera.GetComponent.<Camera>().cullingMask = m_OldMask;
+			m_Camera.GetComponent.<Camera>().clearFlags = CameraClearFlags.Skybox;
 			m_Camera.GetComponent(CameraScript).m_CollisionEnabled = true;
 			
 			// m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
@@ -159,7 +159,7 @@ function RespawnPlayer()
 		yield WaitForSeconds(0.5);
 		if(Network.isServer)
 		{
-			networkView.RPC("RemoveComponent", RPCMode.All, "RespawnDecorator");
+			GetComponent.<NetworkView>().RPC("RemoveComponent", RPCMode.All, "RespawnDecorator");
 		}
 }
 
@@ -216,10 +216,10 @@ function OnGUI()
 {
 	if(NetworkUtils.IsLocalGameObject(gameObject) && m_Lifetime > 0)
 	{
-		var camWidth = m_Camera.camera.rect.width;
-		var camScale = m_Camera.camera.rect.width;
-		var camPos:Vector2 = Vector2(m_Camera.camera.rect.x*Screen.width,Mathf.Abs(m_Camera.camera.rect.y - 0.5)*Screen.height);
-		if(m_Camera.camera.rect.y == 0.0 &&  m_Camera.camera.rect.height == 1)
+		var camWidth = m_Camera.GetComponent.<Camera>().rect.width;
+		var camScale = m_Camera.GetComponent.<Camera>().rect.width;
+		var camPos:Vector2 = Vector2(m_Camera.GetComponent.<Camera>().rect.x*Screen.width,Mathf.Abs(m_Camera.GetComponent.<Camera>().rect.y - 0.5)*Screen.height);
+		if(m_Camera.GetComponent.<Camera>().rect.y == 0.0 &&  m_Camera.GetComponent.<Camera>().rect.height == 1)
 			camPos.y = 0;
 		var time:int = (m_Lifetime+0.5);
 		var style:GUIStyle = GetComponent(BeeScript).FontStyle;

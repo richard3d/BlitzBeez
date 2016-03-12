@@ -1,5 +1,5 @@
 #pragma strict
-
+enum GUISpace { SpaceScreen, Space3D, SpacePixel }
 var m_Style:GUIStyle = null;
 var m_Color:Color = Color.white;
 var m_ImgColor:Color = Color.white;
@@ -8,6 +8,7 @@ var m_FontSize:float = 32;
 var m_Text:String = null;
 var m_Img:Texture2D = null;
 var m_3D:boolean = false;
+var m_GUISpace : GUISpace = GUISpace.SpaceScreen;
 var m_Camera : GameObject; //the camera to use for 3d.
 var m_Rect:Rect = new Rect(0,0,1,1);
 var m_PixRect:Rect;
@@ -18,7 +19,7 @@ var m_SpawnGUI:GameObject;	//a gui to spawn on our death, useful for sequencing 
 
 function OnEnable()
 {
-	if(m_3D && m_Camera != null)
+	if((m_GUISpace == GUISpace.Space3D || m_3D) && m_Camera != null)
 	{
 		var v:Vector3 = m_Camera.GetComponent(Camera).WorldToViewportPoint(transform.position);
 		m_Rect.x = v.x;
@@ -35,16 +36,16 @@ function Start () {
 
 function SetCamera(cam:GameObject)
 {
-	m_Rect = cam.camera.rect;
-	if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
+	m_Rect = cam.GetComponent.<Camera>().rect;
+	if(cam.GetComponent.<Camera>().rect.y == 0.0 &&  cam.GetComponent.<Camera>().rect.height == 1)
 		m_Rect.y = 0;
 	else
-		m_Rect.y = Mathf.Abs(cam.camera.rect.y - 0.5);
+		m_Rect.y = Mathf.Abs(cam.GetComponent.<Camera>().rect.y - 0.5);
 }
 
 function Update () {
 
-	if(m_3D && m_Camera != null)
+	if((m_GUISpace == GUISpace.Space3D || m_3D) && m_Camera != null)
 	{
 		var v:Vector3 = m_Camera.GetComponent(Camera).WorldToViewportPoint(transform.position);
 		m_Rect.x = v.x;
@@ -61,8 +62,22 @@ function OnGUI()
 		m_Rect.width = GUILayoutUtility.GetRect(new GUIContent(m_Text), m_Style).width/Screen.width;
 		m_Rect.height = GUILayoutUtility.GetRect(new GUIContent(m_Text), m_Style).height/Screen.height;
 	}
-	m_PixRect.x = m_Rect.x * Screen.width;
-	m_PixRect.y = m_Rect.y * Screen.height;
+	
+	if(m_GUISpace == GUISpace.SpaceScreen)
+	{
+		m_PixRect.x = m_Rect.x * Screen.width;
+		m_PixRect.y = m_Rect.y * Screen.height;
+	}
+	
+	var tempX = 0;
+	var tempY = 0;
+	if(transform.parent && transform.parent.GetComponent(GUIScript) !=null)
+	{
+		tempX = m_PixRect.x;
+		tempY = m_PixRect.y;
+		m_PixRect.x += transform.parent.GetComponent(GUIScript).m_PixRect.x;
+		m_PixRect.y += transform.parent.GetComponent(GUIScript).m_PixRect.y;
+	}	
 	m_PixRect.width = m_Rect.width * Screen.width;
 	m_PixRect.height = m_Rect.height * Screen.height;
 	
@@ -88,6 +103,11 @@ function OnGUI()
 		GUI.Label(m_PixRect, m_Text, m_Style);
 	}
 	
+	if(transform.parent && transform.parent.GetComponent(GUIScript) !=null)
+	{
+		m_PixRect.x = tempX;
+		m_PixRect.y = tempY;
+	}
 	
 
 }

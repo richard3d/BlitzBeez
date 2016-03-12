@@ -89,7 +89,7 @@ function Awake()
 }
 
 function Start () {
-	Screen.showCursor = false;
+	Cursor.visible = false;
 	//m_CursorPosition = gameObject.transform.position + gameObject.transform.forward * 10;
 }
 
@@ -98,16 +98,16 @@ function OnGUI()
 	if(NetworkUtils.IsLocalGameObject(gameObject) && GetComponent(BeeScript).IsGUIEnabled())
 	{
 		var cam:GameObject = GetComponent(BeeScript).m_Camera;
-		var camWidth = cam.camera.rect.width;
-		var camScale = cam.camera.rect.width;
-		var camPos:Vector2 = Vector2(cam.camera.rect.x*Screen.width,Mathf.Abs(1.0-(cam.camera.rect.y+cam.camera.rect.height))*Screen.height);
+		var camWidth = cam.GetComponent.<Camera>().rect.width;
+		var camScale = cam.GetComponent.<Camera>().rect.width;
+		var camPos:Vector2 = Vector2(cam.GetComponent.<Camera>().rect.x*Screen.width,Mathf.Abs(1.0-(cam.GetComponent.<Camera>().rect.y+cam.GetComponent.<Camera>().rect.height))*Screen.height);
 		
 		
 		
 		// if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
 			// camPos.y = 0;
 		
-		var bottom:float = camPos.y +cam.camera.rect.height*Screen.height;		
+		var bottom:float = camPos.y +cam.GetComponent.<Camera>().rect.height*Screen.height;		
 			
 		var scale:float = 26+2*Mathf.Sin(Time.time*16);
 	//	GUI.DrawTexture(Rect(camPos.x+m_CursorScreenPosition.x-scale*0.5,bottom-m_CursorScreenPosition.y-scale*0.5,scale,scale), m_CursorTexture);
@@ -170,7 +170,7 @@ function Update () {
 	
 	
 	var joyStr = "Joy"+m_JoyOwner+" ";
-	if(Application.isEditor)
+	//if(Application.isEditor)
 		joyStr = "Joy"+0+" ";
 	
 	//handle movement keys
@@ -255,7 +255,7 @@ function Update () {
 		//END ORIG
 							//Vector3(transform.position.x,0,transform.position.y)
 		m_CursorPosition = transform.position + transform.forward * m_CursorDist;
-		m_CursorScreenPosition = GetComponent(BeeScript).m_Camera.camera.WorldToScreenPoint(m_CursorPosition);
+		m_CursorScreenPosition = GetComponent(BeeScript).m_Camera.GetComponent.<Camera>().WorldToScreenPoint(m_CursorPosition);
 		if(GetComponent(BeeControllerScript).m_LookEnabled)
 		{
 			//if(NetworkUtils.IsControlledGameObject(gameObject))
@@ -263,7 +263,7 @@ function Update () {
 			
 			if(!m_LocalClient)//if(m_ClientOwner != 0)
 			{
-				networkView.RPC("PlayerLookat", RPCMode.Server, m_ClientOwner,   LookAt, rotAng);
+				GetComponent.<NetworkView>().RPC("PlayerLookat", RPCMode.Server, m_ClientOwner,   LookAt, rotAng);
 			}
 			else
 			{
@@ -346,7 +346,7 @@ function Update () {
 		if(!m_LocalClient)//if(m_ClientOwner != 0)
 		{
 			//SendMessage("OnNetworkInput", m_CurrInputState, SendMessageOptions.DontRequireReceiver);
-			networkView.RPC("PlayerInputEvent", RPCMode.Server, m_ClientOwner,m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions,m_CurrInputState.m_XAxisVal,m_CurrInputState.m_YAxisVal);
+			GetComponent.<NetworkView>().RPC("PlayerInputEvent", RPCMode.Server, m_ClientOwner,m_SeqCounter, m_CurrentActions, m_PrevActions, m_BuffActions,m_CurrInputState.m_XAxisVal,m_CurrInputState.m_YAxisVal);
 		}
 		else
 		{

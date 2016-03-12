@@ -11,7 +11,7 @@ function Awake()
 {
 	
 	gameObject.name = "Pollen";
-	animation.Play("SpawnPollen");
+	GetComponent.<Animation>().Play("SpawnPollen");
 }
 
 function Start () {
@@ -23,7 +23,7 @@ function Start () {
 
 function PollenSpawned()
 {
-	animation.Play("Pollen");
+	GetComponent.<Animation>().Play("Pollen");
 }
 
 function Update () {
@@ -40,7 +40,7 @@ function Update () {
 		
 		if((m_Owner.transform.position - transform.position).magnitude < m_Owner.transform.localScale.x)
 		{
-			audio.PlayClipAtPoint(m_PickUpSound, Camera.main.transform.position);
+			GetComponent.<AudioSource>().PlayClipAtPoint(m_PickUpSound, Camera.main.transform.position);
 			if(m_Owner.GetComponent(FlasherDecorator) == null)
 				m_Owner.AddComponent(FlasherDecorator);
 			m_Owner.AddComponent(PauseDecorator);
@@ -51,17 +51,17 @@ function Update () {
 			m_Owner.transform.localScale += Vector3(0.5,0.5,0.5);
 			if((m_Owner.GetComponent(BeeScript).m_PollenCount+1)%3 == 0)
 			{
-				audio.PlayClipAtPoint(m_LevelUpSound, Camera.main.transform.position);
+				GetComponent.<AudioSource>().PlayClipAtPoint(m_LevelUpSound, Camera.main.transform.position);
 				if(m_Owner.transform.localScale.x == 2)
 				{
-					m_Owner.animation.Play("BeeLevelUp1");
+					m_Owner.GetComponent.<Animation>().Play("BeeLevelUp1");
 					}
 			//	m_Owner.transform.localScale += Vector3(1,1,1);
 				
 				if(m_Owner.transform.localScale.x == 3)
 				{
 					//m_Owner.animation.Stop();
-					m_Owner.animation.Play("BeeLevelUp2");
+					m_Owner.GetComponent.<Animation>().Play("BeeLevelUp2");
 				}
 			}
 			m_Owner.GetComponent(BeeScript).m_PollenCount++;

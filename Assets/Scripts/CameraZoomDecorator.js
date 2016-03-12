@@ -8,7 +8,7 @@ function Start () {
 	gameObject.GetComponent(MotionBlur).enabled = true;
 	// gameObject.animation["CameraDramaticZoom"].speed = 1.5;
 	// gameObject.animation.Play("CameraDramaticZoom");
-	Zoom(gameObject.camera.fov, m_ZoomFOV);
+	Zoom(gameObject.GetComponent.<Camera>().fov, m_ZoomFOV);
 
 }
 
@@ -17,7 +17,7 @@ function Zoom(from:float, to:float)
 	var time:float = m_fLifetime;
 	while(m_fLifetime > 0)
 	{
-		gameObject.camera.fov = Mathf.Lerp(from,to,1-m_fLifetime/time);
+		gameObject.GetComponent.<Camera>().fov = Mathf.Lerp(from,to,1-m_fLifetime/time);
 		m_fLifetime -= 0.016;
 		
 		if(m_fLifetime <= 0)

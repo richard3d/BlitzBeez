@@ -25,7 +25,7 @@ public class TalentTree : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		// Initialize xml doc
-		m_TalentsFilename = "Assets/Data/Talents.xml";
+		m_TalentsFilename = Application.streamingAssetsPath+"/Talents.xml";
 		 if (doc == null)
 		 {
 			 doc = new XmlDocument();

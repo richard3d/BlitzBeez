@@ -9,7 +9,7 @@ function Awake()
 	
 	
 	GetComponent(BeeScript).Show(false);
-	collider.enabled = false;
+	GetComponent.<Collider>().enabled = false;
 	
 	//GetComponentInChildren(Projector).enabled = false;
 	//GetComponentInChildren(ParticleRenderer).enabled = false;

@@ -73,10 +73,10 @@ function OnGUI()
 		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
 		for(var player:GameObject in players)
 		{
-			var cam:Camera = player.GetComponent(BeeScript).m_Camera.camera;
+			var cam:Camera = player.GetComponent(BeeScript).m_Camera.GetComponent.<Camera>();
 			
 			var camPos:Vector2 = Vector2(cam.rect.x*Screen.width,Mathf.Abs(cam.rect.y - 0.5)*Screen.height);
-			if(cam.camera.rect.y == 0.0 &&  cam.camera.rect.height == 1)
+			if(cam.GetComponent.<Camera>().rect.y == 0.0 &&  cam.GetComponent.<Camera>().rect.height == 1)
 				camPos.y = 0;
 			var bottom:float = camPos.y +cam.rect.height*Screen.height;
 			var scrPos:Vector3 = cam.WorldToScreenPoint(transform.position+ Vector3.up * 24);
@@ -115,7 +115,7 @@ function OnCollisionEnter(coll : Collision)
 		if(Network.isServer && m_HP > 0)
 		{	
 			m_HP -= m_BaseHP;
-			ServerRPC.Buffer(networkView, "SetHP",RPCMode.All, m_HP);
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP",RPCMode.All, m_HP);
 		}
 	}
 	else if (coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != m_Owner)
@@ -124,7 +124,7 @@ function OnCollisionEnter(coll : Collision)
 		if(Network.isServer && m_HP > 0)
 		{	
 			m_HP -= m_BaseHP;
-			ServerRPC.Buffer(networkView, "SetHP",RPCMode.All, m_HP);
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP",RPCMode.All, m_HP);
 		}
 	}
 }
@@ -147,16 +147,16 @@ function OnTriggerEnter(other : Collider)
 		
 		if(m_Owner == other.gameObject)
 		{
-			collider.isTrigger = true;
+			GetComponent.<Collider>().isTrigger = true;
 			if(m_ShieldEffect != null)
 			{
 			
 				var color = NetworkUtils.GetColor(m_Owner);	
 				color.a = 0.5;
-				m_ShieldEffect.renderer.material.SetColor("_TintColor", color);
+				m_ShieldEffect.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 				color*=0.5;
 				color.a = 0.392*0.5;
-				m_ShieldEffect.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
+				m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 			//	m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
 			//	m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
 				//transform.Find("LightSpot").renderer.enabled = false;
@@ -182,22 +182,22 @@ function OnBulletCollision(coll:BulletCollision)
 				{
 					if(m_HP-5 <= 0)
 						CoinScript.SpawnCoins(transform.position + Vector3.up *transform.localScale.magnitude, m_NumBees*3, coll.bullet.GetComponent(BulletScript).m_Owner);
-					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-5);
+					ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP", RPCMode.All, m_HP-5);
 				}
 				//handle regular shot
 				else
 				{
 					if(m_HP-bs.m_BaseDmg <= 0)
 						CoinScript.SpawnCoins(transform.position + Vector3.up *transform.localScale.magnitude, m_NumBees*3, coll.bullet.GetComponent(BulletScript).m_Owner);
-					ServerRPC.Buffer(networkView, "SetHP", RPCMode.All, m_HP-bs.m_BaseDmg);					
+					ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP", RPCMode.All, m_HP-bs.m_BaseDmg);					
 				}
 				
 				
 			}
 			else
 			{
-				m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
-				m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+				m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Animation>().Stop();
+				m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Animation>().Play("FlowerShield");
 			}
 		}
 	}
@@ -211,11 +211,11 @@ function OnTriggerStay(coll : Collider)
 	{
 		var color = NetworkUtils.GetColor(m_Owner);	
 		color.a = 0.5;
-		m_ShieldEffect.renderer.material.SetColor("_TintColor", color);
+		m_ShieldEffect.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 		color*=0.5;
 		color.a = 0.392*0.5;
-		m_ShieldEffect.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
-		collider.isTrigger = true;
+		m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Renderer>().material.SetColor("_TintColor", color);
+		GetComponent.<Collider>().isTrigger = true;
 		//gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
 	}
 	
@@ -233,7 +233,7 @@ function OnTriggerStay(coll : Collider)
 			if(!txt.GetComponent(GUITexture).enabled)
 			{
 				txt.GetComponent(GUITexture).enabled = true;
-				txt.animation.Play();
+				txt.GetComponent.<Animation>().Play();
 			}
 		}
 		else
@@ -255,7 +255,7 @@ function OnTriggerStay(coll : Collider)
 	{
 		//technically we should never be negative, but just in case
 		m_HP = 0;
-		collider.isTrigger = true;
+		GetComponent.<Collider>().isTrigger = true;
 		AudioSource.PlayClipAtPoint(m_DeathSound, Camera.main.transform.position);
 		
 		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");
@@ -274,12 +274,12 @@ function OnTriggerStay(coll : Collider)
 		//spawn effects
 		var deathEffect : GameObject = gameObject.Instantiate(m_DeathEffect);
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
-		deathEffect.renderer.material.color = NetworkUtils.GetColor(m_Owner);
+		deathEffect.GetComponent.<Renderer>().material.color = NetworkUtils.GetColor(m_Owner);
 		
 		deathEffect = gameObject.Instantiate(Resources.Load("GameObjects/ExplosionParticles"));
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
-		deathEffect.transform.GetChild(0).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(m_Owner));
-		deathEffect.transform.GetChild(1).gameObject.renderer.material.SetColor("_TintColor", NetworkUtils.GetColor(m_Owner));
+		deathEffect.transform.GetChild(0).gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", NetworkUtils.GetColor(m_Owner));
+		deathEffect.transform.GetChild(1).gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", NetworkUtils.GetColor(m_Owner));
 		//deathEffect.renderer.material.color = m_Owner.renderer.material.color;
 		
 		//CLEAN UP
@@ -298,7 +298,7 @@ function OnTriggerStay(coll : Collider)
 			else if(transform.GetChild(i).gameObject.layer != LayerMask.NameToLayer("Minimap"))
 				Destroy(transform.GetChild(i).gameObject);
 		}
-		transform.Find("Flower_Minimap").renderer.material.color = Color(1,1,1,0.5);
+		transform.Find("Flower_Minimap").GetComponent.<Renderer>().material.color = Color(1,1,1,0.5);
 		Destroy(m_ShieldEffect);
 		m_ShieldEffect = null;
 		
@@ -336,8 +336,8 @@ function OnTriggerStay(coll : Collider)
 				shieldSphere.AddComponent(FlasherDecorator);
 				shieldSphere.GetComponent(FlasherDecorator).m_FlashDuration = 0.1;
 				shieldSphere.GetComponent(FlasherDecorator).m_NumberOfFlashes = 1;
-				shieldSphere.animation.Stop();
-				shieldSphere.animation.Play("Shield");
+				shieldSphere.GetComponent.<Animation>().Stop();
+				shieldSphere.GetComponent.<Animation>().Play("Shield");
 			}
 			//GetComponent(FlasherDecorato
 		}
@@ -353,16 +353,16 @@ function OnTriggerExit(other : Collider)
 		other.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
 		if(m_ShieldEffect != null)
 		{
-			collider.isTrigger = false;
-			m_ShieldEffect.transform.Find("ShieldSphere").animation.Stop();
-			m_ShieldEffect.transform.Find("ShieldSphere").animation.Play("FlowerShield");
+			GetComponent.<Collider>().isTrigger = false;
+			m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Animation>().Stop();
+			m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Animation>().Play("FlowerShield");
 			var color = NetworkUtils.GetColor(m_Owner);	
-			m_ShieldEffect.renderer.material.SetColor("_TintColor", color);
-			m_ShieldEffect.transform.Find("Shield_Minimap").renderer.material.SetColor("_TintColor", color);
+			m_ShieldEffect.GetComponent.<Renderer>().material.SetColor("_TintColor", color);
+			m_ShieldEffect.transform.Find("Shield_Minimap").GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 			color*=0.5;
 			color.a = 0.392;
 			
-			m_ShieldEffect.transform.Find("ShieldSphere").renderer.material.SetColor("_TintColor", color);
+			m_ShieldEffect.transform.Find("ShieldSphere").GetComponent.<Renderer>().material.SetColor("_TintColor", color);
 			//gameObject.Find(gameObject.name+"/LightSpot").renderer.enabled = true;
 		}
 		

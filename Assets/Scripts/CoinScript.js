@@ -33,7 +33,7 @@ static function SpawnCoins(pos:Vector3, num:int, owner:GameObject)
 			
 			go1.GetComponent(CoinScript).m_Owner = owner;	
 			if(owner != null)
-				go1.collider.enabled = false;
+				go1.GetComponent.<Collider>().enabled = false;
 			go1.GetComponent(TrailRenderer).enabled = true;
 		}
 
@@ -44,7 +44,7 @@ function Update () {
 
 	if(m_Owner != null)
 	{
-		gameObject.collider.enabled = false;
+		gameObject.GetComponent.<Collider>().enabled = false;
 		//GetComponent(UpdateScript).m_Vel += (m_Owner.transform.position - transform.position).normalized * 10;
 		
 		if(m_Timer < m_Time)
@@ -56,7 +56,7 @@ function Update () {
 		if((m_Timer >= m_Time || (m_Owner.transform.position - transform.position).magnitude < 4) && m_Time > 0)
 		{
 			m_Time = 0;
-			OnTriggerEnter(m_Owner.collider);
+			OnTriggerEnter(m_Owner.GetComponent.<Collider>());
 		}
 	}
 
@@ -68,8 +68,8 @@ function OnTriggerEnter(coll:Collider)
 	if(coll.gameObject.tag == "Player" )
 	{
 		if(Network.isServer)
-			ServerRPC.Buffer(networkView, "GetCoin", RPCMode.All, coll.gameObject.name);
-		animation.Stop();
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "GetCoin", RPCMode.All, coll.gameObject.name);
+		GetComponent.<Animation>().Stop();
 		//Destroy(GetComponent(UpdateScript));
 		//Destroy(GetComponent(ItemScript));
 		transform.rotation = Quaternion.identity;
@@ -77,7 +77,7 @@ function OnTriggerEnter(coll:Collider)
 		transform.parent = coll.gameObject.transform.parent;
 		
 		GetComponent(SphereCollider).enabled = false;
-		animation.Play("GetCoin");
+		GetComponent.<Animation>().Play("GetCoin");
 		
 	}
 
@@ -172,9 +172,9 @@ function GetCoin(name : String)
 			kudosText = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
 		}
 		 kudosText.name = "XPKudos";
-		 kudosText.animation.Stop();
-		 kudosText.animation["KudosText"].time = 0;
-		 kudosText.animation.Play("KudosText");
+		 kudosText.GetComponent.<Animation>().Stop();
+		 kudosText.GetComponent.<Animation>()["KudosText"].time = 0;
+		 kudosText.GetComponent.<Animation>().Play("KudosText");
 		 kudosText.GetComponent(GUIText).material.color = Color.yellow;
 		 kudosText.GetComponent(KudosTextScript).m_Pos = bee.transform.position;
 		 kudosText.GetComponent(UpdateScript).m_Lifetime = 2;

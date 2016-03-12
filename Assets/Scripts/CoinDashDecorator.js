@@ -28,9 +28,9 @@ function FindCoin(lastCoin:GameObject)
 			kudosText = gameObject.Instantiate(Resources.Load("GameObjects/KudosText"));
 		}
 		 kudosText.name = "XPKudos";
-		 kudosText.animation.Stop();
-		 kudosText.animation["KudosText"].time = 0;
-		 kudosText.animation.Play("KudosText");
+		 kudosText.GetComponent.<Animation>().Stop();
+		 kudosText.GetComponent.<Animation>()["KudosText"].time = 0;
+		 kudosText.GetComponent.<Animation>().Play("KudosText");
 		 kudosText.GetComponent(GUIText).material.color = Color.yellow;
 		 kudosText.GetComponent(KudosTextScript).m_Pos = transform.position;
 		 kudosText.GetComponent(UpdateScript).m_Lifetime = 2;
@@ -52,7 +52,7 @@ function FindCoin(lastCoin:GameObject)
 	{
 		if((gameObject.transform.position - coin.transform.position).magnitude < dist && 
 			coin != lastCoin && 
-			!coin.animation.IsPlaying("GetCoin") && 
+			!coin.GetComponent.<Animation>().IsPlaying("GetCoin") && 
 			coin.GetComponent(TerrainCollisionScript).m_OverTerrain)
 		{
 			dist = (gameObject.transform.position - coin.transform.position).magnitude;
@@ -89,7 +89,7 @@ function Update () {
 		if(m_Lifetime <= 0)
 		{
 			if(Network.isServer)
-				ServerRPC.Buffer(networkView, "RemoveComponent",RPCMode.All, "CoinDashDecorator");
+				ServerRPC.Buffer(GetComponent.<NetworkView>(), "RemoveComponent",RPCMode.All, "CoinDashDecorator");
 		}
 	}
 	

@@ -92,7 +92,7 @@ function OnStateChange(state:int)
 			m_Clients[i].m_GameObject.GetComponent(NetworkInputScript).enabled = false;	
 		}
 		//after some time tell clients we are bumping out
-		Screen.showCursor = true;
+		Cursor.visible = true;
 		//InitiateMatchShutdown();
 		
 		
@@ -467,7 +467,7 @@ function GetGameObject() : GameObject
 	 clone.transform.position = pos;
 	 clone.transform.rotation = rot;
 	 var nView : NetworkView;
-     nView = clone.networkView;
+     nView = clone.GetComponent.<NetworkView>();
      nView.viewID = viewID;
 	 return clone.gameObject;
 }
@@ -550,7 +550,7 @@ function GetGameObject() : GameObject
 	go.name = m_Clients[clientID].m_Name; 
 	SetClientGameObject(clientID,go.name);
 	ServerRPC.Buffer(m_SyncMsgsView, "SetClientGameObject", RPCMode.Others, clientID, go.name);
-	ServerRPC.Buffer(go.networkView, "AddSwarm", RPCMode.All, "", Vector3(0,0,0), go.GetComponent(BeeControllerScript).m_LoadOut.m_BaseClipSize);
+	ServerRPC.Buffer(go.GetComponent.<NetworkView>(), "AddSwarm", RPCMode.All, "", Vector3(0,0,0), 30);
 	Debug.Log(go.GetComponent(BeeControllerScript).m_ControlEnabled);
 	//ServerRPC.Buffer(go.networkView, "Reload", RPCMode.All);
 	//ServerRPC.Buffer(go.networkView, "QuickReload", RPCMode.All);
@@ -582,6 +582,20 @@ function GetGameObject() : GameObject
 		m_Clients[clientID].m_GameObject.GetComponent(NetworkInputScript).m_ClientOwner = clientID;
 		m_Clients[clientID].m_GameObject.transform.position = m_Clients[clientID].m_GameObject.GetComponent(BeeScript).FindRespawnLocation();
 		m_Clients[clientID].m_GameObject.transform.position.y = m_Clients[clientID].m_GameObject.GetComponent(CharacterController).height;
+		var hives:GameObject[] = GameObject.FindGameObjectsWithTag("Hives");
+		for(var hive:GameObject in hives)
+		{
+			if(hive.GetComponent(RespawnScript).m_TeamOwner != m_Clients[clientID].m_Side)
+			{
+				m_Clients[clientID].m_GameObject.transform.LookAt(hive.transform.position);
+				m_Clients[clientID].m_GameObject.GetComponent(BeeControllerScript).m_Heading = Vector3.Angle(hive.transform.position - m_Clients[clientID].m_GameObject.transform.position, Vector3.forward);
+				if(Vector3.Dot(hive.transform.position - m_Clients[clientID].m_GameObject.transform.position, Vector3.right) < 0)
+					m_Clients[clientID].m_GameObject.GetComponent(BeeControllerScript).m_Heading *= -1;
+				Debug.Log("Looking at: "+hive.name);
+				break;
+			}
+		}
+		
 		if(m_Clients[clientID].m_Player.ToString() == "0")
 		{
 			//tell the input system it is dealing with a local client
@@ -594,22 +608,22 @@ function GetGameObject() : GameObject
 			playerCam.name = go + "Camera";
 			if(clientID ==0)
 			{
-				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P2") | 1 <<LayerMask.NameToLayer("GUILayer_P3") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
+				playerCam.GetComponent.<Camera>().cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P2") | 1 <<LayerMask.NameToLayer("GUILayer_P3") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
 			}
 			else
 			if(clientID ==1)
 			{
-				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P3") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
+				playerCam.GetComponent.<Camera>().cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P3") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
 			}
 			else
 			if(clientID ==2)
 			{
-				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P2") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
+				playerCam.GetComponent.<Camera>().cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P2") | 1<<LayerMask.NameToLayer("GUILayer_P4")));
 			}
 			else
 			if(clientID ==3)
 			{
-				playerCam.camera.cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P2") | 1<<LayerMask.NameToLayer("GUILayer_P3")));
+				playerCam.GetComponent.<Camera>().cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P2") | 1<<LayerMask.NameToLayer("GUILayer_P3")));
 			}
 			playerCam.GetComponent(CameraScript).m_Target = m_Clients[clientID].m_GameObject;
 			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Camera = playerCam;
@@ -725,10 +739,10 @@ function GetGameObject() : GameObject
 		m_Clients[clientID].m_GameObject.GetComponent(BeeBlinkScript).SetLookIndexes(m_Clients[clientID].m_EyeIndex,m_Clients[clientID].m_MouthIndex);
 		
 		var mapIcon:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee_Minimap").gameObject;
-		mapIcon.renderer.material.SetColor("_TintColor", m_Clients[clientID].m_Color);
+		mapIcon.GetComponent.<Renderer>().material.SetColor("_TintColor", m_Clients[clientID].m_Color);
 		
 		var armor:GameObject = m_Clients[clientID].m_GameObject.transform.Find("Bee/NewBee/BeeArmor").gameObject;
-		armor.renderer.materials[0].color = m_Clients[clientID].m_Color;
+		armor.GetComponent.<Renderer>().materials[0].color = m_Clients[clientID].m_Color;
 		if(m_Clients[clientID].m_Side == 0)
 			GameStateManager.m_Team1Color = m_Clients[clientID].m_Color;
 		else

@@ -20,7 +20,7 @@ function OnCollisionEnter(coll : Collision)
 	if(other.gameObject.tag == "Player")
 	{
 		GetComponent(ItemScript).OnItemCollisionEnter(coll);
-		animation.Stop();
+		GetComponent.<Animation>().Stop();
 		//Destroy(GetComponent(UpdateScript));
 		//Destroy(GetComponent(ItemScript));
 		//transform.parent = other.gameObject.transform;

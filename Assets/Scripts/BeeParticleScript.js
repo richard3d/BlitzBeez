@@ -14,16 +14,16 @@ static var m_DefaultCohesion : float;
 
 function Start () {
 
-	if(particleEmitter.particleCount <= 1)
+	if(GetComponent.<ParticleEmitter>().particleCount <= 1)
 	{
-		particleEmitter.ClearParticles();
-		var parts =   particleEmitter.particles;
+		GetComponent.<ParticleEmitter>().ClearParticles();
+		var parts =   GetComponent.<ParticleEmitter>().particles;
 		for(var i = 0; i < parts.length; i++)
 		{
 			parts[i].position = Random.insideUnitSphere * 2;
 			parts[i].velocity = Random.insideUnitSphere;
 		}
-		particleEmitter.particles = parts;
+		GetComponent.<ParticleEmitter>().particles = parts;
 	}
 	
 	m_SwarmOffset = Vector3(0,0,0);
@@ -43,14 +43,14 @@ function Update () {
 		if(m_Owner != null && m_Owner.GetComponent(FlowerDecorator) == null ||
 			m_Owner.GetComponent(FlowerDecorator).GetFlower() != flower)
 		{
-			var numBees : float = particleEmitter.particles.length;
+			var numBees : float = GetComponent.<ParticleEmitter>().particles.length;
 			var harvestSpeed : float =  (fDelta* (numBees / flower.GetComponent(FlowerScript).m_MaxBees));
 			var beeScript : BeeScript = m_Owner.GetComponent(BeeScript);
 		}
 	}
 
 	//handle swarm particle effect motion
-	var parts = particleEmitter.particles;
+	var parts = GetComponent.<ParticleEmitter>().particles;
 	for(var i = 0; i < parts.length; i++)
 	{
 		m_AvgPos  = Vector3(0,0,0);
@@ -101,13 +101,13 @@ function Update () {
 	
 	}
 	
-	particleEmitter.particles = parts;
+	GetComponent.<ParticleEmitter>().particles = parts;
 
 }
 
 function SetPosition()
 {
-	var parts = particleEmitter.particles;
+	var parts = GetComponent.<ParticleEmitter>().particles;
 	if(transform.parent != null && transform.parent.tag == "Player")
 	{
 			
@@ -122,13 +122,13 @@ function SetNumParticles(count : int)
 {
 	if(count > m_LargestSize)
 		m_LargestSize = count;
-	particleEmitter.minEmission = count;
-	particleEmitter.maxEmission = count;
+	GetComponent.<ParticleEmitter>().minEmission = count;
+	GetComponent.<ParticleEmitter>().maxEmission = count;
 	//particleEmitter.emit = false;
-	particleEmitter.ClearParticles();
-	particleEmitter.Simulate(1);
+	GetComponent.<ParticleEmitter>().ClearParticles();
+	GetComponent.<ParticleEmitter>().Simulate(1);
 	
-	var parts = particleEmitter.particles;
+	var parts = GetComponent.<ParticleEmitter>().particles;
 	for(var i = 0; i < parts.length; i++)
 	{
 		
@@ -137,39 +137,39 @@ function SetNumParticles(count : int)
 		
 	}
 	
-	particleEmitter.particles = parts;	
+	GetComponent.<ParticleEmitter>().particles = parts;	
 }
 
 function RemoveParticle()
 {
 	
-	if(particleEmitter.particleCount > 0)
+	if(GetComponent.<ParticleEmitter>().particleCount > 0)
 	{
 	
-		if(particleEmitter.particleCount == 1)
+		if(GetComponent.<ParticleEmitter>().particleCount == 1)
 		{
 			GetComponent(ParticleRenderer).enabled = false;
 		}
 		
-		var newParts : Particle[]  = new Particle[particleEmitter.particleCount-1];
+		var newParts : Particle[]  = new Particle[GetComponent.<ParticleEmitter>().particleCount-1];
 		for(var i = 0; i < newParts.length; i++)
 		{
-			newParts[i] = particleEmitter.particles[i];
+			newParts[i] = GetComponent.<ParticleEmitter>().particles[i];
 		}
 		
-		particleEmitter.particles =  newParts;
+		GetComponent.<ParticleEmitter>().particles =  newParts;
 	}
 }
 
 function AddParticle()
 {
-	var newParts : Particle[]  = new Particle[particleEmitter.particleCount+1];
-	for(var i = 0; i < particleEmitter.particleCount; i++)
+	var newParts : Particle[]  = new Particle[GetComponent.<ParticleEmitter>().particleCount+1];
+	for(var i = 0; i < GetComponent.<ParticleEmitter>().particleCount; i++)
 	{
-		newParts[i] = particleEmitter.particles[i];
-		if( i == particleEmitter.particleCount-1)
+		newParts[i] = GetComponent.<ParticleEmitter>().particles[i];
+		if( i == GetComponent.<ParticleEmitter>().particleCount-1)
 		{
-			newParts[i+1] = particleEmitter.particles[i];
+			newParts[i+1] = GetComponent.<ParticleEmitter>().particles[i];
 			
 			newParts[i+1].position = transform.position +Random.insideUnitSphere * 2;
 			newParts[i+1].velocity = Random.insideUnitSphere;
@@ -177,7 +177,7 @@ function AddParticle()
 	}
 	if(newParts.length > m_LargestSize)
 		m_LargestSize = newParts.length;
-	particleEmitter.particles =  newParts;
+	GetComponent.<ParticleEmitter>().particles =  newParts;
 	
 	
 }
@@ -194,8 +194,8 @@ function OnDestroy()
 			gameObject.Destroy(go.gameObject);
 			var effect : GameObject = gameObject.Instantiate(Resources.Load("GameObjects/BeeExplosionParticles"));
 			var parts : ParticleSystem.Particle[] = new ParticleSystem.Particle[effect.GetComponent(ParticleSystem).particleCount];
-			effect.GetComponent(ParticleSystem).renderer.material.SetColor("_EmisColor", gameObject.renderer.material.color);
-			effect.GetComponent(ParticleSystem).startColor = gameObject.renderer.material.color;
+			effect.GetComponent(ParticleSystem).GetComponent.<Renderer>().material.SetColor("_EmisColor", gameObject.GetComponent.<Renderer>().material.color);
+			effect.GetComponent(ParticleSystem).startColor = gameObject.GetComponent.<Renderer>().material.color;
 			
 			effect.transform.position = transform.position;
 		}

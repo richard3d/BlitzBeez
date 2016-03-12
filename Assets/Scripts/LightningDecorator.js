@@ -9,7 +9,7 @@ function Awake()
 	gameObject.AddComponent(ControlDisablerDecorator);
 	
 
-	collider.enabled = false;
+	GetComponent.<Collider>().enabled = false;
 	//transform.position = m_StrikePos;
 	GetComponentInChildren(ParticleRenderer).enabled = false;
 	GetComponent(TrailRenderer).enabled = true;
@@ -28,7 +28,7 @@ function Start () {
 		if(go != gameObject)
 		{
 			var dist:float = (go.transform.position - transform.position).magnitude;
-			var width:float =GetComponent(BeeScript).m_Camera.camera.orthographicSize*2*Mathf.Cos(45*Mathf.Deg2Rad);
+			var width:float =GetComponent(BeeScript).m_Camera.GetComponent.<Camera>().orthographicSize*2*Mathf.Cos(45*Mathf.Deg2Rad);
 			
 			var pos:Vector2 = new Vector2(go.transform.position.x, go.transform.position.z);
 			
@@ -98,7 +98,7 @@ function Update () {
 		{
 			m_LightningEffect.transform.position = transform.position;
 			if(Network.isServer)
-				networkView.RPC("DestroyLightningDecorator",RPCMode.All);
+				GetComponent.<NetworkView>().RPC("DestroyLightningDecorator",RPCMode.All);
 		}
 		
 	}
@@ -117,7 +117,7 @@ function SetLifetime(time : float)
 
 function OnDestroy()
 {
-	collider.enabled = true;
+	GetComponent.<Collider>().enabled = true;
 	//gameObject.animation.Play("SpawnPlayer");
 	Destroy(GetComponent(ControlDisablerDecorator));
 	GetComponent(BeeScript).enabled = true;

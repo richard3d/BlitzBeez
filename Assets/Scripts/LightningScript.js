@@ -61,11 +61,11 @@ function OnDestroy()
 {
 	var go : GameObject = gameObject.Instantiate(m_BombExplosion);
 	go.GetComponent(BombExplosionScript).m_Owner = m_Owner;
-	var coll:SphereCollider = go.collider as SphereCollider;
+	var coll:SphereCollider = go.GetComponent.<Collider>() as SphereCollider;
 	coll.radius = 30;
 	go.transform.position = transform.position;
 	go.transform.position.y = 0;
-	Physics.IgnoreCollision(m_Owner.collider, coll);
+	Physics.IgnoreCollision(m_Owner.GetComponent.<Collider>(), coll);
 	
 	
 	go = gameObject.Instantiate(m_ImpactExplosion);
@@ -75,7 +75,7 @@ function OnDestroy()
 	
 	go = gameObject.Instantiate(m_Owner.GetComponent(BeeScript).m_DeathEffect);
 	go.transform.position = transform.position;
-	go.renderer.material.SetColor("_TintColor", renderer.material.color);
+	go.GetComponent.<Renderer>().material.SetColor("_TintColor", GetComponent.<Renderer>().material.color);
 	
 	if(NetworkUtils.IsLocalGameObject(m_Owner))
 	{

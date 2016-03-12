@@ -3,21 +3,64 @@ var m_Owner : GameObject = null;
 var m_MuzzleEffect : GameObject = null;
 var m_AttachMuzzleEffect : boolean = true;
 var m_SoundEffect : AudioClip = null;
+var m_EffectPerRound : boolean = false;	//determines whether muzzle flash and sound effects should be generated for every bullet or just when the player pulls the trigger
+var m_KickbackAmt : float = 0;
+var m_KickbackRecoveryTime : float = 0;
+var m_ClipSize : int = 0;
+//@HideInInspector
+var m_Ammo : int = 0;
+var m_DecrementAmmoPerRound : boolean = false;	//Set this to true when a loadout shoots bursts like an assault rifle to have the ammo decrement for each round rather than each time the trigger is pulled
+var m_ReloadTime : float = 0;
+
+var m_ReloadTimer : float = 0;
 var m_LoadOut : LoadOut;
 
-var m_EffectPerRound : boolean = false;	//determines whether muzzle flash and sound effects should be generated for every bullet or just when the player pulls the trigger
+
+
 function Start () {
-	//m_LoadOut.CreateLoadOut(2);
+	m_Ammo = m_ClipSize;
 }
 
 function Update () {
+}
 
-	
-	for(var i : int = 0; i < m_LoadOut.m_Pylons.length; i++)
+function Fire()
+{
+	var shot:boolean = false;
+	for(var p : int = 0; p < m_LoadOut.m_Pylons.length; p++)
 	{
-		var random =Random.Range(-m_LoadOut.m_Pylons[i].AngRandomOffset,m_LoadOut.m_Pylons[i].AngRandomOffset);
-		if(m_LoadOut.m_Pylons[i].IsShooting())
+		if(m_LoadOut.m_Pylons[p].m_CanShoot)
 		{
+			DoPylonLogic(p);
+			shot = true;
+		}
+	}
+	
+	if(shot)
+	{
+		GetComponent.<NetworkView>().RPC("Shot", RPCMode.All);
+	}
+}
+
+
+function DoPylonLogic(i:int)
+{
+
+	m_LoadOut.m_Pylons[i].m_CanShoot = false;
+	yield WaitForSeconds(m_LoadOut.m_Pylons[i].m_FireDelay);
+	
+	var fDelta:float = 0.033;
+	m_LoadOut.m_Pylons[i].m_BurstNum = m_LoadOut.m_Pylons[i].m_BurstCount;
+	
+	while(m_LoadOut.m_Pylons[i].m_BurstNum > 0)
+	{
+		m_LoadOut.m_Pylons[i].m_FireRateTimer -= fDelta;
+		if(m_LoadOut.m_Pylons[i].m_FireRateTimer <= 0)
+		{
+			m_LoadOut.m_Pylons[i].m_FireRateTimer = m_LoadOut.m_Pylons[i].m_FireRate;
+			m_LoadOut.m_Pylons[i].m_BurstNum--;
+			
+			var random =Random.Range(-m_LoadOut.m_Pylons[i].AngRandomOffset,m_LoadOut.m_Pylons[i].AngRandomOffset);
 			var bulletPos : Vector3 = m_Owner.transform.right * m_LoadOut.m_Pylons[i].PosOffset.x + m_Owner.transform.up * m_LoadOut.m_Pylons[i].PosOffset.y + m_Owner.transform.forward * m_LoadOut.m_Pylons[i].PosOffset.z + m_Owner.transform.position;
 			var rot : Quaternion = Quaternion.AngleAxis(m_LoadOut.m_Pylons[i].AngOffset+random, Vector3.up);
 			var bulletVel : Vector3 =  rot * m_Owner.transform.forward;
@@ -27,28 +70,50 @@ function Update () {
 			
 			var go : GameObject = null;
 			go = BulletScript.SpawnBullet(m_LoadOut.m_Pylons[i].m_BulletInstance,bulletPos,Vector3.zero);
-			networkView.RPC("InitRound", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
+			GetComponent.<NetworkView>().RPC("InitRound", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
+			
 		}
+		yield WaitForSeconds(fDelta);
 	}
+	yield WaitForSeconds(m_LoadOut.m_Pylons[i].m_FireTime);
+	
+	if(m_ReloadTimer <= 0)
+		m_LoadOut.m_Pylons[i].m_CanShoot = true;
 }
 
-function Fire()
+function Reload()
 {
-	var shot:boolean = false;
+	m_ReloadTimer = m_ReloadTime;
+	var fDelta:float = 0.033;	
+	
 	for(var p : int = 0; p < m_LoadOut.m_Pylons.length; p++)
 	{
-		if(m_LoadOut.m_Pylons[p].CanShoot())
-			shot = true;
+		m_LoadOut.m_Pylons[p].m_CanShoot = false;
 	}
-	
-	if(shot)
+
+	while(m_ReloadTimer > 0)
 	{
-		networkView.RPC("Shot", RPCMode.All);
+		m_ReloadTimer -= fDelta;
+		yield WaitForSeconds(fDelta);
 	}
+		
+	for(p = 0; p < m_LoadOut.m_Pylons.length; p++)
+	{
+		m_LoadOut.m_Pylons[p].m_CanShoot = true;
+	}
+	m_Ammo = m_ClipSize;
 }
 
 @RPC function Shot()
 {
+	
+	if(!m_DecrementAmmoPerRound)
+	{
+		m_Ammo--;
+		if(m_Ammo <= 0)
+			Reload();
+	}
+	
 	var go : GameObject = gameObject.Instantiate(m_MuzzleEffect);
 	var size:float = 1;
 
@@ -70,30 +135,36 @@ function Fire()
 	AudioSource.PlayClipAtPoint(m_SoundEffect, m_Owner.transform.position);
 	
 	//transform.Find("Bee/NewBee").animation.Stop();
-	m_Owner.transform.Find("Bee/NewBee").animation.Stop("flyandshoot");
-	m_Owner.transform.Find("Bee/NewBee").animation["flyandshoot"].layer = 2;
-	m_Owner.transform.Find("Bee/NewBee").animation["flyandshoot"].AddMixingTransform(m_Owner.transform.Find("Bee/NewBee/body/r_shoulder"));
-	m_Owner.transform.Find("Bee/NewBee").animation.Play("flyandshoot");
+	m_Owner.transform.Find("Bee/NewBee").GetComponent.<Animation>().Stop("flyandshoot");
+	m_Owner.transform.Find("Bee/NewBee").GetComponent.<Animation>()["flyandshoot"].layer = 2;
+	m_Owner.transform.Find("Bee/NewBee").GetComponent.<Animation>()["flyandshoot"].AddMixingTransform(m_Owner.transform.Find("Bee/NewBee/body/r_shoulder"));
+	m_Owner.transform.Find("Bee/NewBee").GetComponent.<Animation>().Play("flyandshoot");
 	
 	//perform kick back
-	if(m_LoadOut.m_KickbackRecovery != 0)
+	if(m_KickbackRecoveryTime != 0)
 	{
 		m_Owner.AddComponent(ControlDisablerDecorator);
-		m_Owner.GetComponent(ControlDisablerDecorator).SetLifetime(m_LoadOut.m_KickbackRecovery);
-		m_Owner.GetComponent(UpdateScript).m_Accel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
-		m_Owner.GetComponent(UpdateScript).m_Vel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_LoadOut.m_Kickback;
+		m_Owner.GetComponent(ControlDisablerDecorator).SetLifetime(m_KickbackRecoveryTime);
+		m_Owner.GetComponent(UpdateScript).m_Accel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_KickbackAmt;
+		m_Owner.GetComponent(UpdateScript).m_Vel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_KickbackAmt;
 	}
 }
 
 
 @RPC function InitRound(bulletName : String, pos : Vector3, vel : Vector3, decrementAmmo:boolean)
 {
+	if(m_DecrementAmmoPerRound)
+	{
+		m_Ammo--;
+		if(m_Ammo <= 0)
+			Reload();
+	}
 	if(m_EffectPerRound)
 		AudioSource.PlayClipAtPoint(m_SoundEffect, m_Owner.transform.position);
 	var go : GameObject = gameObject.Find(bulletName);
 	//make it so we dont collide with our own bullets
-	if(go.collider.enabled && m_Owner.collider.enabled)
-		Physics.IgnoreCollision(go.collider, m_Owner.collider);
+	if(go.GetComponent.<Collider>().enabled && m_Owner.GetComponent.<Collider>().enabled)
+		Physics.IgnoreCollision(go.GetComponent.<Collider>(), m_Owner.GetComponent.<Collider>());
 				
 	go.GetComponent(BulletScript).m_Owner = m_Owner;
 	go.GetComponent(BulletScript).m_PowerShot = false;
@@ -139,59 +210,7 @@ function Fire()
 		go.GetComponent(TrailRenderer).material.color = color;
 		go.GetComponent(TrailRenderer).material.SetColor("_Emission", color);
 	}
-    go.renderer.material.SetColor("_Color",color);
-	go.renderer.material.SetColor("_Emission", color);
+    go.GetComponent.<Renderer>().material.SetColor("_Color",color);
+	go.GetComponent.<Renderer>().material.SetColor("_Emission", color);
 	go.GetComponent(BulletScript).Start();
 }
-
-// static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : GameObject
-// {
-	// var bs:BulletScript = bulletType.GetComponent(BulletScript);
-	// var go:GameObject = null;
-	
-	// if(bs.m_PowerShot)
-	// {
-		// // if(m_PowerBulletPool[bs.m_PowerShotType+1] != null && m_PowerBulletPool[bs.m_PowerShotType+1].length > 0)
-		// // {
-			// // go = m_PowerBulletPool[bs.m_PowerShotType+1].Shift();
-			// // go.transform.position = pos;
-			// // go.GetComponent(UpdateScript).m_Vel = vel;
-			// // go.GetComponent(BulletScript).m_Life = 1.25;
-			// // go.active = true;	
-			// // for(var t:Transform in go.transform)
-			// // {
-				// // t.gameObject.active = true;
-				// // if(t.childCount > 0)
-					// // t.GetChild(0).gameObject.active = true;
-			// // }
-		// // }
-		// // else
-		// // {
-			// // //instantiate a new one
-			// // go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
-		// // }
-	// }
-	// else
-	// {
-		// if(m_BulletPool[bs.m_BulletType+1] != null && m_BulletPool[bs.m_BulletType+1].length > 0)
-		// {
-			// go = m_BulletPool[bs.m_BulletType+1].Shift();
-			// go.transform.position = pos;
-			// go.GetComponent(UpdateScript).m_Vel = vel;
-			// //go.transform.LookAt(pos+vel);
-			// go.GetComponent(BulletScript).m_Life = 1.25;
-			// //go.GetComponent(BulletScript).Start();
-			// go.active = true;	
-			// for(var t:Transform in go.transform)
-			// {
-				// t.gameObject.active = true;
-			// }
-		// }
-		// else
-		// {
-			// //instantiate a new one
-			// go = Network.Instantiate(bulletType, pos , Quaternion.identity, 0);	
-		// }
-	// }
-	// return go;
-// }

@@ -77,7 +77,7 @@ function OnStateChange(state:int)
 	else
 	if(mgr.m_CurrState == GameStateManager.MATCH_OVER)
 	{
-		Screen.showCursor = true;
+		Cursor.visible = true;
 		if(GetGameObject() != null)
 			GetGameObject().GetComponent(NetworkInputScript).enabled = false;
 	}
@@ -167,7 +167,7 @@ function OnConnectedToServer()
 
 function OnDisconnectedFromServer()
 {
-	Screen.showCursor = true;
+	Cursor.visible = true;
 	Application.LoadLevel("MultiplayerMainMenu");
 	Destroy(gameObject);
 }
@@ -291,7 +291,7 @@ function GetGameObject() : GameObject
 	 var clone : GameObject;
      clone = gameObject.Instantiate(Resources.Load("GameObjects/"+prefabName), pos, rot);
 	 var nView : NetworkView;
-     nView = clone.networkView;
+     nView = clone.GetComponent.<NetworkView>();
      nView.viewID = viewID;
 	 if(instName != null && instName != "")
 	 {
@@ -320,7 +320,7 @@ function GetGameObject() : GameObject
 			
 			
             //set the client gameObejct color			
-			m_Clients[clientID].m_GameObject.renderer.material.color = m_Clients[clientID].m_SkinColor;
+			m_Clients[clientID].m_GameObject.GetComponent.<Renderer>().material.color = m_Clients[clientID].m_SkinColor;
 					
 		
 			m_Clients[clientID].m_GameObject.name = go;
@@ -329,7 +329,7 @@ function GetGameObject() : GameObject
 				//at this point we need to tell the server we are good to go
 				//and have readied up (this is the last call in the RPC buffer that will exist for us at the time of game start)
 				Debug.Log("Client "+m_ClientID+"  Readying up");
-				networkView.RPC("ClientReadyUp", RPCMode.Server, m_ClientID);
+				GetComponent.<NetworkView>().RPC("ClientReadyUp", RPCMode.Server, m_ClientID);
 			}
 		}
 	}
@@ -352,10 +352,10 @@ function GetGameObject() : GameObject
 	{
 		Debug.Log("Making Object live: " + name);
 		go.AddComponent(typeof(NetworkView));
-		go.networkView.viewID = viewID;
+		go.GetComponent.<NetworkView>().viewID = viewID;
 	}
-	go.networkView.observed = go.GetComponent(UpdateScript) as UpdateScript;
-	go.networkView.stateSynchronization = NetworkStateSynchronization.ReliableDeltaCompressed;
+	go.GetComponent.<NetworkView>().observed = go.GetComponent(UpdateScript) as UpdateScript;
+	go.GetComponent.<NetworkView>().stateSynchronization = NetworkStateSynchronization.ReliableDeltaCompressed;
 	
 }
 
@@ -371,10 +371,10 @@ function GetGameObject() : GameObject
 	if(go.GetComponent(NetworkView) == null)
 	{
 		go.AddComponent(typeof(NetworkView));
-		go.networkView.viewID = viewID;
+		go.GetComponent.<NetworkView>().viewID = viewID;
 	}
-	go.networkView.observed = go.GetComponent(UpdateScript) as UpdateScript;
-	go.networkView.stateSynchronization = NetworkStateSynchronization.ReliableDeltaCompressed;
+	go.GetComponent.<NetworkView>().observed = go.GetComponent(UpdateScript) as UpdateScript;
+	go.GetComponent.<NetworkView>().stateSynchronization = NetworkStateSynchronization.ReliableDeltaCompressed;
 	
 }
 

@@ -94,32 +94,32 @@ function OnEnable()
 	{	
 		if(m_PlayerStates[i].m_Ready)
 		{
-			GameObject.Find("P"+(i+1)+"_Text").animation.Play();
+			GameObject.Find("P"+(i+1)+"_Text").GetComponent.<Animation>().Play();
 			
 			if(Network.isServer)
 			{
-				gameObject.Find("BeeCamera").animation.Stop();
-				gameObject.Find("BeeCamera").animation["LobbyPlayerCamIntro"].time = gameObject.Find("BeeCamera").animation["LobbyPlayerCamIntro"].length;
+				gameObject.Find("BeeCamera").GetComponent.<Animation>().Stop();
+				gameObject.Find("BeeCamera").GetComponent.<Animation>()["LobbyPlayerCamIntro"].time = gameObject.Find("BeeCamera").GetComponent.<Animation>()["LobbyPlayerCamIntro"].length;
 				
 				
-				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
+				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").GetComponent.<Renderer>().material.color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
 				
-				GameObject.Find("P"+(i+1)+"_Text").animation.Stop();
-				GameObject.Find("P"+(i+1)+"_Text").transform.parent.parent.gameObject.animation.Stop();
+				GameObject.Find("P"+(i+1)+"_Text").GetComponent.<Animation>().Stop();
+				GameObject.Find("P"+(i+1)+"_Text").transform.parent.parent.gameObject.GetComponent.<Animation>().Stop();
 				 GameObject.Find("P"+(i+1)+"_Text").transform.position.y += 4.5;
 				 GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Text = "Ready!";
 				 GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_ImgColor.a = 0;
 				GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript).m_Color.a = 1;
 				
 				
-				GameObject.Find("Bee"+(i+1)).animation.enabled = true;
-				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.enabled = true;
+				GameObject.Find("Bee"+(i+1)).GetComponent.<Animation>().enabled = true;
+				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").GetComponent.<Renderer>().enabled = true;
 				if(GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag") != null)
-					GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag").renderer.enabled = true;
-				GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").renderer.enabled = true;
+					GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag").GetComponent.<Renderer>().enabled = true;
+				GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").GetComponent.<Renderer>().enabled = true;
 				var swag:GameObject = GameObject.Find("Swag");
 				var armor:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
-				armor.renderer.materials[0].color = GetComponent(ServerScript).GetClient(i).m_Color;
+				armor.GetComponent.<Renderer>().materials[0].color = GetComponent(ServerScript).GetClient(i).m_Color;
 				if(m_PlayerStates[i].m_SwagIndex != -1)
 				{
 					var currSwag:GameObject = GameObject.Instantiate(swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject);
@@ -218,12 +218,12 @@ function CameraOutro()
 	while(m_IsAnimating)
 		yield WaitForSeconds(0.0166);
 	m_IsAnimating = true;
-	gameObject.Find("Title").animation.Stop();
-	gameObject.Find("Title").animation["TitleMapMenu"].time = gameObject.Find("Title").animation["TitleMapMenu"].length;
-	gameObject.Find("Title").animation["TitleMapMenu"].speed = -1;
-	gameObject.Find("Title").animation.Play();
-	Camera.main.animation.Play("CameraMapMenuReturn");
-	yield WaitForSeconds(Camera.main.animation["CameraMapMenuReturn"].length);
+	gameObject.Find("Title").GetComponent.<Animation>().Stop();
+	gameObject.Find("Title").GetComponent.<Animation>()["TitleMapMenu"].time = gameObject.Find("Title").GetComponent.<Animation>()["TitleMapMenu"].length;
+	gameObject.Find("Title").GetComponent.<Animation>()["TitleMapMenu"].speed = -1;
+	gameObject.Find("Title").GetComponent.<Animation>().Play();
+	Camera.main.GetComponent.<Animation>().Play("CameraMapMenuReturn");
+	yield WaitForSeconds(Camera.main.GetComponent.<Animation>()["CameraMapMenuReturn"].length);
 	m_IsAnimating = false;
 	if(Network.isServer)
 		gameObject.Destroy(gameObject.Find("GameServer"));
@@ -238,13 +238,13 @@ function CameraStart()
 	while(m_IsAnimating)
 		yield WaitForSeconds(0.0166);
 	m_IsAnimating = true;
-	gameObject.Find("Title").animation.Stop();
-	gameObject.Find("Title").animation["TitleMapMenu"].time = gameObject.Find("Title").animation["TitleMapMenu"].length;
-	gameObject.Find("Title").animation["TitleMapMenu"].speed = -1;
-	gameObject.Find("Title").animation.Play();
-	Camera.main.animation.Play("CameraMapMenuExit");
+	gameObject.Find("Title").GetComponent.<Animation>().Stop();
+	gameObject.Find("Title").GetComponent.<Animation>()["TitleMapMenu"].time = gameObject.Find("Title").GetComponent.<Animation>()["TitleMapMenu"].length;
+	gameObject.Find("Title").GetComponent.<Animation>()["TitleMapMenu"].speed = -1;
+	gameObject.Find("Title").GetComponent.<Animation>().Play();
+	Camera.main.GetComponent.<Animation>().Play("CameraMapMenuExit");
 	
-	yield WaitForSeconds(Camera.main.animation["CameraMapMenuExit"].length);
+	yield WaitForSeconds(Camera.main.GetComponent.<Animation>()["CameraMapMenuExit"].length);
 	m_IsAnimating = false;
 	StartMatch();
 }
@@ -276,16 +276,16 @@ function SpinPlatform(go:GameObject)
 	}
 }
 
-function Update () {
+function Update() {
 
-	gameObject.Find("BeeCamera").camera.targetTexture = m_BeeTexture;
-	
+	gameObject.Find("BeeCamera").GetComponent.<Camera>().targetTexture = m_BeeTexture;
+	gameObject.Find("BeeCamera").GetComponent.<Camera>().Render();
 	if(m_LocalPlayerScreen)
 	{
 		for(var i:int = 0; i < m_PlayerStates.length; i++)
 		{
 			var guiScript:GUIScript = GameObject.Find("P"+(i+1)+"_Text").GetComponent(GUIScript);
-			if(Input.GetButtonDown("Joy"+i+" OK") && !m_PlayerStates[i].m_Joined && !GameObject.Find("BeeCamera").animation.isPlaying)
+			if(Input.GetButtonDown("Joy"+i+" OK") && !m_PlayerStates[i].m_Joined && !GameObject.Find("BeeCamera").GetComponent.<Animation>().isPlaying)
 			{
 				if(Network.isServer)
 				{
@@ -294,8 +294,8 @@ function Update () {
 					
 					var avatar:GameObject = GameObject.Find("P"+(i+1));
 					//GameObject.Find("P"+(i+1)+"_Text").active = false;
-					GameObject.Find("P"+(i+1)+"_Text").animation.Stop();
-					GameObject.Find("P"+(i+1)+"_Text").transform.parent.parent.gameObject.animation.Stop();
+					GameObject.Find("P"+(i+1)+"_Text").GetComponent.<Animation>().Stop();
+					GameObject.Find("P"+(i+1)+"_Text").transform.parent.parent.gameObject.GetComponent.<Animation>().Stop();
 					GameObject.Find("P"+(i+1)+"_Text").transform.position.y += 4.5;
 					guiScript.m_ImgColor.a = 0;
 					guiScript.m_Color.a = 1;
@@ -309,40 +309,40 @@ function Update () {
 					// gun.transform.localScale = Vector3(1,1,1);
 					// gun.transform.localEulerAngles.z = -90;
 					// gun.name = "gun";
-					avatar.animation.Play();
+					avatar.GetComponent.<Animation>().Play();
 					var armor:GameObject = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
 					
 					if(i%2 == 0)
 					{
-						armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
+						armor.GetComponent.<Renderer>().materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
 						m_PlayerStates[i].m_Team = 0;
 						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team1IconTexture;
-						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.GetComponent.<Renderer>().materials[0].color;
 					}
 					else
 					{
-						armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
+						armor.GetComponent.<Renderer>().materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
 						m_PlayerStates[i].m_Team = 1;
 						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_Img = m_Team2IconTexture;
-						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.renderer.materials[0].color;
+						GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).m_ImgColor = armor.GetComponent.<Renderer>().materials[0].color;
 					}
 					
 				//GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.material.color = GetComponent(ServerScript).GetClient(i).m_SkinColor;
-				GameObject.Find("Bee"+(i+1)).animation.enabled = true;
-				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.enabled = true;
+				GameObject.Find("Bee"+(i+1)).GetComponent.<Animation>().enabled = true;
+				GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").GetComponent.<Renderer>().enabled = true;
 				if(GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag") != null)
-					GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag").renderer.enabled = true;
-				GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").renderer.enabled = true;
+					GameObject.Find("Bee"+(i+1)+"/NewBee/body/head/swag").GetComponent.<Renderer>().enabled = true;
+				GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").GetComponent.<Renderer>().enabled = true;
 			
 					m_PlayerStates[i].m_Joined = true;
 					guiScript.m_Text = "< Enter Name >";
-					GameObject.Find("Bee"+(i+1)).animation.enabled = true;
+					GameObject.Find("Bee"+(i+1)).GetComponent.<Animation>().enabled = true;
 					//GameObject.Find("Bee"+(i+1)).renderer.enabled = true;
 					AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-					go.animation.Stop("FlashIntro");
-					go.animation["FlashIntro"].time = 2.35;
-					go.animation.Play("FlashIntro");
+					go.GetComponent.<Animation>().Stop("FlashIntro");
+					go.GetComponent.<Animation>()["FlashIntro"].time = 2.35;
+					go.GetComponent.<Animation>().Play("FlashIntro");
 					
 				}
 			}
@@ -487,14 +487,14 @@ function Update () {
 					if(currInput != 0 && pLastInput[i] == 0)
 					{
 						armor = GameObject.Find("Bee"+(i+1)+"/NewBee/BeeArmor").gameObject;
-						if(armor.renderer.materials[0].color == m_TeamColorTexture.GetPixel(TeamColorIndex,0))
+						if(armor.GetComponent.<Renderer>().materials[0].color == m_TeamColorTexture.GetPixel(TeamColorIndex,0))
 						{
-							armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
+							armor.GetComponent.<Renderer>().materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex+1,0);
 							m_PlayerStates[i].m_Team = 1;
 						}
 						else
 						{
-							armor.renderer.materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
+							armor.GetComponent.<Renderer>().materials[0].color = m_TeamColorTexture.GetPixel(TeamColorIndex,0);
 							m_PlayerStates[i].m_Team = 0;
 						}
 						
@@ -509,7 +509,7 @@ function Update () {
 								if(GetComponent(ServerScript).GetClient(k) != null)
 								{
 									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
-										GetComponent(ServerScript).GetClient(k).m_SkinColor = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color;
+										GetComponent(ServerScript).GetClient(k).m_SkinColor = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").GetComponent.<Renderer>().materials[0].color;
 								}
 							}
 						}
@@ -520,7 +520,6 @@ function Update () {
 					{
 						m_PlayerStates[i].m_TeamChosen = true;
 						guiScript.m_Text = "< Get a Look >";
-						//GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					}
 					
@@ -561,7 +560,7 @@ function Update () {
 							pColorIndices[i] -= 1;
 						}
 						GameObject.Find("P"+(i+1)).GetComponent(BeeBlinkScript).SetLook();
-						GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
+						GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").GetComponent.<Renderer>().materials[0].color = m_ColorStripTexture.GetPixel(pColorIndices[i],1);
 						SquishIcon(GameObject.Find("P"+(i+1)+"_TeamIcon").GetComponent(GUIScript));
 						AudioSource.PlayClipAtPoint(m_MenuSelectSound, Camera.main.transform.position);			
 						
@@ -573,7 +572,7 @@ function Update () {
 								{
 									if(GetComponent(ServerScript).GetClient(k).m_JoyNum == i)
 									{
-										GetComponent(ServerScript).GetClient(k).m_SkinColor = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").renderer.materials[0].color;
+										GetComponent(ServerScript).GetClient(k).m_SkinColor = GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").GetComponent.<Renderer>().materials[0].color;
 										GetComponent(ServerScript).GetClient(k).m_EyeIndex = GameObject.Find("P"+(i+1)).GetComponent(BeeBlinkScript).m_EyeIndex;
 										GetComponent(ServerScript).GetClient(k).m_MouthIndex = GameObject.Find("P"+(i+1)).GetComponent(BeeBlinkScript).m_MouthIndex;
 									}
@@ -587,6 +586,7 @@ function Update () {
 					{
 						m_PlayerStates[i].m_ColorChosen = true;
 						guiScript.m_Text = "< Swag Up >";
+						ShowPlayerStats(i,true);
 						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 					}
 					
@@ -628,6 +628,7 @@ function Update () {
 						
 						if(currSwag != null)
 							Destroy(currSwag);
+						SetPlayerStats(i, Random.Range(0.0,1.0),Random.Range(0.0,1.0),Random.Range(0.0,1.0));
 						
 						if(m_PlayerStates[i].m_SwagIndex != -1)
 						{							
@@ -668,6 +669,7 @@ function Update () {
 					{
 						m_PlayerStates[i].m_Ready = true;
 						guiScript.m_Text = "Ready!";
+						ShowPlayerStats(i,false);
 						AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 						//client is readied
 						if(Network.isServer)
@@ -690,6 +692,7 @@ function Update () {
 					else if(Input.GetButtonDown("Joy"+i+" Cancel"))
 					{
 						m_PlayerStates[i].m_ColorChosen = false;
+						ShowPlayerStats(i,false);
 						AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
 					}
 				}
@@ -703,6 +706,7 @@ function Update () {
 						guiScript.m_Text = "< Swag Up >";
 						AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
 						guiScript.m_FontScalar = 1.5;
+						ShowPlayerStats(i,true);
 					}
 				}
 				
@@ -735,9 +739,9 @@ function Update () {
 				}	
 				AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 				go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-				go.animation.Stop("FlashIntro");
-				go.animation["FlashIntro"].time = 2.35;
-				go.animation.Play("FlashIntro");
+				go.GetComponent.<Animation>().Stop("FlashIntro");
+				go.GetComponent.<Animation>()["FlashIntro"].time = 2.35;
+				go.GetComponent.<Animation>().Play("FlashIntro");
 				MenuExit(true);
 				MenuEnter(true);
 				if(Network.isServer)
@@ -750,9 +754,9 @@ function Update () {
 			{
 				AudioSource.PlayClipAtPoint(m_MenuSound, Camera.main.transform.position);
 				go= GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-				go.animation.Stop("FlashIntro");
-				go.animation["FlashIntro"].time = 2.35;
-				go.animation.Play("FlashIntro");
+				go.GetComponent.<Animation>().Stop("FlashIntro");
+				go.GetComponent.<Animation>()["FlashIntro"].time = 2.35;
+				go.GetComponent.<Animation>().Play("FlashIntro");
 				MenuExit(true);
 				CameraStart();
 				
@@ -784,9 +788,28 @@ function Update () {
 	}
 	else
 	{
-		networkView.RPC("SetLevelPreviewIndex", RPCMode.Others,m_LevelIndex);
+		GetComponent.<NetworkView>().RPC("SetLevelPreviewIndex", RPCMode.Others,m_LevelIndex);
 	}
 }
+
+function ShowPlayerStats(playerNum:int,b:boolean)
+{
+	GameObject.Find("P"+(playerNum+1)+"_SpeedText").GetComponent(GUIScript).enabled = b;
+	GameObject.Find("P"+(playerNum+1)+"_SpeedText").transform.GetChild(0).GetComponent(GUIScript).enabled = b;
+	GameObject.Find("P"+(playerNum+1)+"_ArmorText").GetComponent(GUIScript).enabled = b;
+	GameObject.Find("P"+(playerNum+1)+"_ArmorText").transform.GetChild(0).GetComponent(GUIScript).enabled = b;
+	GameObject.Find("P"+(playerNum+1)+"_StaminaText").GetComponent(GUIScript).enabled = b;
+	GameObject.Find("P"+(playerNum+1)+"_StaminaText").transform.GetChild(0).GetComponent(GUIScript).enabled = b;
+}
+
+function SetPlayerStats(playerNum:int, s1:float, s2:float, s3:float)
+{
+	
+	GameObject.Find("P"+(playerNum+1)+"_SpeedText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s1;
+	GameObject.Find("P"+(playerNum+1)+"_ArmorText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s2;
+	GameObject.Find("P"+(playerNum+1)+"_StaminaText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s3;
+}
+
 
 function OnLevelWasLoaded(L:int)
 {
@@ -809,13 +832,13 @@ function OnLevelWasLoaded(L:int)
 		
 		if(!anybodyReady)
 		{
-			GameObject.Find("BeeCamera").animation.Play();MenuEnter(true);
+			GameObject.Find("BeeCamera").GetComponent.<Animation>().Play();MenuEnter(true);
 			}
 		else
 		{
 			for(i = 0; i < 4; i++)
 			{	
-				GameObject.Find("P"+(i+1)+"_Platform").renderer.enabled = true;
+				GameObject.Find("P"+(i+1)+"_Platform").GetComponent.<Renderer>().enabled = true;
 			}
 			 m_LocalPlayerScreen = true;
 			 MenuEnter(true);
@@ -845,6 +868,10 @@ function StartMatch()
 	
 }
 
+function OnRenderObject()
+{
+
+}
 
 function OnGUI()
 {	
@@ -853,7 +880,7 @@ function OnGUI()
 		var width : float = 800;
 		
 		GUILayout.BeginArea (Rect(m_MenuPos.x, 0, Screen.width,Screen.height));		
-			gameObject.Find("BeeCamera").camera.Render();
+			
 			GUI.DrawTexture(Rect(0, 0 ,Screen.width, Screen.height),m_BeeTexture);
 		GUILayout.EndArea();
 

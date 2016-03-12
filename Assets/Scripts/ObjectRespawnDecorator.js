@@ -17,7 +17,7 @@ function Update () {
 	}
 	else
 	{
-		if(!animation.isPlaying)
+		if(!GetComponent.<Animation>().isPlaying)
 		{
 			Destroy(this);
 		}		

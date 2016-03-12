@@ -151,9 +151,9 @@ static function CompareLeaders(a:ClientNetworkInfo, b:ClientNetworkInfo)
 			// GameObject.Find("Flash").animation["FlashIntro"].time = 2.35;
 			// GameObject.Find("Flash").animation.Play("FlashIntro");
 	flash.transform.position = Vector3(0.5,0.5,1);
-	flash.animation.Stop("FlashIntro");
-	flash.animation["FlashIntro"].time = 2.35;
-	flash.animation.Play("FlashIntro");
+	flash.GetComponent.<Animation>().Stop("FlashIntro");
+	flash.GetComponent.<Animation>()["FlashIntro"].time = 2.35;
+	flash.GetComponent.<Animation>().Play("FlashIntro");
 
 	if(GameObject.Find("Music"))
 		GameObject.Find("Music").GetComponent(AudioSource).Stop();
@@ -257,9 +257,9 @@ function MatchTickCoroutine(numTicks:int, ticksPerSec:float)
 				m_Hive2 = hive;
 		}
 		var go:GameObject = GameObject.Instantiate(Resources.Load("GameObjects/ScreenFlash"), Vector3(0.5, 0.5, 0), Quaternion.identity);
-		go.animation.Stop("FlashIntro");
-		go.animation["FlashIntro"].time = 2.35;
-		go.animation.Play("FlashIntro");
+		go.GetComponent.<Animation>().Stop("FlashIntro");
+		go.GetComponent.<Animation>()["FlashIntro"].time = 2.35;
+		go.GetComponent.<Animation>().Play("FlashIntro");
 		txt.GetComponent(UpdateScript).m_Lifetime = 1.2;
 		m_MatchClock = 0;
 		SetState(MATCH_PLAYING);

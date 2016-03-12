@@ -31,27 +31,27 @@ function Start () {
 	m_ProgressEffect = GameObject.Instantiate(m_Pedestal.GetComponent(HivePedestalScript).m_ProgressEffectInstance);
 	m_ProgressEffect.transform.position = m_Pedestal.transform.position + Vector3.up * 6;
 	m_ProgressEffect.transform.localScale = Vector3(25,0,25);
-	m_ProgressEffect.renderer.material.SetColor("_Emission", NetworkUtils.GetColor(gameObject));
+	m_ProgressEffect.GetComponent.<Renderer>().material.SetColor("_Emission", NetworkUtils.GetColor(gameObject));
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		//m_Pedestal.audio.Play();
-		m_Camera.animation["CameraLessDramaticZoom"].speed = 1;
-		m_Camera.animation.Play("CameraLessDramaticZoom");
+		m_Camera.GetComponent.<Animation>()["CameraLessDramaticZoom"].speed = 1;
+		m_Camera.GetComponent.<Animation>().Play("CameraLessDramaticZoom");
 	}
 	
 	var color = NetworkUtils.GetColor(gameObject);
 	m_ShieldEffect = GameObject.Instantiate(Resources.Load("GameObjects/FlowerShield"),m_Pedestal.transform.position + Vector3.up * 16,Quaternion.identity);
 	m_ShieldEffect.name = "FlowerShield";
 	m_ShieldEffect.transform.localEulerAngles = Vector3(0,180,0);
-	m_ShieldEffect.animation.Play();
+	m_ShieldEffect.GetComponent.<Animation>().Play();
 	m_ShieldEffect.GetComponent(FlowerShieldScript).m_Owner = gameObject;
 }
 
 function OnNetworkInput(IN : InputState)
 {
 	
-	if(!networkView.isMine)
+	if(!GetComponent.<NetworkView>().isMine)
 	{
 		return;
 	}
@@ -70,7 +70,7 @@ function OnNetworkInput(IN : InputState)
 	if(!IN.GetAction(IN.USE))
 	{
 	
-		ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "PedestalDecorator");
+		ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "PedestalDecorator");
 	}
 }
 
@@ -85,7 +85,7 @@ function OnGUI()
 		 {		
 			 if(!m_HiveCreated)
 			 {
-				var pos : Vector3 = m_Camera.camera.WorldToScreenPoint(m_Pedestal.transform.position + Vector3.up * transform.localScale.z*6);
+				var pos : Vector3 = m_Camera.GetComponent.<Camera>().WorldToScreenPoint(m_Pedestal.transform.position + Vector3.up * transform.localScale.z*6);
 				GUI.DrawTexture(Rect(pos.x - 100,Screen.height-pos.y +100, 200, 55), m_Pedestal.GetComponent(HivePedestalScript).m_BuildingTexture);
 				// //GUI.DrawTexture(Rect(pos.x - width* 0.5,Screen.height-pos.y, width, 10), m_Pedestal.GetComponent(HivePedestalScript).BaseTexture);
 				// //GUI.DrawTexture(Rect(pos.x- width* 0.5,Screen.height-pos.y,perc,10), m_Pedestal.GetComponent(HivePedestalScript).LifeTexture);
@@ -121,7 +121,7 @@ function Update () {
 	if(m_HiveTimer > 0)
 	{
 		if(m_ProgressEffect != null)
-			m_ProgressEffect.renderer.material.SetFloat("_Cutoff", Mathf.Min(m_HiveTimer/3,1));
+			m_ProgressEffect.GetComponent.<Renderer>().material.SetFloat("_Cutoff", Mathf.Min(m_HiveTimer/3,1));
 		m_HiveTimer -= Time.deltaTime;
 		// if((Network.isServer && gameObject.Find("GameServer").GetComponent(ServerScript).GetGameObject() == gameObject) ||
 			// Network.isClient && gameObject.Find("GameClient").GetComponent(ClientScript).GetGameObject() == gameObject)
@@ -138,8 +138,8 @@ function Update () {
 	{
 		if(Network.isServer)
 		{
-			ServerRPC.Buffer(networkView, "CreateHive", RPCMode.All, transform.position + Vector3(0,32,0));
-			ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "PedestalDecorator");
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "CreateHive", RPCMode.All, transform.position + Vector3(0,32,0));
+			ServerRPC.Buffer(GetComponent.<NetworkView>(),"RemoveComponent", RPCMode.All, "PedestalDecorator");
 			return;
 		}
 	
@@ -161,7 +161,7 @@ function OnDestroy()
 	if(!m_HiveCreated)
 	{
 	     m_Pedestal.GetComponent(HivePedestalScript).m_Activated = false;
-		 m_Pedestal.renderer.material.mainTexture = m_Pedestal.GetComponent(HivePedestalScript).m_TempTexture;
+		 m_Pedestal.GetComponent.<Renderer>().material.mainTexture = m_Pedestal.GetComponent(HivePedestalScript).m_TempTexture;
 	}
 	
 	if(Network.isServer && m_HiveCreated)
@@ -171,9 +171,9 @@ function OnDestroy()
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
-		m_Camera.animation["CameraLessDramaticZoom"].time = m_Camera.animation["CameraDramaticZoom"].length;
-		m_Camera.animation["CameraLessDramaticZoom"].speed = -1;
-		m_Camera.animation.Play("CameraLessDramaticZoom");
+		m_Camera.GetComponent.<Animation>()["CameraLessDramaticZoom"].time = m_Camera.GetComponent.<Animation>()["CameraDramaticZoom"].length;
+		m_Camera.GetComponent.<Animation>()["CameraLessDramaticZoom"].speed = -1;
+		m_Camera.GetComponent.<Animation>().Play("CameraLessDramaticZoom");
 	}
 	Destroy(m_ProgressEffect);
 }

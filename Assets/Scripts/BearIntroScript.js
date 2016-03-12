@@ -5,7 +5,7 @@ var m_HideSound:AudioClip = null;
 
 function Awake()
 {
-	renderer.enabled = false;
+	GetComponent.<Renderer>().enabled = false;
 }
 
 function Start () {
@@ -21,7 +21,7 @@ function Update () {
 
 function Appear()
 {
-	renderer.enabled = true;
+	GetComponent.<Renderer>().enabled = true;
 	AudioSource.PlayClipAtPoint(m_PeekSound, Camera.main.transform.position);
 	
 }
@@ -29,7 +29,7 @@ function Appear()
 function Peek()
 {
 	
-	animation.Play("BearPeek");
+	GetComponent.<Animation>().Play("BearPeek");
 	
 }
 
@@ -40,7 +40,7 @@ function PlayHideSound()
 
 function Hide()
 {
-	animation.Play("BearIntro");
+	GetComponent.<Animation>().Play("BearIntro");
 	
 }
 
