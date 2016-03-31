@@ -293,6 +293,8 @@ function Update() {
 					GetComponent(ServerScript).OnLocalPlayerConnected(plr, i);
 					
 					var avatar:GameObject = GameObject.Find("P"+(i+1));
+					//avatar.GetComponent(BeeBlinkScript).SetRandomLook();
+					//GameObject.Find("Bee"+(i+1)+"/NewBee/NewBee").GetComponent.<Renderer>().materials[0].color = m_ColorStripTexture.GetPixel(Random.Range(0,99),1);
 					//GameObject.Find("P"+(i+1)+"_Text").active = false;
 					GameObject.Find("P"+(i+1)+"_Text").GetComponent.<Animation>().Stop();
 					GameObject.Find("P"+(i+1)+"_Text").transform.parent.parent.gameObject.GetComponent.<Animation>().Stop();

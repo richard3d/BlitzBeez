@@ -72,6 +72,11 @@ function OnTriggerEnter(other : Collider)
 		return;
 	if(transform.parent == null)
 	{	
+		if(other.gameObject.tag == "Explosion")
+		{
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillRock", RPCMode.All);	
+		}
+		else
 		if(other.gameObject.tag == "Hives")
 		{
 			if(m_Owner != null && m_Owner.GetComponent(ItemDecorator) == null)
@@ -183,7 +188,7 @@ function OnCollisionEnter(coll : Collision)
 				}
 			}
 				
-			
+			Debug.Log(coll.gameObject.tag);
 			if(coll.gameObject.tag == "Explosion")
 			{
 				ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillRock", RPCMode.All);
@@ -233,7 +238,7 @@ function OnCollisionStay(coll : Collision)
 	
 	if(coll.gameObject.tag == "Player")
 	{
-		Debug.Log("CollisionStaying");
+	
 	}
 }
 

@@ -69,7 +69,7 @@ function Update () {
 	else
 	{
 		
-		//Let cast 5 rays
+		//Let's cast 5 rays
 		var rays:Vector3[] = new Vector3[5];
 		var ScreenPts:Vector3[] = new Vector3[5];
 		ScreenPts[0] = Vector3(0,0,GetComponent.<Camera>().nearClipPlane);
@@ -123,7 +123,10 @@ function Update () {
 			 var tempOffset = point - m_Target.transform.position;
 			 var tempY = tempOffset.y;
 			 tempOffset.y = 0;
-			 m_Offset.z = -tempOffset.magnitude;
+			 if(m_DefaultOffset.z < 0)
+				m_Offset.z = -tempOffset.magnitude;
+			else
+				m_Offset.z = tempOffset.magnitude;
 			 m_Offset.y = tempY;
 			 
 			// m_Offset = point - transform.position;

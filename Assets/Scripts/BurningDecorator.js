@@ -47,7 +47,7 @@ function Update () {
 				if(m_HP - 1 <= 0)
 				{
 					GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name+" burned to a crisp");
-					GetComponent(BeeScript).KillAndRespawn(true);
+					GetComponent(BeeScript).KillAndRespawn(true, null);
 				}
 				else
 				{

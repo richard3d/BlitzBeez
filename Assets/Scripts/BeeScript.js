@@ -999,7 +999,7 @@ function OnBulletCollision(coll:BulletCollision)
 				{
 					GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" stung "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
-					KillAndRespawn(true);
+					KillAndRespawn(true, coll.bullet.GetComponent(BulletScript).m_Owner);
 					CoinScript.SpawnCoins(transform.position, 3, coll.bullet.GetComponent(BulletScript).m_Owner);
 					//notify shooting player of contact
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
@@ -1033,7 +1033,7 @@ function OnBulletCollision(coll:BulletCollision)
 					GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.bullet.GetComponent(BulletScript).m_Owner).m_Name+" splatted "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).m_Kills++;
 					CoinScript.SpawnCoins(transform.position, 3, coll.bullet.GetComponent(BulletScript).m_Owner);
-					KillAndRespawn(true);
+					KillAndRespawn(true, coll.bullet.GetComponent(BulletScript).m_Owner);
 					
 					//notify shooting player of contact
 					coll.bullet.GetComponent(BulletScript).m_Owner.GetComponent(BeeScript).HitTargetFade(gameObject);
@@ -1059,7 +1059,7 @@ function OnCollisionEnter(coll : Collision) {
 		if(coll.gameObject.tag == "Hammer" && coll.gameObject.GetComponent(HammerScript).m_Owner != gameObject)
 		{
 			GetComponent.<NetworkView>().RPC("SendGameEventMessage", RPCMode.All, NetworkUtils.GetClientObjectFromGameObject(coll.gameObject.GetComponent(HammerScript).m_Owner).m_Name+" pounded "+NetworkUtils.GetClientObjectFromGameObject(gameObject).m_Name);
-			KillAndRespawn(true);
+			KillAndRespawn(true, null);
 		}
 	}
 }
@@ -1085,24 +1085,33 @@ function OnTriggerEnter(other:Collider)
 		
 			if(m_HP - 1 == 0)
 			{
-				KillAndRespawn(true);
+				KillAndRespawn(true, null);
 			}
 			else
 				GetComponent.<NetworkView>().RPC("SetHP", RPCMode.All, m_HP - 1);
 		}
-		
 		else if(other.gameObject.tag == "Explosion" && (other.gameObject.GetComponent(BombExplosionScript).m_Owner != null && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team))
 		{
-			KillAndRespawn(true);
+			//Physics.IgnoreCollision(other.gameObject.GetComponent(Collider), gameObject.GetComponent(CharacterController));
+			if(m_HP - other.gameObject.GetComponent(BombExplosionScript).m_Damage <= 0)
+			{
+				Debug.Log("Bomb killing " +gameObject.GetComponent(Collider));
+				KillAndRespawn(true, null);
+			}
+			else
+			{
+				Debug.Log("Bomb hurting "+gameObject.GetComponent(Collider));
+				GetComponent.<NetworkView>().RPC("SetHP", RPCMode.All, m_HP - other.gameObject.GetComponent(BombExplosionScript).m_Damage);
+			}
 		}
 		else if(other.gameObject.tag == "Bears" && other.gameObject.GetComponentInChildren(BearScript).m_RageTimer > 0)
 		{
 			Debug.Log(other.gameObject.name);
-			KillAndRespawn(true);
+			KillAndRespawn(true, null);
 		}
 		else if(other.gameObject.name == "BearAttackParticles(Clone)" )
 		{
-			KillAndRespawn(true);
+			KillAndRespawn(true, null);
 		}
 		else
 		if(other.gameObject.tag == "Water")
@@ -1119,7 +1128,7 @@ function OnTriggerEnter(other:Collider)
 	// {
 		// if(other.gameObject.tag == "SpecialAttack" && other.gameObject.GetComponent(SpecialAttackScript).m_TeamOwner != m_Team)
 		// {
-			// KillAndRespawn(true);
+			// KillAndRespawn(true, null);
 		// }
 	// }
 	
@@ -1156,15 +1165,17 @@ function FindRespawnLocation() : Vector3
 		return pos;
 }
 
-function KillAndRespawn(splat:boolean)
+function KillAndRespawn(splat:boolean, killer:GameObject)
 {
 	if(GetComponent(RespawnDecorator) != null)
 		return;
-	//KillBee(true);
-	//Respawn(Vector3(0,0,0));
+	
+	 var killerName = "";
+	 if(killer != null)
+		killerName = killer.name; 
 	 ServerRPC.Buffer(GetComponent.<NetworkView>(), "KillBee", RPCMode.All, splat);
 	 var pos:Vector3 = FindRespawnLocation();
-	 ServerRPC.Buffer(GetComponent.<NetworkView>(),"Respawn", RPCMode.All,pos);
+	 ServerRPC.Buffer(GetComponent.<NetworkView>(),"Respawn", RPCMode.All, pos, killerName);
 }
 
 function HasHive():boolean
@@ -1248,12 +1259,7 @@ function CalculateRank() : int
 	 m_CurrFlowerStreak = 0;
 	//play death effect
 	if(splat)
-	{
-		
-		// var txt : GameObject  = gameObject.Instantiate(Resources.Load("GameObjects/EventText"));
-		// txt.GetComponent(GUIText).text = "You Died!";
-		// txt.layer = LayerMask.NameToLayer("GUILayer_P"+(GetComponent(NetworkInputScript).m_ClientOwner+1));	
-		
+	{	
 		var gb : GameObject = gameObject.Instantiate(m_HitEffect);
 		gb.transform.position = transform.position;
 		gb.transform.localScale = Vector3(10.1, 10.1, 10.1);
@@ -1284,18 +1290,6 @@ function CalculateRank() : int
 		deathEffect.transform.position = transform.position + Vector3(0,12,0);
 		deathEffect.transform.GetChild(0).gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
 		deathEffect.transform.GetChild(1).gameObject.GetComponent.<Renderer>().material.SetColor("_TintColor", NetworkUtils.GetColor(gameObject));
-		// for(var i:int = 0; i < 6; i++)
-		// {
-			// var splatter:GameObject = gameObject.Instantiate(Resources.Load("GameObjects/Splatter", GameObject));
-			// var ray:Vector3 = Random.onUnitSphere;
-			// if(ray.y > 0)
-				// ray.y = -ray.y;
-			// var hit:RaycastHit;	
-			// Physics.Raycast(transform.position,ray,hit,Mathf.Infinity,GetComponent(TerrainCollisionScript).m_TerrainLayer);
-			// splatter.transform.position = hit.point + hit.normal*01;
-			// splatter.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), hit.normal);
-			// splatter.renderer.material.color = color;
-		// }
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
@@ -1328,26 +1322,19 @@ function CalculateRank() : int
 			Destroy(comp);
 		}
 	}
-	
-	//var pos:Vector3 = FindRespawnLocation();
-	//Respawn( pos);
-	// if(GetComponent(InvincibilityDecorator) != null)
-		// gameObject.DestroyImmediate(gameObject.GetComponent(InvincibilityDecorator));
-	// if(GetComponent(DizzyDecorator) != null)
-		// gameObject.Destroy(gameObject.GetComponent(DizzyDecorator));
-	
-	
 }
 
-@RPC function Respawn(pos:Vector3)
+@RPC function Respawn(pos:Vector3, name:String)
 {
 	m_Money = 0;
 	m_CurrXP *= 0.5f;
 	Debug.Log("Respawning");
 	
 	gameObject.AddComponent(RespawnDecorator);
-	GetComponent(RespawnDecorator).SetLifetime(3);
+	GetComponent(RespawnDecorator).SetLifetime(5);
 	GetComponent(RespawnDecorator).m_RespawnPos = pos;
+	if(name != "")
+		GetComponent(RespawnDecorator).m_Killer = GameObject.Find(name);
 }
 
 function Hurt()

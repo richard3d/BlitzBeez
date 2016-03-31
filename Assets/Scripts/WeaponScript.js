@@ -15,10 +15,20 @@ var m_ReloadTime : float = 0;
 var m_ReloadTimer : float = 0;
 var m_LoadOut : LoadOut;
 
-
-
+var m_SpeedScalar : float = 1; //scalar for affecting speed, only happens during SetOwner()
+var m_AccelScalar : float = 1; //scalar for affecting movement, only happens during SetOwner()
+var m_DragScalar : float = 1;
 function Start () {
 	m_Ammo = m_ClipSize;
+}
+
+function SetOwner(owner:GameObject)
+{
+	m_Owner = owner;
+	m_Owner.GetComponent(UpdateScript).m_DefaultMaxSpeed *= m_SpeedScalar;
+	m_Owner.GetComponent(UpdateScript).m_MaxSpeed = m_Owner.GetComponent(UpdateScript).m_DefaultMaxSpeed;
+	m_Owner.GetComponent(UpdateScript).m_MaxAccel *= m_AccelScalar;
+	m_Owner.GetComponent(UpdateScript).m_Drag *= m_DragScalar;
 }
 
 function Update () {
@@ -81,27 +91,41 @@ function DoPylonLogic(i:int)
 		m_LoadOut.m_Pylons[i].m_CanShoot = true;
 }
 
-function Reload()
+function Reload(bInstantaneous:boolean)
 {
-	m_ReloadTimer = m_ReloadTime;
-	var fDelta:float = 0.033;	
-	
-	for(var p : int = 0; p < m_LoadOut.m_Pylons.length; p++)
+	if(bInstantaneous)
 	{
-		m_LoadOut.m_Pylons[p].m_CanShoot = false;
+		m_ReloadTimer = 0;
+		for(var p:int = 0; p < m_LoadOut.m_Pylons.length; p++)
+		{
+			m_LoadOut.m_Pylons[p].m_CanShoot = true;
+		}
+		m_Ammo = m_ClipSize;
 	}
-
-	while(m_ReloadTimer > 0)
+	else
 	{
-		m_ReloadTimer -= fDelta;
-		yield WaitForSeconds(fDelta);
-	}
+		m_ReloadTimer = m_ReloadTime;
+		var fDelta:float = 0.033;	
 		
-	for(p = 0; p < m_LoadOut.m_Pylons.length; p++)
-	{
-		m_LoadOut.m_Pylons[p].m_CanShoot = true;
+		for(p = 0; p < m_LoadOut.m_Pylons.length; p++)
+		{
+			m_LoadOut.m_Pylons[p].m_CanShoot = false;
+		}
+
+		while(m_ReloadTimer > 0)
+		{
+			m_ReloadTimer -= fDelta;
+			yield WaitForSeconds(fDelta);
+		}
+			
+		for(p = 0; p < m_LoadOut.m_Pylons.length; p++)
+		{
+			m_LoadOut.m_Pylons[p].m_CanShoot = true;
+		}
+		m_Ammo = m_ClipSize;
 	}
-	m_Ammo = m_ClipSize;
+	
+	
 }
 
 @RPC function Shot()
@@ -111,7 +135,7 @@ function Reload()
 	{
 		m_Ammo--;
 		if(m_Ammo <= 0)
-			Reload();
+			Reload(false);
 	}
 	
 	var go : GameObject = gameObject.Instantiate(m_MuzzleEffect);
@@ -157,7 +181,7 @@ function Reload()
 	{
 		m_Ammo--;
 		if(m_Ammo <= 0)
-			Reload();
+			Reload(false);
 	}
 	if(m_EffectPerRound)
 		AudioSource.PlayClipAtPoint(m_SoundEffect, m_Owner.transform.position);

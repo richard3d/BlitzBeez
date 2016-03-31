@@ -716,6 +716,7 @@ function OnPlayerTurn(ang:float)
 		
 		AudioSource.PlayClipAtPoint(m_StartReloadSound, transform.position);
 	}
+	GetComponent(BeeScript).m_Weapon.GetComponent(WeaponScript).Reload(false);
 }
 
 

@@ -73,7 +73,7 @@ function OnTriggerEnter(coll : Collider)
 			if(coll.gameObject.GetComponent(BeeScript).m_HP-1 > 0)
 				coll.gameObject.GetComponent.<NetworkView>().RPC("Burn", RPCMode.All);
 			else	
-				coll.gameObject.GetComponent(BeeScript).KillAndRespawn(true);
+				coll.gameObject.GetComponent(BeeScript).KillAndRespawn(true, null);
 		}
 	}
 }

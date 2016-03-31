@@ -41,7 +41,7 @@ function Start () {
 		if(Network.isServer)
 		{
 			if(hitInfo.transform.GetComponent(InvincibilityDecorator) == null)
-				hitInfo.transform.GetComponent(BeeScript).KillAndRespawn(true);
+				hitInfo.transform.GetComponent(BeeScript).KillAndRespawn(true, null);
 		}
 	}
 	

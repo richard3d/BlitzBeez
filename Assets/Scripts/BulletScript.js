@@ -773,11 +773,6 @@ function KillBullet(pos:Vector3, collision:boolean)
 	{
 		switch (m_BulletType)
 		{
-			
-			case 1: 
-			
-			break;
-			//rocket
 			case BulletType.Rocket: 
 				if(go != null)
 					go.GetComponent(BombExplosionScript).m_Owner = m_Owner;

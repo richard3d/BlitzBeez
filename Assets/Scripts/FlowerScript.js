@@ -145,6 +145,15 @@ function OnTriggerEnter(other : Collider)
 			// }
 		}
 		
+		if (other.gameObject.tag == "Explosion" && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team)
+		{
+			if(Network.isServer && m_HP > 0)
+			{	
+				m_HP -= m_BaseHP;
+				ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP",RPCMode.All, m_HP);
+			}
+		}
+		else
 		if(m_Owner == other.gameObject)
 		{
 			GetComponent.<Collider>().isTrigger = true;
@@ -207,6 +216,15 @@ function OnTriggerStay(coll : Collider)
 {
 	var player:GameObject = null;
 	//coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
+	if(coll.gameObject.tag == "Explosion" && coll.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team)
+	{
+		if(Network.isServer && m_HP > 0)
+		{	
+			m_HP -= m_BaseHP;
+			ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP",RPCMode.All, m_HP);
+		}
+	}
+	else
 	if(m_ShieldEffect != null)
 	{
 		var color = NetworkUtils.GetColor(m_Owner);	

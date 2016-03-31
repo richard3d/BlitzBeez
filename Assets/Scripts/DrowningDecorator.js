@@ -61,7 +61,7 @@ function Update () {
 			//respawn
 			if(Network.isServer)
 			 {
-				 GetComponent(BeeScript).KillAndRespawn(false);
+				 GetComponent(BeeScript).KillAndRespawn(false, null);
 				 //var pos:Vector3 = GetComponent(BeeScript).FindRespawnLocation();
 				 //networkView.RPC("Respawn", RPCMode.All,pos);
 				//ServerRPC.Buffer(networkView,"RemoveComponent", RPCMode.All, "DrowningDecorator");

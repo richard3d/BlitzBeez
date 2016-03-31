@@ -1,5 +1,6 @@
 #pragma strict
-var m_Owner : GameObject = null;;
+var m_Owner : GameObject = null;
+var m_Damage : int = 3;
 function Start () {
 		
 		var players:GameObject[] = GameObject.FindGameObjectsWithTag("Player");

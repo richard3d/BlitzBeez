@@ -2,6 +2,7 @@
 private var m_Lifetime : float = 0.0;
 
 var m_RespawnPos = Vector3(0,350,0);
+var m_Killer:GameObject;
 
 private var m_HeavenlyRays : GameObject = null;
 private var m_Halo : GameObject = null;
@@ -23,6 +24,7 @@ function Awake()
 function Start () {
 
 	m_Camera = gameObject.GetComponent(BeeScript).m_Camera;
+	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		GetComponent(BeeControllerScript).m_LookEnabled = false;
@@ -40,12 +42,29 @@ function Start () {
 function CountDown()
 {
 	var delta:float = 0.033;
+	
 	while(m_Lifetime > 0.0)
 	{
-		if(NetworkUtils.IsLocalGameObject(gameObject))
-			m_Camera.GetComponent(MotionBlur).enabled = true;
+		//if(NetworkUtils.IsLocalGameObject(gameObject))
+		//	m_Camera.GetComponent(MotionBlur).enabled = true;
 		m_Lifetime -= delta;
 		yield WaitForSeconds(delta);
+		
+		var lifeInt:int = (m_Lifetime+0.5);
+		if(lifeInt < 4)
+		{
+			if(m_Killer != null && m_Camera.GetComponent(CameraScript).m_Target != m_Killer)
+			{
+				if(m_Killer.GetComponent(RespawnDecorator) == null)
+				{
+					m_Camera.GetComponent(CameraScript).m_Target = m_Killer;
+					m_Camera.GetComponent(CameraScript).m_CamPos = m_Killer.transform.position;
+					m_Camera.GetComponent(CameraScript).m_DefaultOffset.z = 150;
+					m_Camera.GetComponent(CameraScript).Snap();
+				}
+			} 
+		}
+		
 		
 	}
 	
@@ -53,6 +72,9 @@ function CountDown()
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{
 		m_OldMask = m_Camera.GetComponent.<Camera>().cullingMask;
+		m_Camera.GetComponent(CameraScript).m_Target = gameObject;
+		//m_Camera.GetComponent(CameraScript).m_DefaultOffset.z *= -1;
+		//m_Camera.GetComponent(CameraScript).Snap();
 		m_Camera.GetComponent.<Camera>().cullingMask = 1 << LayerMask.NameToLayer(guiLayer);
 		m_Camera.GetComponent.<Camera>().clearFlags =  CameraClearFlags.SolidColor;
 		m_Camera.GetComponent.<Camera>().backgroundColor = Color32(49, 140, 219, 255);
@@ -225,7 +247,24 @@ function OnGUI()
 		var style:GUIStyle = GetComponent(BeeScript).FontStyle;
 		var tempRect:Rect = GUILayoutUtility.GetRect(new GUIContent("Respawning in 10"), style);
 		GUI.backgroundColor.a = 0;
-		GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempRect.width*0.5,camPos.y+tempRect.height*4,tempRect.width,tempRect.height), "Respawning in "+time, style);
+		if(time < 4)
+			GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempRect.width*0.5,camPos.y+tempRect.height*4,tempRect.width,tempRect.height), "Respawning in "+time, style);
+		
+		
+		if(m_Killer != null)
+		{
+			tempRect = GUILayoutUtility.GetRect(new GUIContent("stung by "+m_Killer.name), style);
+			GUI.color = Color.red;
+			GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempRect.width*0.5,camPos.y+tempRect.height*2,tempRect.width,tempRect.height), "stung by "+m_Killer.name, style);
+			GUI.color = Color.white;
+		}
+		else
+		{
+			tempRect = GUILayoutUtility.GetRect(new GUIContent("you went splat"), style);
+			GUI.color = Color.red;
+			GUI.Label(Rect(camPos.x+camScale*Screen.width*0.5 - tempRect.width*0.5,camPos.y+tempRect.height*2,tempRect.width,tempRect.height), "you went splat", style);
+			GUI.color = Color.white;
+		}
 	}
 	
 	
@@ -245,8 +284,6 @@ function OnDestroy()
 	{
 		GetComponent(BeeControllerScript).m_LookEnabled = true;
 		GetComponent(BeeScript).SetGUIEnabled(true);
-		
-		
 	}
 	
 	
@@ -261,7 +298,7 @@ function OnDestroy()
 	GetComponent(BeeScript).enabled = true;
 	GetComponent(TrailRenderer).enabled = false;
 	GetComponentInChildren(ParticleRenderer).enabled = true;
-	GetComponent(BeeControllerScript).Reload();
-	GetComponent(BeeControllerScript).QuickReload();
+	GetComponent(BeeScript).m_Weapon.GetComponent(WeaponScript).Reload(true);
+	
 	GetComponent(BeeControllerScript).m_Heading = transform.eulerAngles.y;
 }

@@ -771,7 +771,7 @@ function GetGameObject() : GameObject
 		gun.transform.localScale = Vector3(1,1,1);
 		gun.transform.localEulerAngles.z = -90;
 		gun.name = "gun";
-		gun.GetComponent(WeaponScript).m_Owner = m_Clients[clientID].m_GameObject;
+		gun.GetComponent(WeaponScript).SetOwner(m_Clients[clientID].m_GameObject);
 		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Weapon = gun;
 		
 		if(m_Clients[clientID].m_Swag != "")
