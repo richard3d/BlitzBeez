@@ -5,12 +5,6 @@ Project("{C26D76E7-41B4-3F81-0BDA-EDAF237C6988}") = "BlitzBeez", "Assembly-CShar
 EndProject
 Project("{C26D76E7-41B4-3F81-0BDA-EDAF237C6988}") = "BlitzBeez", "Assembly-CSharp-Editor-firstpass.csproj", "{7FBA5ABB-CC78-EC70-1C31-6A5788F98CE8}"
 EndProject
-Project("{C26D76E7-41B4-3F81-0BDA-EDAF237C6988}") = "BlitzBeez", "Assembly-UnityScript-firstpass.unityproj", "{E0E7CC24-8161-4490-E1C0-DC58AF1B7814}"
-EndProject
-Project("{C26D76E7-41B4-3F81-0BDA-EDAF237C6988}") = "BlitzBeez", "Assembly-UnityScript.unityproj", "{7453EC01-B875-2945-B38B-EA1A909ABC15}"
-EndProject
-Project("{C26D76E7-41B4-3F81-0BDA-EDAF237C6988}") = "BlitzBeez", "Assembly-UnityScript-Editor-firstpass.unityproj", "{D8AA9B0A-A737-CC99-DC50-59632CD16AB9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,18 +19,6 @@ Global
 		{7FBA5ABB-CC78-EC70-1C31-6A5788F98CE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FBA5ABB-CC78-EC70-1C31-6A5788F98CE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FBA5ABB-CC78-EC70-1C31-6A5788F98CE8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E0E7CC24-8161-4490-E1C0-DC58AF1B7814}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E0E7CC24-8161-4490-E1C0-DC58AF1B7814}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E0E7CC24-8161-4490-E1C0-DC58AF1B7814}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E0E7CC24-8161-4490-E1C0-DC58AF1B7814}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7453EC01-B875-2945-B38B-EA1A909ABC15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7453EC01-B875-2945-B38B-EA1A909ABC15}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7453EC01-B875-2945-B38B-EA1A909ABC15}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7453EC01-B875-2945-B38B-EA1A909ABC15}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D8AA9B0A-A737-CC99-DC50-59632CD16AB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D8AA9B0A-A737-CC99-DC50-59632CD16AB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D8AA9B0A-A737-CC99-DC50-59632CD16AB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D8AA9B0A-A737-CC99-DC50-59632CD16AB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,5 +42,4 @@ Global
 		$3.inheritsScope = text/plain
 		$3.scope = text/plain
 	EndGlobalSection
-
 EndGlobal
