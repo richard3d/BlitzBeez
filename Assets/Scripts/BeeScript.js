@@ -1509,7 +1509,6 @@ function Hurt()
 			if(GetComponent(FlowerPowerDecorator) == null)
 			{
 				gameObject.AddComponent(FlowerPowerDecorator);
-				
 			}	
 		}
 		

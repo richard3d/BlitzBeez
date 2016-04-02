@@ -363,7 +363,7 @@ function OnNetworkInput(IN : InputState)
 	//handle flower power
 	if(IN.GetActionBuffered(IN.DPAD_LEFT))
 	{
-		if(GetComponent(BeeScript).m_CurrFlowerStreak == 4)
+		if(GetComponent(BeeScript).m_CurrFlowerStreak >= 4)
 		{
 			if(GetComponent(FlowerDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(ItemDecorator) == null && GetComponent(RespawnDecorator) == null )
 			{
