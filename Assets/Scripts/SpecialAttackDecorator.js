@@ -12,7 +12,7 @@ function Start () {
 
 	if(GetComponent(FlasherDecorator))
 		Destroy(GetComponent(FlasherDecorator));
-
+	
 
 	AudioSource.PlayClipAtPoint(GetComponent(BeeScript).m_LevelUpSound, Camera.main.transform.position);
 	if(NetworkUtils.IsLocalGameObject(gameObject))
@@ -59,8 +59,9 @@ function DoPowerup(lifetime : float)
 
 	var guiLayer:String = "GUILayer_P"+(GetComponent(NetworkInputScript).m_ClientOwner+1);
 	yield WaitForSeconds(lifetime);
-	if(transform.Find("SaiyanParticles"))
-		Destroy(transform.Find("SaiyanParticles").gameObject);
+	if(GetComponent(FlowerPowerDecorator))
+		Destroy(GetComponent(FlowerPowerDecorator));
+
 	//make invincible 
 	gameObject.AddComponent(InvincibilityDecorator);
 	GetComponent( InvincibilityDecorator ).m_Blink = false;

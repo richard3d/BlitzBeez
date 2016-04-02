@@ -19,7 +19,7 @@ private var m_OrigPitch:float;
 
 
 function Start () {
-
+	//EditorApplication.isPaused= true;
 	m_Camera = GetComponent(BeeScript).m_Camera;
 	GetComponent(BeeControllerScript).m_MoveEnabled = false;
 	transform.GetChild(0).localEulerAngles.z = 0;
@@ -58,6 +58,7 @@ function Start () {
 	m_FlowerShieldEffect.transform.localEulerAngles = Vector3(0,180,0);
 	m_FlowerShieldEffect.GetComponent.<Animation>().Play();
 	m_FlowerShieldEffect.GetComponent(FlowerShieldScript).m_Owner = gameObject;
+	Physics.IgnoreCollision(m_FlowerShieldEffect.GetComponent(SphereCollider),gameObject.GetComponent(CharacterController));
 
 }
 
