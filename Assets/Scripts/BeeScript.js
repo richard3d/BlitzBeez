@@ -1331,7 +1331,7 @@ function CalculateRank() : int
 	Debug.Log("Respawning");
 	
 	gameObject.AddComponent(RespawnDecorator);
-	GetComponent(RespawnDecorator).SetLifetime(5);
+	GetComponent(RespawnDecorator).SetLifetime(4);
 	GetComponent(RespawnDecorator).m_RespawnPos = pos;
 	if(name != "")
 		GetComponent(RespawnDecorator).m_Killer = GameObject.Find(name);

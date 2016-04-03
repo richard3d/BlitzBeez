@@ -626,6 +626,8 @@ function GetGameObject() : GameObject
 				playerCam.GetComponent.<Camera>().cullingMask &= (~(1<<LayerMask.NameToLayer("GUILayer_P1") | 1 <<LayerMask.NameToLayer("GUILayer_P2") | 1<<LayerMask.NameToLayer("GUILayer_P3")));
 			}
 			playerCam.GetComponent(CameraScript).m_Target = m_Clients[clientID].m_GameObject;
+			playerCam.GetComponent(CameraScript).m_CamPos = m_Clients[clientID].m_GameObject.transform.position;		
+			playerCam.GetComponent(CameraScript).Snap();
 			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Camera = playerCam;
 			m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Team = m_Clients[clientID].m_Side;
 			//perform calculations for screen rects for each camera

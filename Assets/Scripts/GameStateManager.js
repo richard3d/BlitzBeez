@@ -29,7 +29,7 @@ function Start()
 	m_CurrState =-1;
 	m_WinningTeam = -1;
 	m_MVPPlayer = "";
-	m_PointsToWin = 800;
+	m_PointsToWin = 200;
 }
 
 function Update()
@@ -57,6 +57,7 @@ function UpdateScore()
 		}
 		m_Team1Score = t1;
 		m_Team2Score = t2;
+		CheckForWin();
 		yield WaitForSeconds(0.5);
 	}
 }

@@ -150,7 +150,7 @@ function RespawnPlayer()
 		{
 			
 			m_Camera.GetComponent(CameraScript).m_CamPos = transform.position;
-			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
+			m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-360);
 			m_Camera.GetComponent(CameraScript).Snap();
 			
 			m_Camera.GetComponent.<Camera>().cullingMask = m_OldMask;
@@ -177,7 +177,7 @@ function RespawnPlayer()
 			GetComponent(TrailRenderer).enabled = true;
 			yield WaitForSeconds(delta);
 		}
-		
+		m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0,20,-60);
 		yield WaitForSeconds(0.5);
 		if(Network.isServer)
 		{

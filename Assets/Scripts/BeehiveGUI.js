@@ -248,8 +248,8 @@ function Show(bShow : boolean)
 			var right:float = camPos.x + Screen.width* m_Camera.GetComponent.<Camera>().rect.width;
 			m_Coin.GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x,bottom - 64,64,64));
 			var h  =64;// m_Coin.transform.GetChild(0).GetComponent(GUIScript).m_Style.fontSize;
-			m_Coin.transform.GetChild(0).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x+68,bottom - 64,200, h));
-			m_Coin.transform.GetChild(1).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x+66,bottom - 62,200, h));			
+			//m_Coin.transform.GetChild(0).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x+68,bottom - 64,200, h));
+			//m_Coin.transform.GetChild(1).GetComponent(GUIScript).SetPixelRect(Rect(m_Camera.GetComponent.<Camera>().pixelRect.x+66,bottom - 62,200, h));			
 			m_Coin.transform.GetChild(0).GetComponent(GUIScript).m_Style.alignment = TextAnchor.MiddleLeft;
 			m_Coin.transform.GetChild(1).GetComponent(GUIScript).m_Style.alignment = TextAnchor.MiddleLeft;
 			
