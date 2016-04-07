@@ -1293,7 +1293,7 @@ function CalculateRank() : int
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
-			AudioSource.PlayClipAtPoint(m_DeathSound, m_Camera.transform.position);
+			AudioSource.PlayClipAtPoint(m_DeathSound, Camera.main.transform.position);
 			m_Camera.GetComponent(CameraScript).Shake(0.25,5);
 			Hurt();
 		}
@@ -1415,7 +1415,7 @@ function Hurt()
 		
 		if(NetworkUtils.IsLocalGameObject(gameObject))
 		{
-			AudioSource.PlayClipAtPoint(m_HurtSound, m_Camera.transform.position);
+			AudioSource.PlayClipAtPoint(m_HurtSound, Camera.main.transform.position);
 			Hurt();
 			m_Camera.GetComponent(CameraScript).Shake(0.25, 2);
 		}
@@ -1591,7 +1591,7 @@ function Hurt()
 		
 		//flowerDec.GetFlower().GetComponent(PollenNetworkScript).m_Owner = gameObject;
 		flowerDec.GetFlower().GetComponent.<Animation>().Play("Flower");
-		AudioSource.PlayClipAtPoint(flowerComp.m_BuildComplete, transform.position);
+		AudioSource.PlayClipAtPoint(flowerComp.m_BuildComplete, Camera.main.transform.position);
 	}
 	
 	

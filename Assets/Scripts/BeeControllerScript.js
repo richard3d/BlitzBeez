@@ -197,7 +197,7 @@ function OnNetworkInput(IN : InputState)
 	//we arent allowed to change direction if we hit the dash button though
 	if(!IsDashing && m_MoveEnabled)
 	{
-
+		m_MovementSpeed = Updater.m_MaxAccel;
 		if(IN.GetAction(IN.MOVE_UP))
 		{
 			if(m_ThirdPerson)
@@ -490,7 +490,7 @@ function OnNetworkInput(IN : InputState)
 				//play target sound
 				if(found)
 				{
-					AudioSource.PlayClipAtPoint(m_TargetSound, transform.position);
+					AudioSource.PlayClipAtPoint(m_TargetSound, Camera.main.transform.position);
 				}
 				
 			}
@@ -505,7 +505,10 @@ function OnNetworkInput(IN : InputState)
 	{
 		if(m_AimTarget != null)
 		{
-			
+			//GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 12, -37);
+			//GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_FocalOffset = Vector3(11, 0, 0);
+			//GetComponent(BeeScript).m_Camera.GetComponent.<Camera>().fov = 15;
+			//GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 2.5;
 			var ang:float = Vector3.Angle((m_AimTarget.transform.position - transform.position).normalized, transform.forward);
 			if(Vector3.Dot((m_AimTarget.transform.position - transform.position).normalized, transform.right) < 0)
 			{
@@ -520,6 +523,11 @@ function OnNetworkInput(IN : InputState)
 			{
 				m_AimTarget = null;
 				m_Heading = transform.localEulerAngles.y;
+				
+				// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 20, -60);
+				// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_FocalOffset = Vector3(0, 0, 0);
+				// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 10;
+				// GetComponent(BeeScript).m_Camera.GetComponent.<Camera>().fov = 48;
 			}
 			
 			// GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov = Mathf.Lerp(GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov, 16, Time.deltaTime *2);
@@ -533,6 +541,10 @@ function OnNetworkInput(IN : InputState)
 		{
 			m_AimTarget = null;
 			m_Heading = transform.localEulerAngles.y;
+			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_DefaultOffset = Vector3(0, 20, -60);
+			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_FocalOffset = Vector3(0, 0, 0);
+			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 10;
+			// GetComponent(BeeScript).m_Camera.GetComponent.<Camera>().fov = 48;
 			// GetComponent(BeeScript).m_Camera.GetComponent(Camera).fov = 33;
 			// GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).m_Pitch = 10;
 		}
@@ -714,7 +726,7 @@ function OnPlayerTurn(ang:float)
 	if(NetworkUtils.IsControlledGameObject(gameObject))
 	{
 		
-		AudioSource.PlayClipAtPoint(m_StartReloadSound, transform.position);
+		AudioSource.PlayClipAtPoint(m_StartReloadSound, Camera.main.transform.position);
 	}
 	GetComponent(BeeScript).m_Weapon.GetComponent(WeaponScript).Reload(false);
 }
@@ -730,7 +742,7 @@ function OnPlayerTurn(ang:float)
 	powerShot.name = "PowerShotEffect";
 	powerShot.transform.position = transform.position;
 	powerShot.transform.parent = transform;
-	GetComponent.<AudioSource>().PlayClipAtPoint(m_PowerShotEffectSound, transform.position);
+	GetComponent.<AudioSource>().PlayClipAtPoint(m_PowerShotEffectSound, Camera.main.transform.position);
 	GameObject.Find(gameObject.name+"/Bee/NewBee").GetComponent.<Animation>().Stop();
 	GameObject.Find(gameObject.name+"/Bee/NewBee").GetComponent.<Animation>().Play("charge_powershot");
 }
@@ -894,8 +906,8 @@ function PowershotAnim()
 	if(GetComponent(TreeHideDecorator) == null)
 	{
 		Debug.Log("Hiding "+tree);
-		gameObject.AddComponent(TreeHideDecorator);
-		GetComponent(TreeHideDecorator).Hide(gameObject.Find(tree));
+		//gameObject.AddComponent(TreeHideDecorator);
+		//GetComponent(TreeHideDecorator).Hide(gameObject.Find(tree));
 	}
 }
 

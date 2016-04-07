@@ -3,10 +3,13 @@
 #pragma strict
 
 private var  m_PrevSpeed : float;
-private var  m_Lifetime : float = 0.25;
+private var  m_Lifetime : float = 0.20;
 private var m_MaxSpeed : float;
 private var m_Disabled : boolean = false;
 private var m_TracerParticles:GameObject = null;
+
+private var m_Boosting:boolean = false;
+private var m_BodyVel:Vector3;
 function Awake()
 {
 	
@@ -17,6 +20,9 @@ function Start () {
 	m_MaxSpeed = m_PrevSpeed * 4.0;
 	GetComponent(UpdateScript).m_MaxSpeed = m_MaxSpeed;
 	GetComponent(TrailRenderer).enabled = true;
+	
+	m_BodyVel = transform.InverseTransformVector(GetComponent(UpdateScript).m_Vel);
+	m_BodyVel.Normalize();
 	//Debug.Log(m_MaxSpeed);
 	m_TracerParticles = gameObject.Instantiate(Resources.Load("GameObjects/BeeDashTracerParticles"),transform.position, Quaternion.identity);
 	m_TracerParticles.transform.parent = transform;
@@ -46,26 +52,41 @@ function Start () {
 	
 }
 
+// function OnNetworkInput(IN : InputState)
+// {
+	// if(!GetComponent.<NetworkView>().isMine)
+	// {
+		// return;
+	// }
+	
+	// // if(IN.GetAction(IN.DASH))
+	// // {
+	
+		// // if(Mathf.Abs(m_PrevSpeed - m_MaxSpeed) > 0.1 )
+		// // {
+			// // m_Lifetime	= 0.25;
+			// // m_MaxSpeed += (m_PrevSpeed - m_MaxSpeed) * Time.deltaTime*4;
+		// // }
+		// // else
+			// // m_Lifetime = 0;
+	// // }
+// }
 function OnNetworkInput(IN : InputState)
 {
-	if(!GetComponent.<NetworkView>().isMine)
+	if(!GetComponent.<NetworkView>().isMine || GetComponent(ControlDisablerDecorator) != null)
 	{
 		return;
 	}
-	
-	// if(IN.GetAction(IN.DASH))
-	// {
-	
-		// if(Mathf.Abs(m_PrevSpeed - m_MaxSpeed) > 0.1 )
-		// {
-			// m_Lifetime	= 0.25;
-			// m_MaxSpeed += (m_PrevSpeed - m_MaxSpeed) * Time.deltaTime*4;
-		// }
-		// else
-			// m_Lifetime = 0;
-	// }
-}
 
+	if(IN.GetAction(IN.DASH))
+	{
+		//m_Boosting = true;
+	}
+	else
+	{
+		m_Boosting = false;
+	}
+}
 function Update () {
 	GetComponent(TrailRenderer).enabled = true;
 	if(m_Disabled)
@@ -84,14 +105,15 @@ function Update () {
 	// else if(Vector3.Dot(transform.right, GetComponent(UpdateScript).m_Vel.normalized) < -0.3)
 		// transform.eulerAngles.z = m_Lifetime / 0.25 * -359;
 	
-	if(m_Lifetime <= 0.0)
+	if(m_Lifetime <= 0.0 )
 	{
-		
-		Destroy(this);
-	}
-	else
-	{
-		
+		if(m_Boosting)
+		{
+			GetComponent(UpdateScript).m_MaxSpeed = m_MaxSpeed *0.35;
+			GetComponent(UpdateScript).m_Vel = transform.TransformVector(m_BodyVel) * m_MaxSpeed *0.35;
+		}
+		else
+			Destroy(this);
 	}
 }
 

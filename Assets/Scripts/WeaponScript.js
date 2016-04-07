@@ -156,7 +156,7 @@ function Reload(bInstantaneous:boolean)
 			go.transform.parent = m_Owner.transform;
 	}
 
-	AudioSource.PlayClipAtPoint(m_SoundEffect, m_Owner.transform.position);
+	AudioSource.PlayClipAtPoint(m_SoundEffect, Camera.main.transform.position);
 	
 	//transform.Find("Bee/NewBee").animation.Stop();
 	m_Owner.transform.Find("Bee/NewBee").GetComponent.<Animation>().Stop("flyandshoot");

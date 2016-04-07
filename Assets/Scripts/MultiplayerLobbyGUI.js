@@ -359,6 +359,7 @@ function Update() {
 				if(!m_PlayerStates[i].m_NameEntered)
 				{
 					var currInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right")+Input.GetAxis("Joy"+i+" Dpad Left/Right");
+					var currVertInput:float = Input.GetAxis("Joy"+i+" Strafe Left/Right")+Input.GetAxis("Joy"+i+" Dpad Up/Down");
 					//guiScript.m_Text = "< Enter Name >";
 					
 					if(currInput != 0 && pLastInput[i] == 0)
@@ -379,15 +380,16 @@ function Update() {
 								m_PlayerStates[i].m_AlphaIndex = 95;
 						}
 						
-						if(System.Convert.ToChar(m_PlayerStates[i].m_AlphaIndex).ToString() == "@" &&  m_PlayerStates[i].m_Name.length > 0)
-						{
-							guiScript.m_Text = m_PlayerStates[i].m_Name + " -OK?";
-							
-						}
-						else
+					
 							guiScript.m_Text = m_PlayerStates[i].m_Name + System.Convert.ToChar(m_PlayerStates[i].m_AlphaIndex).ToString();
 						
 					}
+					
+					if(currVertInput != 0 && pLastInput[i] == 0)
+					{
+						guiScript.m_Text = m_PlayerStates[i].m_Name + " -OK?";
+					}
+					
 					pLastInput[i] = currInput;
 					if(guiScript.m_Text.IndexOf(" -OK?") != -1 )
 						guiScript.m_Color.a = (Mathf.Sin(Time.time*8)+1.25)* 0.5;
@@ -602,7 +604,6 @@ function Update() {
 					}
 	
 				}
-				
 				//player chooses swag
 				else if(!m_PlayerStates[i].m_Ready)
 				{
@@ -630,12 +631,25 @@ function Update() {
 						
 						if(currSwag != null)
 							Destroy(currSwag);
-						SetPlayerStats(i, Random.Range(0.0,1.0),Random.Range(0.0,1.0),Random.Range(0.0,1.0));
+						
 						
 						if(m_PlayerStates[i].m_SwagIndex != -1)
 						{							
 							currSwag = GameObject.Instantiate(swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject);
 							m_PlayerStates[i].m_Swag = swag.transform.GetChild(m_PlayerStates[i].m_SwagIndex).gameObject.name;
+							if(m_PlayerStates[i].m_Swag == 'Guardian')
+								SetPlayerStats(i, 1,0.5,0.25);
+							else
+							if(m_PlayerStates[i].m_Swag == 'Saboteur')
+								SetPlayerStats(i, 0.5,1,0.5);
+							else
+							if(m_PlayerStates[i].m_Swag == 'Scout')
+								SetPlayerStats(i, 0.25,0.75,1);
+							else
+							if(m_PlayerStates[i].m_Swag == 'Raider')
+								SetPlayerStats(i, 0.75,0.5,0.5);
+							else
+								SetPlayerStats(i, Random.Range(0.0,1.0),Random.Range(0.0,1.0),Random.Range(0.0,1.0));
 							currSwag.name = "swag";
 							currSwag.transform.parent = null;
 							currSwag.transform.parent = GameObject.Find("Bee"+(i+1)+"/NewBee/body/head").transform;
@@ -766,7 +780,7 @@ function Update() {
 		}		
 	}
 	
-	if(Input.GetButtonDown("Joy0 Cancel"))
+	if(Input.GetButtonDown("Joy0 Cancel") && !m_IsAnimating)
 	{
 		if(m_LocalPlayerScreen)
 		{
@@ -806,10 +820,11 @@ function ShowPlayerStats(playerNum:int,b:boolean)
 
 function SetPlayerStats(playerNum:int, s1:float, s2:float, s3:float)
 {
+	GameObject.Find("P"+(playerNum+1)+"_ArmorText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s1;
+	GameObject.Find("P"+(playerNum+1)+"_StaminaText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s2;
+	GameObject.Find("P"+(playerNum+1)+"_SpeedText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s3;
 	
-	GameObject.Find("P"+(playerNum+1)+"_SpeedText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s1;
-	GameObject.Find("P"+(playerNum+1)+"_ArmorText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s2;
-	GameObject.Find("P"+(playerNum+1)+"_StaminaText").transform.GetChild(0).GetComponent(GUIScript).m_Style.fixedWidth = 92 * s3;
+	
 }
 
 

@@ -736,7 +736,7 @@ function KillBulletOriented(pos:Vector3, norm:Vector3)
 		// }
 	}
 	if(m_HitSoundEffect != null)
-		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
+		AudioSource.PlayClipAtPoint(m_HitSoundEffect, Camera.main.transform.position);
 	Destroy(gameObject);
 } 
 
@@ -791,7 +791,7 @@ function KillBullet(pos:Vector3, collision:boolean)
 	}
 	
 	if(m_HitSoundEffect != null)
-		AudioSource.PlayClipAtPoint(m_HitSoundEffect, pos);
+		AudioSource.PlayClipAtPoint(m_HitSoundEffect, Camera.main.transform.position);
 	
 	RecycleBullet(gameObject);
 	//if(m_PowerShot)
