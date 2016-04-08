@@ -278,7 +278,11 @@ function SetLifetime(time : float)
 function OnDestroy()
 {
 	if(!gameObject.active)
+	{
+		GetComponent(BeeScript).Show(true);
 		return;
+	}
+		
 	
 	if(NetworkUtils.IsLocalGameObject(gameObject))
 	{

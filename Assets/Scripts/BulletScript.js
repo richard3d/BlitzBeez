@@ -41,6 +41,19 @@ class BulletCollision implements System.IComparable
      }  
 }
 
+static function ClearBulletPools() 
+{
+	for(var i:int = 0; i < m_BulletPool.length; i++)
+	{
+		m_BulletPool[i] = null;
+	}
+	
+	for(i = 0; i < m_PowerBulletPool.length; i++)
+	{
+		m_PowerBulletPool[i] = null;
+	}
+}
+
 static function SpawnBullet(bulletType:GameObject, pos:Vector3, vel:Vector3) : GameObject
 {
 	var bs:BulletScript = bulletType.GetComponent(BulletScript);

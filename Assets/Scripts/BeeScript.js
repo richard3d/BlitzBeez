@@ -1092,11 +1092,14 @@ function OnTriggerEnter(other:Collider)
 		}
 		else if(other.gameObject.tag == "Explosion" && (other.gameObject.GetComponent(BombExplosionScript).m_Owner != null && other.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Team))
 		{
+			var owner:GameObject = other.gameObject.GetComponent(BombExplosionScript).m_Owner;
 			//Physics.IgnoreCollision(other.gameObject.GetComponent(Collider), gameObject.GetComponent(CharacterController));
 			if(m_HP - other.gameObject.GetComponent(BombExplosionScript).m_Damage <= 0)
 			{
 				Debug.Log("Bomb killing " +gameObject.GetComponent(Collider));
-				KillAndRespawn(true, null);
+				owner.GetComponent(BeeScript).m_Kills++;
+				CoinScript.SpawnCoins(transform.position, 3, owner);
+				KillAndRespawn(true, owner);
 			}
 			else
 			{

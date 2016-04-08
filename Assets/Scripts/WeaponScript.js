@@ -79,6 +79,7 @@ function DoPylonLogic(i:int)
 			bulletPos.y = m_Owner.transform.position.y;
 			
 			var go : GameObject = null;
+			Debug.Log(m_LoadOut.m_Pylons[i].m_BulletInstance);
 			go = BulletScript.SpawnBullet(m_LoadOut.m_Pylons[i].m_BulletInstance,bulletPos,Vector3.zero);
 			GetComponent.<NetworkView>().RPC("InitRound", RPCMode.All, go.name, bulletPos, bulletVel * go.GetComponent(UpdateScript).m_MaxSpeed, true);
 			

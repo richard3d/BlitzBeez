@@ -775,6 +775,7 @@ function GetGameObject() : GameObject
 		gun.name = "gun";
 		gun.GetComponent(WeaponScript).SetOwner(m_Clients[clientID].m_GameObject);
 		m_Clients[clientID].m_GameObject.GetComponent(BeeScript).m_Weapon = gun;
+		BulletScript.ClearBulletPools();
 		
 		if(m_Clients[clientID].m_Swag != "")
 		{

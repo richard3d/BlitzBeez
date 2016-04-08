@@ -91,7 +91,12 @@ function Update () {
 					}
 					count++;
 					Camera.main.fov = 60;
+					
+					//may need this when networking is back on
+					//DestroyImmediate(GameObject.Find(player.name+"/Bee/NewBee/body/r_shoulder/r_arm/r_hand/gun"));
+					
 					var bee:GameObject = GameObject.Instantiate(GameObject.Find(player.name+"/Bee"));
+					GlobalUtils.ShowRecursive(bee.transform);
 					bee.name = bee.name + count;
 					if( count % 2)
 					{

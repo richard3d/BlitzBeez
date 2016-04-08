@@ -75,6 +75,29 @@ function OnTriggerEnter(coll : Collider)
 			else	
 				coll.gameObject.GetComponent(BeeScript).KillAndRespawn(true, null);
 		}
+	}else
+	if(coll.gameObject.tag == "Explosion")
+	{
+		//networkView.RPC("Burn", RPCMode.All);
+		// var go : GameObject = gameObject.Instantiate(m_FireEffect);
+		// go.transform.parent = gameObject.transform;
+		// go.transform.position = gameObject.transform.position;
+		// go.transform.position.y = 7;
+		// animation.Play();
+		if(Network.isServer)
+			GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView.RPC("SendRPC", RPCMode.All, gameObject.name, "Burn");
+		// players  = gameObject.FindGameObjectsWithTag("Player");
+		// for(player  in players)
+		// {
+			// if(player.GetComponent(TreeHideDecorator) != null &&
+				// player.GetComponent(TreeHideDecorator).m_Tree == gameObject)
+			// {
+				// diff.y = 0;
+				// ServerRPC.Buffer(player.GetComponent.<NetworkView>(), "KillBee", RPCMode.All, true);
+				// //player.networkView.RPC("RemoveTreeDecorator", RPCMode.All, -diff);
+				
+			// }
+		// }
 	}
 }
 
@@ -129,29 +152,7 @@ function OnCollisionEnter(coll : Collision)
 		 }
 	}
 	
-	if(coll.gameObject.tag == "Explosion")
-	{
-		//networkView.RPC("Burn", RPCMode.All);
-		// var go : GameObject = gameObject.Instantiate(m_FireEffect);
-		// go.transform.parent = gameObject.transform;
-		// go.transform.position = gameObject.transform.position;
-		// go.transform.position.y = 7;
-		// animation.Play();
-		if(Network.isServer)
-			GameObject.Find("GameServer").GetComponent(ServerScript).m_GameplayMsgsView.RPC("SendRPC", RPCMode.All, gameObject.name, "Burn");
-		players  = gameObject.FindGameObjectsWithTag("Player");
-		for(player  in players)
-		{
-			if(player.GetComponent(TreeHideDecorator) != null &&
-				player.GetComponent(TreeHideDecorator).m_Tree == gameObject)
-			{
-				diff.y = 0;
-				ServerRPC.Buffer(player.GetComponent.<NetworkView>(), "KillBee", RPCMode.All, true);
-				//player.networkView.RPC("RemoveTreeDecorator", RPCMode.All, -diff);
-				
-			}
-		}
-	}
+	
     
 }
 
@@ -162,11 +163,17 @@ function OnCollisionEnter(coll : Collision)
 		return;
 	go.GetComponent(BeeScript).SetHP(go.GetComponent(BeeScript).m_HP-1);
 				
+				
+	
 	var fire:GameObject = GameObject.Instantiate(m_FireEffect, go.transform.position, Quaternion.identity);
 	fire.name = "fire";
 	//fire.GetComponent(ParticleSystem).simulationSpace = ParticleSystemSimulationSpace.World;
 	fire.transform.parent = go.transform;
 	fire.transform.position = go.transform.position;
+	
+	//gameObject.AddComponent(ParticleSystem);
+	fire.GetComponent(ParticleSystem).shape.shapeType = ParticleSystemShapeType.MeshRenderer;
+	fire.GetComponent(ParticleSystem).shape.meshRenderer = go.GetComponent(MeshRenderer);
 }
 
 @RPC function Burn()
@@ -180,8 +187,17 @@ function OnCollisionEnter(coll : Collision)
 	go.transform.parent = gameObject.transform;
 	go.transform.position = gameObject.transform.position;
 	go.transform.position.y = 7;
+	
+	for(var t :Transform in go.transform)
+	{
+		t.GetComponent(ParticleSystem).shape.shapeType = ParticleSystemShapeType.MeshRenderer;
+		t.GetComponent(ParticleSystem).shape.meshRenderer = GetComponent(MeshRenderer);
+	}
+	
+	
 	GetComponent.<Animation>().Stop();
 	GetComponent.<Animation>().Play();	
+	
 }
 
 function OnCollisionStay(coll : Collision)

@@ -60,6 +60,9 @@ function Update () {
 			m_Owner.GetComponent(BeeScript).m_Honey += 0.1;
 		}
 	}
+	var clr:float = (Mathf.Sin(Time.time*3)+1)*0.25;
+	GetComponent(MeshRenderer).materials[2].SetColor("_Emission", Color(clr,clr,clr));
+	GetComponent(MeshRenderer).materials[0].SetColor("_Emission", Color(clr,clr,clr));
 
 }
 
@@ -216,12 +219,18 @@ function OnTriggerStay(coll : Collider)
 {
 	var player:GameObject = null;
 	//coll.gameObject.GetComponent(BeeControllerScript).m_NearestObject = null;
-	if(coll.gameObject.tag == "Explosion" && coll.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team)
+	if(coll.gameObject.tag == "Explosion")
 	{
-		if(Network.isServer && m_HP > 0)
-		{	
-			m_HP -= m_BaseHP;
-			ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP",RPCMode.All, m_HP);
+		if(coll.gameObject.GetComponent(BombExplosionScript).m_Owner != null && m_Owner != null)
+		{
+			if(coll.gameObject.GetComponent(BombExplosionScript).m_Owner.GetComponent(BeeScript).m_Team != m_Owner.GetComponent(BeeScript).m_Team)
+			{
+				if(Network.isServer && m_HP > 0)
+				{	
+					m_HP -= m_BaseHP;
+					ServerRPC.Buffer(GetComponent.<NetworkView>(), "SetHP",RPCMode.All, m_HP);
+				}
+			}
 		}
 	}
 	else
