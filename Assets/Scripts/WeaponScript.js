@@ -7,7 +7,11 @@ var m_EffectPerRound : boolean = false;	//determines whether muzzle flash and so
 var m_KickbackAmt : float = 0;
 var m_KickbackRecoveryTime : float = 0;
 var m_ClipSize : int = 0;
-//@HideInInspector
+var m_Shake : float = 0;
+var m_ShakeDuration : float = 0;
+
+
+@HideInInspector
 var m_Ammo : int = 0;
 var m_DecrementAmmoPerRound : boolean = false;	//Set this to true when a loadout shoots bursts like an assault rifle to have the ammo decrement for each round rather than each time the trigger is pulled
 var m_ReloadTime : float = 0;
@@ -138,7 +142,7 @@ function Reload(bInstantaneous:boolean)
 		if(m_Ammo <= 0)
 			Reload(false);
 	}
-	
+	m_Owner.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(m_ShakeDuration,m_Shake);
 	var go : GameObject = gameObject.Instantiate(m_MuzzleEffect);
 	var size:float = 1;
 
@@ -168,10 +172,11 @@ function Reload(bInstantaneous:boolean)
 	//perform kick back
 	if(m_KickbackRecoveryTime != 0)
 	{
-		m_Owner.AddComponent(ControlDisablerDecorator);
-		m_Owner.GetComponent(ControlDisablerDecorator).SetLifetime(m_KickbackRecoveryTime);
-		m_Owner.GetComponent(UpdateScript).m_Accel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_KickbackAmt;
-		m_Owner.GetComponent(UpdateScript).m_Vel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_KickbackAmt;
+		m_Owner.AddComponent(KinematicDecorator);
+		m_Owner.GetComponent(KinematicDecorator).m_Lifetime = (m_KickbackRecoveryTime);
+		m_Owner.GetComponent(KinematicDecorator).m_VelScalar = m_KickbackAmt;
+		//m_Owner.GetComponent(UpdateScript).m_Accel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_KickbackAmt;
+		//m_Owner.GetComponent(UpdateScript).m_Vel = -m_Owner.transform.forward * m_Owner.GetComponent(UpdateScript).m_MaxSpeed*m_KickbackAmt;
 	}
 }
 
@@ -185,7 +190,10 @@ function Reload(bInstantaneous:boolean)
 			Reload(false);
 	}
 	if(m_EffectPerRound)
+	{
 		AudioSource.PlayClipAtPoint(m_SoundEffect, m_Owner.transform.position);
+		m_Owner.GetComponent(BeeScript).m_Camera.GetComponent(CameraScript).Shake(m_ShakeDuration,m_Shake);
+	}
 	var go : GameObject = gameObject.Find(bulletName);
 	//make it so we dont collide with our own bullets
 	if(go.GetComponent.<Collider>().enabled && m_Owner.GetComponent.<Collider>().enabled)

@@ -170,7 +170,7 @@ function Update () {
 	
 	
 	var joyStr = "Joy"+m_JoyOwner+" ";
-	//if(Application.isEditor)
+	if(Application.isEditor)
 		joyStr = "Joy"+0+" ";
 	
 	//handle movement keys

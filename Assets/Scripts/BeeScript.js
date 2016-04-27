@@ -718,7 +718,11 @@ function DrawGUI()
 			
 			//ammo count 
 			if(ammo == 0)
+			{
+				GUI.color = Color.red;
 				GUI.Label(Rect(30*camScale, 0, 132*camScale,132*camScale), "--", SmallFontStyle);
+				GUI.color = Color.white;
+			}
 			else
 				GUI.Label(Rect(30*camScale, 0, 132*camScale,132*camScale), (ammo < 10 ? "0" +ammo.ToString() : ammo.ToString()), SmallFontStyle);
 			

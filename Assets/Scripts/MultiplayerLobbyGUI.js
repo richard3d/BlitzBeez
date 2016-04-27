@@ -379,13 +379,11 @@ function Update() {
 							if(m_PlayerStates[i].m_AlphaIndex < 48)
 								m_PlayerStates[i].m_AlphaIndex = 95;
 						}
-						
 					
-							guiScript.m_Text = m_PlayerStates[i].m_Name + System.Convert.ToChar(m_PlayerStates[i].m_AlphaIndex).ToString();
-						
+						guiScript.m_Text = m_PlayerStates[i].m_Name + System.Convert.ToChar(m_PlayerStates[i].m_AlphaIndex).ToString();	
 					}
 					
-					if(currVertInput != 0 && pLastInput[i] == 0)
+					if(currVertInput != 0 && pLastInput[i] == 0 && guiScript.m_Text != "< Enter Name >")
 					{
 						guiScript.m_Text = m_PlayerStates[i].m_Name + " -OK?";
 					}
@@ -454,22 +452,22 @@ function Update() {
 								}
 							}
 						
-							if(guiScript.m_Text[guiScript.m_Text.Length-1] == "_")
+							if(guiScript.m_Text != "< Enter Name >")
 							{
-								m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(guiScript.m_Text.Length-2);
-								guiScript.m_Text = m_PlayerStates[i].m_Name+"_";
-							}
-							else
-							{
-								if(!guiScript.m_Text.Contains("-OK?"))
+								if(guiScript.m_Text[guiScript.m_Text.Length-1] == "_")
 								{
-								m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(guiScript.m_Text.Length-1);
-								guiScript.m_Text = m_PlayerStates[i].m_Name+"_";
+									m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(guiScript.m_Text.Length-2);
+									guiScript.m_Text = m_PlayerStates[i].m_Name+"_";
 								}
-							}						
-							//m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(m_PlayerStates[i].m_Name.Length-1);
-							//guiScript.m_Text = m_PlayerStates[i].m_Name;
-							//if(guiScript.m_Text.IndexOf("_") == -1)
+								else
+								{
+									if(!guiScript.m_Text.Contains("-OK?"))
+									{
+									m_PlayerStates[i].m_Name = guiScript.m_Text.Remove(guiScript.m_Text.Length-1);
+									guiScript.m_Text = m_PlayerStates[i].m_Name+"_";
+									}
+								}	
+							}								
 						}
 						
 					}
@@ -529,18 +527,18 @@ function Update() {
 					
 					if(Input.GetButtonDown("Joy"+i+" Cancel"))
 					{
-							if( i == 0)
+						if( i == 0)
+						{
+							AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
+							MenuExit(false);
+							for(t = 0; t < m_PlayerStates.length; t++)
 							{
-								AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
-								MenuExit(false);
-								for(t = 0; t < m_PlayerStates.length; t++)
-								{
-									m_PlayerStates[t].m_Joined = false;
-									GameObject.Find("P"+(t+1)+"_Text").GetComponent(GUIScript).enabled = false;
-									GameObject.Find("P"+(t+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
-								}
-								CameraOutro();
+								m_PlayerStates[t].m_Joined = false;
+								GameObject.Find("P"+(t+1)+"_Text").GetComponent(GUIScript).enabled = false;
+								GameObject.Find("P"+(t+1)+"_TeamIcon").GetComponent(GUIScript).enabled = false;
 							}
+							CameraOutro();
+						}
 					}
 				}
 				else	
@@ -596,11 +594,11 @@ function Update() {
 					
 					if(Input.GetButtonDown("Joy"+i+" Cancel"))
 					{
-							if( i == 0)
-							{
-								m_PlayerStates[i].m_TeamChosen = false;
-								AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
-							}
+						//if( i == 0)
+						//{
+							m_PlayerStates[i].m_TeamChosen = false;
+							AudioSource.PlayClipAtPoint(m_MenuBack, Camera.main.transform.position);
+						//}
 					}
 	
 				}
